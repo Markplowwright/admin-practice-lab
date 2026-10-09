@@ -98,14 +98,16 @@ function render(){
 
 /* =============== EVENTS =============== */
 document.addEventListener("click",function(e){
+  var collapse=!!(S.guide&&e.target.closest&&e.target.closest("#app")&&!e.target.closest(".guide"));
   var t=e.target.closest("[data-a]");
-  if(!t){if(!e.target.closest("#pop")){hidePop();}return;}
-  if(t.disabled){return;}
+  if(!t){if(!e.target.closest("#pop")){hidePop();}if(collapse){S.guide=false;render();}return;}
+  if(collapse&&t.dataset.a!=="guide"){S.guide=false;}
+  if(t.disabled){if(collapse){render();}return;}
   var name=t.dataset.a,f=A[name];
-  if(!f){return;}
+  if(!f){if(collapse){render();}return;}
   if(name==="chk"){f(t.dataset,t);render();return;}
   f(t.dataset,t);
-  if(!NR[name]){render();}
+  if(!NR[name]||collapse){render();}
 });
 document.addEventListener("mouseover",function(e){var t=e.target.closest&&e.target.closest(".i");if(t&&t!==popFor){hidePop();showPop(t);}});
 document.addEventListener("submit",function(e){
