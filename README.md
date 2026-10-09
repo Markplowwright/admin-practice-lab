@@ -4,9 +4,7 @@ Practice real Microsoft 365 admin work with nothing to break. A browser-based si
 
 **Try it now:** https://markplowwright.github.io/admin-practice-lab/
 
-<!-- Add a screenshot or GIF here once you have one:
 ![Admin Practice Lab](docs/screenshot.png)
--->
 
 > This is a learning simulator. It does not connect to Microsoft, and all users, passwords, and domains in it are fake. Nothing you do here touches a real tenant.
 
@@ -47,6 +45,12 @@ No build step. Open `index.html` in a browser, or serve the folder:
 python3 -m http.server 8000
 ```
 
+The checks behind licenses, enrollment, and mission steps live in `js/rules.js`. From the project folder:
+
+```bash
+node --test tests/rules.test.js
+```
+
 Progress is saved in your browser's `localStorage`, so it stays on that browser and device. Use **Reset lab** in the guide to start over, or the **Introduction walk through** button to see the intro again.
 
 ## Deploy to GitHub Pages
@@ -64,7 +68,16 @@ Settings > Pages > Source: **Deploy from a branch** > Branch: `main`, folder `/ 
 
 | File | Purpose |
 |---|---|
-| `index.html` | The whole app (HTML, CSS, vanilla JS, no dependencies, no backend) |
+| `index.html` | Page shell. Loads the styles and scripts below. No build step. |
+| `css/app.css` | Layout and portal styles |
+| `js/state.js` | Saved tenant, ids, users, and licenses |
+| `js/rules.js` | Enrollment rules and mission checks. No page markup. |
+| `js/ui.js` | Shared buttons, tables, wizards, and glossary |
+| `js/entra.js`, `js/m365.js`, `js/exchange.js`, `js/intune.js` | The four admin centers |
+| `js/vm.js` | Virtual Windows laptop |
+| `js/guide.js` | Lab guide, welcome page, and tour |
+| `js/render.js` | Drawing the page and handling clicks |
+| `tests/rules.test.js` | Checks for ids, licenses, enrollment, and mission steps |
 | `LICENSE` | MIT |
 
 ## Disclaimer
