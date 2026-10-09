@@ -289,7 +289,7 @@ h2.sec{font-size:16px;font-weight:600;margin:18px 0 8px}
 .intro .pf .tag{display:inline-block;margin:0 0 4px}
 .intro .pf span{display:block}
 .intro .pflap{display:flex;align-items:center;justify-content:center;gap:14px;max-width:480px;margin:0 auto 10px;padding:10px 16px;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:var(--infobg);font-size:13px;line-height:18px}
-.intro .pflap svg{flex:none;display:block;width:72px;height:46px;max-width:72px}
+.intro .pflap .ic{flex:none;width:24px;height:24px;color:var(--brand)}
 .intro .pflap span{display:block}
 .intro .pflap .tag{display:inline-block;margin:0 0 4px}
 @media (max-width:480px){.intro .pflap{flex-direction:column;text-align:center}}
@@ -1923,10 +1923,9 @@ function introHtml(){
   var n=Math.max(0,Math.min(INTRO_STEPS-1,S.intro||0)),lv=levelsView(),next=nextMission(lv),h="",btns="";
   if(n===0){return welcomeHtml();}
   if(n===1){
-    var lapSvg='<svg class="lapimg" width="72" height="46" viewBox="0 0 120 76" aria-hidden="true" focusable="false"><path d="M8 54h104l-7 9H15z" fill="#b9bec5"/><path d="M48 54h24v3H48z" fill="#8d939b"/><rect x="24" y="4" width="72" height="50" rx="4" fill="#151515"/><rect x="28" y="8" width="64" height="42" rx="1.5" fill="#1d4fb0"/><circle cx="48" cy="26" r="16" fill="#3b82e8" opacity=".55"/><rect x="28" y="45" width="64" height="5" fill="#0a1c45"/><rect x="52" y="46.2" width="16" height="2.6" rx="1" fill="#8fb4ee"/></svg>';
     h='<h2 id="introT">Five places you will work</h2><ul class="pl pf">'+
       ['m365','entra','intune','exchange'].map(function(p){var t={m365:"People, licenses, mail forwarding and files.",entra:"Sign-in security, MFA, roles, groups, and who can enroll devices.",intune:"Laptops: Autopilot, policies, apps, retire and wipe.",exchange:"Mailboxes, forwarding and mail flow rules."}[p];return '<li><b class="tag '+p+'">'+esc(PNAME[p])+'</b><span>'+esc(t)+'</span></li>';}).join("")+'</ul>'+
-      '<div class="pflap">'+lapSvg+'<div><b class="tag vm">'+esc(PNAME.vm)+'</b><span>A pretend laptop for the on-device steps. What you do here shows up in Entra and Intune.</span></div></div>'+
+      '<div class="pflap">'+ico("device")+'<div><b class="tag vm">'+esc(PNAME.vm)+'</b><span>A pretend laptop for the on-device steps. What you do here shows up in Entra and Intune.</span></div></div>'+
       '<p class="small">All five share one set of users, groups, licenses and devices, like a real tenant.</p>';
     btns='<button type="button" class="btn link" data-a="introSkip">Skip</button><span class="sp"></span><button type="button" class="btn" data-a="introBack">Back</button><button type="button" class="btn primary" data-a="introNext">Next</button>';
   }else if(n===2){
