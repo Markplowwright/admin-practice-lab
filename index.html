@@ -42,6 +42,8 @@ button{cursor:pointer}
 .lab button:hover{background:#ffffff22}
 .lab button[aria-current="true"]{border-color:#fff8;background:#ffffff1f}
 .lab .sp{flex:1}
+.lab .introbtn{border-color:#ffb900;color:#ffb900;font-weight:600;margin-right:8px}
+.lab .introbtn:hover{background:#ffb90033}
 
 /* portal header */
 .phdr{display:flex;align-items:center;gap:10px;color:#fff;height:48px;padding:0 12px}
@@ -221,7 +223,46 @@ h2.sec{font-size:16px;font-weight:600;margin:18px 0 8px}
 .eql dd{margin:2px 0 0;font-size:13px;color:var(--muted)}
 .eql dd b{color:var(--ink);font-weight:600}
 
-/* first-open tour and finish screen */
+/* welcome page */
+.welcome{position:fixed;inset:0;z-index:80;overflow:auto;background:var(--bg);color:var(--ink)}
+.whero{position:relative;background:linear-gradient(135deg,#0b3d6e 0%,#0f6cbd 55%,#4a63d8 100%);color:#fff;padding:56px 24px 44px;text-align:center}
+.whero .wi{max-width:760px;margin:0 auto}
+.wbadge{display:inline-block;background:#ffffff26;border:1px solid #ffffff55;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;letter-spacing:.02em;margin-bottom:16px}
+.whero h1{margin:0 0 14px;font-size:clamp(26px,5vw,42px);line-height:1.15;font-weight:600}
+.whero p{margin:0 auto 24px;font-size:clamp(15px,2.4vw,18px);line-height:1.5;max-width:620px;color:#e8f1fb}
+.wcta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center}
+.welcome .btn.big{min-height:46px;padding:8px 24px;font-size:16px;border-radius:6px}
+.welcome .whero .btn.primary{background:#ffb900;border-color:#ffb900;color:#1b1a19}
+.welcome .whero .btn.primary:hover{background:#ffc83d}
+.welcome .whero .btn.ghost{background:transparent;border-color:#ffffffaa;color:#fff}
+.welcome .whero .btn.ghost:hover{background:#ffffff1f}
+.wstats{list-style:none;display:flex;gap:32px;justify-content:center;flex-wrap:wrap;padding:0;margin:30px 0 0}
+.wstats li{font-size:13px;color:#d8e8f8}
+.wstats b{display:block;font-size:28px;line-height:32px;font-weight:600;color:#fff}
+.wx2{position:absolute;top:12px;right:12px;background:#ffffff1f;border:1px solid #ffffff55;color:#fff;border-radius:6px;width:34px;height:34px;display:grid;place-items:center}
+.wx2:hover{background:#ffffff40}
+.wbody{max-width:980px;margin:0 auto;padding:30px 24px 56px}
+.wcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:32px}
+.wcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.wcard .ic{width:26px;height:26px;color:var(--brand);margin-bottom:8px}
+.wcard h2{margin:0 0 6px;font-size:16px}
+.wcard p{margin:0;color:var(--muted);font-size:14px;line-height:21px}
+.wsec{margin:0 0 12px;font-size:20px}
+.wpath{list-style:none;padding:0;margin:0 0 32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.wpath li{display:flex;gap:10px;align-items:flex-start;background:var(--infobg);border:1px solid var(--line);border-radius:8px;padding:12px}
+.wpath .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:600;font-size:13px}
+:root[data-theme="dark"] .wpath .n{color:#0a0a0a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .wpath .n{color:#0a0a0a}}
+.wpath small{display:block;color:var(--muted);font-size:12px;line-height:17px;margin-top:2px}
+.wwhy{background:var(--panel);border:1px solid var(--line);border-left:4px solid #ffb900;border-radius:10px;padding:22px 26px;margin-bottom:24px}
+.wwhy h2{margin:0 0 12px;font-size:20px}
+.wwhy blockquote{margin:0}
+.wwhy p{margin:0 0 12px;font-size:15px;line-height:24px}
+.wwhy .wby{margin:14px 0 0;color:var(--muted);font-size:13px}
+.wwhy .wby a{color:var(--brand)}
+.wfoot{text-align:center;color:var(--muted);font-size:12px;margin:0}
+
+/* tour steps and finish screen */
 #intro:empty{display:none}
 .introwrap{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.55)}
 .intro{background:var(--panel);color:var(--ink);border-radius:8px;box-shadow:var(--shadow);width:100%;max-width:580px;max-height:100%;overflow:auto;padding:20px 24px}
@@ -265,7 +306,17 @@ body[data-portal="vm"] .phdr{background:#2b2b2b}
 .vmbar{display:flex;gap:8px;margin:4px 0 10px}
 .vmgrid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
 @media (max-width:1150px){.vmgrid{grid-template-columns:1fr}}
-.vm{position:relative;height:620px;border:10px solid #151515;border-radius:14px;overflow:hidden;background:#0b1a33;color:#fff;font-family:"Segoe UI",system-ui,sans-serif;font-size:14px;line-height:20px;isolation:isolate}
+/* The virtual laptop is always drawn at one landscape size (16:10 screen plus base) and scaled to fit, so it never turns portrait. */
+.laptop{--s:1;width:100%;overflow-x:auto;overflow-y:hidden;padding-bottom:16px}
+.lwrap{position:relative;width:calc(960px*var(--s));height:calc(580px*var(--s));margin:0 auto}
+.lscale{position:absolute;left:0;top:0;width:960px;transform-origin:0 0;transform:scale(var(--s))}
+.lbase{height:18px;border-radius:0 0 24px 24px/0 0 14px 14px;background:linear-gradient(#e6e9ed,#b9bec5 55%,#8d939b);box-shadow:0 6px 14px rgba(0,0,0,.3);position:relative}
+.lbase::before{content:"";position:absolute;left:50%;top:0;width:160px;height:6px;margin-left:-80px;background:#9aa0a8;border-radius:0 0 10px 10px}
+@media (min-width:1280px){
+  body[data-portal="vm"].guide-open .content{padding-right:404px}
+  body[data-portal="vm"].guide-open .vmgrid{grid-template-columns:1fr}
+}
+.vm{position:relative;width:900px;height:562px;margin:0 30px;border:12px solid #151515;border-bottom-width:16px;border-radius:16px 16px 4px 4px;overflow:hidden;background:#0b1a33;color:#fff;font-family:"Segoe UI",system-ui,sans-serif;font-size:14px;line-height:20px;isolation:isolate}
 .vm button,.vm input{font-family:inherit}
 .vm .wall{position:absolute;inset:0;background:radial-gradient(circle at 28% 38%,#3b82e8 0,#1d4fb0 28%,#10306f 55%,#0a1c45 100%);z-index:0}
 .vm .lockwall{filter:saturate(.9) brightness(.8)}
@@ -359,15 +410,6 @@ body[data-portal="vm"] .phdr{background:#2b2b2b}
 .cmdin{display:flex;gap:8px;align-items:center;padding:8px 10px;background:#161616;color:#ddd;font:12.5px Consolas,monospace}
 .cmdin input{flex:1;min-width:0;background:#0c0c0c;color:#eee;border:1px solid #333;border-radius:4px;height:28px;padding:0 8px;font:12.5px Consolas,monospace}
 .vmside .tile{background:var(--panel)}
-@media (max-width:760px){
-  .vm{height:640px}
-  .set{grid-template-columns:1fr}
-  .setnav{display:flex;overflow-x:auto;padding:4px}
-  .setnav button{width:auto;white-space:nowrap}
-  .setuser{display:none}
-  .win{left:2%;right:2%}
-  .vm .wdl{grid-template-columns:1fr}
-}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -1609,7 +1651,7 @@ function vmPage(){
   if(d.state==="wiping"){resetDevice(d);v=d.vm;toast("The Intune wipe command arrived. The laptop restarted into setup.");}
   var scr=v.stage==="oobe"?oobeHtml(d):v.stage==="lock"?lockHtml(d):desktopHtml(d);
   return '<h1 class="ptitle">Windows laptop (virtual machine)'+info("oobe")+'</h1><p class="psub">'+esc(d.maker+" "+d.model)+', serial <span class="mono">'+esc(d.serial)+'</span>. Whatever you do here is reflected in Entra and Intune.</p>'+
-    '<div class="vmbar">'+B("Reset this PC","vmReset",{sm:1})+'</div><div class="vmgrid"><div class="vm" id="vmscreen">'+scr+'</div><aside class="vmside">'+vmSide(d)+'</aside></div>';
+    '<div class="vmbar">'+B("Reset this PC","vmReset",{sm:1})+'</div><div class="vmgrid"><div class="laptop" id="laptop"><div class="lwrap"><div class="lscale"><div class="vm" id="vmscreen">'+scr+'</div><div class="lbase" aria-hidden="true"></div></div></div></div><aside class="vmside">'+vmSide(d)+'</aside></div>';
 }
 A.openVm=function(ds){var d=D(ds.id);if(!d){return;}ensureVm(d);S.portal="vm";S.page=d.id;resetNav();};
 
@@ -1640,7 +1682,7 @@ function leftNav(){
 }
 function labBar(){
   var tot=0,done=0;missions().forEach(function(m){m.s.forEach(function(x){tot+=1;if(x[1]){done+=1;}});});
-  return '<div class="lab"><b>Practice lab</b>'+["m365","entra","intune","exchange","vm"].map(function(p){return '<button type="button" data-a="go" data-p="'+p+'" data-pg="'+DEFAULT[p]+'"'+(S.portal===p?' aria-current="true"':'')+'>'+esc(TITLES[p])+'</button>';}).join("")+'<span class="sp"></span><span>Simulated. Not the real portals.</span></div>';
+  return '<div class="lab"><b>Practice lab</b><button type="button" class="introbtn" data-a="tour">Introduction walk through</button>'+["m365","entra","intune","exchange","vm"].map(function(p){return '<button type="button" data-a="go" data-p="'+p+'" data-pg="'+DEFAULT[p]+'"'+(S.portal===p?' aria-current="true"':'')+'>'+esc(TITLES[p])+'</button>';}).join("")+'<span class="sp"></span><span>Simulated. Not the real portals.</span></div>';
 }
 function portalHeader(){
   return '<header class="phdr"><span class="waf">'+ico("apps")+'</span><h1>'+esc(TITLES[S.portal])+'</h1><div class="search">'+ico("search")+'<span>Search</span></div><span class="av" title="Admin (you)">AD</span></header>';
@@ -1825,7 +1867,7 @@ function guideHtml(){
     '<div class="meter" role="progressbar" aria-label="Overall progress" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div><div class="eqn">'+pr[0]+' of '+pr[1]+' steps done</div>'+
     '<div class="map"><b>Which tool for what</b><br>Microsoft 365 admin center: people, licenses, mail forwarding and files.<br>Entra admin center: sign-in security, MFA, roles, groups, and the MDM setting.<br>Intune admin center: laptops, policies, apps, Autopilot.<br>Exchange admin center: mailboxes and mail flow.<br>Windows laptop (virtual): the real work on the PC itself: setup, Settings, joining, Command Prompt.</div>'+
     lv.map(function(L){var lp=L.tot?Math.round(L.done/L.tot*100):0;return '<section class="lvl'+(L.complete?' done':'')+'" aria-label="Level '+L.n+'"><h3>Level '+L.n+': '+esc(L.name)+'<span class="ct">'+(L.complete?'Complete':L.done+'/'+L.tot)+'</span></h3><p>'+esc(L.d)+'</p><div class="meter" role="progressbar" aria-label="Level '+L.n+' progress" aria-valuenow="'+lp+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+lp+'%"></i></div>'+L.ms.map(function(m){return missionHtml(m,next);}).join("")+'</section>';}).join("")+
-    '<div class="btnrow">'+B("Replay the tour","tour",{sm:1})+B("Reset lab","resetLab",{sm:1})+'</div>';
+    '<div class="btnrow">'+B("Introduction walk through","tour",{sm:1})+B("Reset lab","resetLab",{sm:1})+'</div>';
   }else if(S.guideTab==="equiv"){
     body='<h3 style="margin:8px 0 0">Coming from Jamf or Google Admin?</h3>'+equivHtml();
   }else{
@@ -1835,25 +1877,50 @@ function guideHtml(){
 }
 
 /* =============== FIRST-OPEN TOUR AND FINISH SCREEN =============== */
-var INTRO_STEPS=4;
-function dots(n){var h='<div class="dots" aria-hidden="true">';for(var i=0;i<INTRO_STEPS;i++){h+='<i'+(i===n?' class="on"':'')+'></i>';}return h+'</div>';}
+var INTRO_STEPS=4;/* step 0 is the full-page welcome, steps 1 to 3 are the short tour */
+function dots(n){var h='<div class="dots" aria-hidden="true">';for(var i=1;i<INTRO_STEPS;i++){h+='<i'+(i===n?' class="on"':'')+'></i>';}return h+'</div>';}
+function welcomeHtml(){
+  var pr=progress(),lv=levelsView(),fresh=pr[0]===0,nm=0;
+  lv.forEach(function(L){nm+=L.ms.length;});
+  var cards=[
+    ["device","Nothing to set up","No Microsoft tenant, no sign-up, no install. Open the page and start clicking. Every user, password and device is fake, so you can't break anything."],
+    ["play","Guided missions","Follow step-by-step missions that name the portal and the exact menu path. Each step is checked off when you really do it in the lab."],
+    ["book","Learn why, not just where","After each mission you get a short explanation of why it works that way, with a comparison for people coming from Jamf or Google Admin."]
+  ];
+  var pd={1:"Prepare the tenant, onboard a new hire, license by group.",2:"Cut access in the right order and shrink admin rights.",3:"Close every door on a hacked account, then require MFA.",4:"Encryption, apps, and joining laptops to Entra and Intune."};
+  return '<div class="welcome" role="dialog" aria-modal="true" aria-labelledby="wT">'+
+    '<div class="whero">'+(fresh?'':'<button type="button" class="wx2" data-a="introSkip" aria-label="Close the introduction">'+ico("x")+'</button>')+
+      '<div class="wi"><span class="wbadge">Free practice lab</span><h1 id="wT">Learn Microsoft 365 admin work by doing it</h1>'+
+      '<p>Practice Microsoft 365, Entra ID, Intune and Exchange in a simulated tenant. No sign-up, nothing to install, and nothing real to break.</p>'+
+      '<div class="wcta"><button type="button" class="btn primary big" data-a="introNext">Take the 3-minute tour</button>'+
+      (fresh?'<button type="button" class="btn ghost big" data-a="introStart">Skip, start Level 1</button>':'<button type="button" class="btn ghost big" data-a="introSkip">Back to the lab</button>')+'</div>'+
+      '<ul class="wstats"><li><b>'+lv.length+'</b>levels</li><li><b>'+nm+'</b>missions</li><li><b>'+pr[1]+'</b>guided steps</li></ul></div></div>'+
+    '<div class="wbody">'+
+      '<div class="wcards">'+cards.map(function(c){return '<div class="wcard">'+ico(c[0])+'<h2>'+esc(c[1])+'</h2><p>'+esc(c[2])+'</p></div>';}).join("")+'</div>'+
+      '<h2 class="wsec">Your learning path</h2><ol class="wpath">'+lv.map(function(L){return '<li><span class="n">'+L.n+'</span><div><b>'+esc(L.name)+'</b><small>'+esc(pd[L.n]||L.d)+'</small></div></li>';}).join("")+'</ol>'+
+      '<section class="wwhy" aria-labelledby="whyT"><h2 id="whyT">Why I built this</h2><blockquote>'+
+        '<p>Hi, I\'m Mark. When I was learning Microsoft 365 admin work, I kept having to use YouTube to figure out how to do things. I wanted somewhere I could just practice, so I built this to help myself.</p>'+
+        '<p>Then I realized that if I had this trouble, a lot of other people must have it too. So I made it free for anyone who is learning the same things.</p></blockquote>'+
+        '<p class="wby">Built by Mark. <a href="https://github.com/Markplowwright/admin-practice-lab" target="_blank" rel="noopener">See the project on GitHub</a></p></section>'+
+      '<p class="wfoot">This is a learning simulator, not affiliated with or endorsed by Microsoft. Everything in it is fake data. You can come back to this page any time with the Introduction walk through button at the top.</p>'+
+    '</div></div>';
+}
 function introHtml(){
   var n=Math.max(0,Math.min(INTRO_STEPS-1,S.intro||0)),lv=levelsView(),next=nextMission(lv),h="",btns="";
-  if(n===0){
-    h='<h2 id="introT">Welcome to Admin Practice Lab</h2><p>Practice real Microsoft 365 admin work with nothing to break. There is no tenant to set up and no sign-up. You get a simulated admin console with fake users, passwords and devices, and missions that tell you exactly where to click.</p><p>Take the 3-minute tour, or skip it and start Level 1 right away.</p><p class="small">This is a learning simulator, not affiliated with Microsoft. Nothing here connects to a real tenant.</p>';
-    btns='<button type="button" class="btn link" data-a="introSkip">Skip, start Level 1</button><span class="sp"></span><button type="button" class="btn primary" data-a="introNext">Take the 3-minute tour</button>';
-  }else if(n===1){
+  if(n===0){return welcomeHtml();}
+  if(n===1){
     h='<h2 id="introT">Five places you will work</h2><ul class="pl">'+
-      ['m365','entra','intune','exchange','vm'].map(function(p){var t={m365:"Everyday people tasks: create users, assign licenses, handle files and mail forwarding.",entra:"Identity and security: sign-in logs, MFA, Conditional Access, roles, groups, and which devices may enroll.",intune:"Device management: Autopilot, compliance and configuration policies, apps, retire and wipe.",exchange:"Email: mailboxes, forwarding and mail flow rules.",vm:"A pretend PC for the on-device steps: setup screens, joining to Entra, Command Prompt. What you do here shows up in Entra and Intune."}[p];return '<li><b class="tag '+p+'">'+esc(PNAME[p])+'</b> '+esc(t)+'</li>';}).join("")+'</ul><p>They all share one set of users, groups, licenses and devices, just like a real tenant. Change something in one place and the others reflect it.</p>';
+      ['m365','entra','intune','exchange','vm'].map(function(p){var t={m365:"Everyday people tasks: create users, assign licenses, handle files and mail forwarding.",entra:"Identity and security: sign-in logs, MFA, Conditional Access, roles, groups, and which devices may enroll.",intune:"Device management: Autopilot, compliance and configuration policies, apps, retire and wipe.",exchange:"Email: mailboxes, forwarding and mail flow rules.",vm:"A pretend laptop for the on-device steps: setup screens, joining to Entra, Command Prompt. What you do here shows up in Entra and Intune."}[p];return '<li><b class="tag '+p+'">'+esc(PNAME[p])+'</b> '+esc(t)+'</li>';}).join("")+'</ul><p>They all share one set of users, groups, licenses and devices, just like a real tenant. Change something in one place and the others reflect it.</p>';
     btns='<button type="button" class="btn link" data-a="introSkip">Skip</button><span class="sp"></span><button type="button" class="btn" data-a="introBack">Back</button><button type="button" class="btn primary" data-a="introNext">Next</button>';
   }else if(n===2){
     h='<h2 id="introT">How missions work</h2><ul class="pl"><li>Open the <b>Lab guide</b> with the yellow button at the bottom right. Each mission is a short list of steps.</li><li>Every step names the portal and the menu path, with a <b>Go there</b> button that jumps straight to it.</li><li>A step is checked off when you actually do it in the lab, not when you click it.</li><li>When you finish a mission, the guide explains <b>why it works that way</b>.</li><li>Click the <b>i</b> icons anywhere for plain-English definitions.</li><li>Mistakes are safe. <b>Reset lab</b> in the guide restores the starting state.</li></ul><p class="small">Progress is saved in this browser only.</p>';
     btns='<button type="button" class="btn link" data-a="introSkip">Skip</button><span class="sp"></span><button type="button" class="btn" data-a="introBack">Back</button><button type="button" class="btn primary" data-a="introNext">Next</button>';
   }else{
-    h='<h2 id="introT">Your learning path</h2><ul class="pl">'+lv.map(function(L){return '<li><b>Level '+L.n+': '+esc(L.name)+'</b> ('+L.ms.length+(L.ms.length===1?' mission':' missions')+')<br><span class="small">'+esc(L.d)+'</span></li>';}).join("")+'</ul>'+(next?'<p>First up: <b>'+esc(next.t)+'</b>. '+esc(next.w)+'</p>':'')+'<p class="small">Coming from Jamf or Google Admin? The guide has a Jamf / Google tab that translates the ideas.</p>';
-    btns='<span class="sp"></span><button type="button" class="btn" data-a="introBack">Back</button><button type="button" class="btn primary" data-a="introStart">Start Level 1</button>';
+    var fresh=progress()[0]===0;
+    h='<h2 id="introT">Your learning path</h2><ul class="pl">'+lv.map(function(L){return '<li><b>Level '+L.n+': '+esc(L.name)+'</b> ('+L.ms.length+(L.ms.length===1?' mission':' missions')+')<br><span class="small">'+esc(L.d)+'</span></li>';}).join("")+'</ul>'+(next?'<p>'+(fresh?'First up':'Next up')+': <b>'+esc(next.t)+'</b>. '+esc(next.w)+'</p>':'')+'<p class="small">Coming from Jamf or Google Admin? The guide has a Jamf / Google tab that translates the ideas.</p>';
+    btns='<span class="sp"></span><button type="button" class="btn" data-a="introBack">Back</button>'+(fresh?'<button type="button" class="btn primary" data-a="introStart">Start Level 1</button>':'<button type="button" class="btn primary" data-a="introStart">Continue where I left off</button>');
   }
-  return '<div class="introwrap"><div class="intro" role="dialog" aria-modal="true" aria-labelledby="introT"><div class="stp">Step '+(n+1)+' of '+INTRO_STEPS+'</div>'+dots(n)+h+'<div class="btnrow">'+btns+'</div></div></div>';
+  return '<div class="introwrap"><div class="intro" role="dialog" aria-modal="true" aria-labelledby="introT"><div class="stp">Step '+n+' of '+(INTRO_STEPS-1)+'</div>'+dots(n)+h+'<div class="btnrow">'+btns+'</div></div></div>';
 }
 function finishHtml(){
   var lv=levelsView();
@@ -1885,7 +1952,7 @@ A.resetLab=function(){openModal("Reset the lab?","<p>This restores every user, g
 A.tour=function(){S.onboarded=false;S.intro=0;};
 A.introNext=function(){S.intro=Math.min(INTRO_STEPS-1,(S.intro||0)+1);};
 A.introBack=function(){S.intro=Math.max(0,(S.intro||0)-1);};
-A.introSkip=function(){S.onboarded=true;S.guide=true;S.guideTab="missions";};
+A.introSkip=function(){S.onboarded=true;if(progress()[0]===0){S.guide=true;S.guideTab="missions";}};
 A.introStart=function(){
   var m=nextMission(levelsView());
   S.onboarded=true;S.guide=true;S.guideTab="missions";
@@ -1896,6 +1963,15 @@ A.finishClose=function(){S.finishSeen=true;};
 A.finishReset=function(){S.finishSeen=true;A.resetLab();};
 
 /* =============== RENDER =============== */
+function fitLaptop(){
+  var el=document.getElementById("laptop");
+  if(!el){return;}
+  var w=el.clientWidth,h=window.innerHeight||800;
+  if(!w){return;}
+  var sc=Math.min(w/960,1.15,Math.max(0.5,(h-210)/580));
+  sc=Math.max(0.5,sc);
+  el.style.setProperty("--s",String(Math.round(sc*1000)/1000));
+}
 function render(){
   hidePop();recompute();
   document.body.dataset.portal=S.portal;
@@ -1907,6 +1983,8 @@ function render(){
   var qf=document.activeElement&&document.activeElement.id==="q",pos=qf?document.activeElement.selectionStart:0;
   $("#app").innerHTML=labBar()+portalHeader()+'<div class="shell">'+leftNav()+'<main class="content" id="main">'+content+'</main></div>'+flyHtml()+guideHtml();
   if(qf){var q=$("#q");if(q){q.focus();try{q.setSelectionRange(pos,pos);}catch(e){}}}
+  document.body.classList.toggle("guide-open",!!S.guide);
+  fitLaptop();
   /* level completion toast, then the tour or the finish screen */
   var lv=levelsView(),fresh=null;
   lv.forEach(function(L){var i=S.lvlDone.indexOf(L.n);if(L.complete&&i<0){S.lvlDone.push(L.n);fresh=L;}if(!L.complete&&i>-1){S.lvlDone.splice(i,1);}});
@@ -1972,6 +2050,7 @@ document.addEventListener("keydown",function(e){
   if(!$("#modal").hidden){closeModal();}else if(popFor){hidePop();}else if(!S.onboarded){A.introSkip();render();}else if(!$("#intro").hidden&&$("#intro").firstChild){A.finishClose();render();}else if(S.fly){S.fly=null;render();}
 });
 window.addEventListener("scroll",function(){if(popFor){hidePop();}},true);
+window.addEventListener("resize",fitLaptop);
 /* Saved labs from before the tour existed: add the new fields, and don't show the tour to someone who already has progress. */
 if(S.lvlDone===undefined){S.lvlDone=levelsView().filter(function(L){return L.complete;}).map(function(L){return L.n;});}
 if(S.intro===undefined){S.intro=0;}

@@ -10,13 +10,17 @@ Practice real Microsoft 365 admin work with nothing to break. A browser-based si
 
 > This is a learning simulator. It does not connect to Microsoft, and all users, passwords, and domains in it are fake. Nothing you do here touches a real tenant.
 
+## Why I built this
+
+I'm Mark. When I was learning Microsoft 365 admin work, I kept having to use YouTube to figure out how to do things. I wanted somewhere I could just practice, so I built this to help myself. Then I realized that if I had this trouble, a lot of other people must have it too, so I made it free for anyone who is learning the same things.
+
 ## Who it's for
 
 People who want to learn IT admin tasks before they have access to a real tenant: help desk and IT support beginners, career changers, and admins coming from Jamf or Google Admin who are learning Entra ID and Intune.
 
 ## How it works
 
-The first time you open it, a 3-minute tour explains the five places you'll work and how missions work (or skip it). Then you follow a four-level path in the **Lab guide**:
+The first time you open it, a welcome page and a 3-minute tour explain the five places you'll work and how missions work (or skip straight to Level 1). You can reopen the introduction at any time with the **Introduction walk through** button in the gray bar at the top. Then you follow a four-level path in the **Lab guide**:
 
 | Level | What you practice |
 |---|---|
@@ -43,7 +47,7 @@ No build step. Open `index.html` in a browser, or serve the folder:
 python3 -m http.server 8000
 ```
 
-Progress is saved in your browser's `localStorage`, so it stays on that browser and device. Use **Reset lab** in the guide to start over, or **Replay the tour** to see the intro again.
+Progress is saved in your browser's `localStorage`, so it stays on that browser and device. Use **Reset lab** in the guide to start over, or the **Introduction walk through** button to see the intro again.
 
 ## Deploy to GitHub Pages
 
