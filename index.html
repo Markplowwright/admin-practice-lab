@@ -1,0 +1,1796 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin Practice Lab: Microsoft 365, Entra, Intune, Exchange</title>
+<style>
+:root{
+  --bg:#ffffff;--page:#f5f5f5;--panel:#ffffff;--ink:#242424;--muted:#616161;--line:#e0e0e0;--line2:#c7c7c7;
+  --hover:#f5f5f5;--sel:#ebf3fc;--brand:#0f6cbd;--brandh:#115ea3;--navbg:#fafafa;
+  --ok:#107c10;--warn:#8a5a00;--bad:#b10e1c;--okbg:#dff6dd;--warnbg:#fff4ce;--badbg:#fde7e9;--infobg:#ebf3fc;
+  --hdr-blue:#0f6cbd;--hdr-dark:#1b1a19;--lab:#2b2b2b;--shadow:0 8px 24px rgba(0,0,0,.18);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1f1f1f;--page:#141414;--panel:#292929;--ink:#f5f5f5;--muted:#adadad;--line:#3d3d3d;--line2:#575757;
+    --hover:#333333;--sel:#14304d;--brand:#479ef5;--brandh:#62abf5;--navbg:#1a1a1a;
+    --ok:#6ccb5f;--warn:#f7c04a;--bad:#ff8a95;--okbg:#14301a;--warnbg:#3d2f0a;--badbg:#431a1f;--infobg:#14304d;
+    --hdr-blue:#0f548c;--hdr-dark:#0a0a0a;--lab:#000;--shadow:0 8px 24px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1f1f1f;--page:#141414;--panel:#292929;--ink:#f5f5f5;--muted:#adadad;--line:#3d3d3d;--line2:#575757;
+  --hover:#333333;--sel:#14304d;--brand:#479ef5;--brandh:#62abf5;--navbg:#1a1a1a;
+  --ok:#6ccb5f;--warn:#f7c04a;--bad:#ff8a95;--okbg:#14301a;--warnbg:#3d2f0a;--badbg:#431a1f;--infobg:#14304d;
+  --hdr-blue:#0f548c;--hdr-dark:#0a0a0a;--lab:#000;--shadow:0 8px 24px rgba(0,0,0,.6);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/20px "Segoe UI","Segoe UI Web (West European)",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif}
+#app{min-height:100%;display:flex;flex-direction:column}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:middle}
+
+/* practice lab strip */
+.lab{background:var(--lab);color:#fff;display:flex;align-items:center;gap:6px;padding:4px 10px;font-size:12px;overflow-x:auto;white-space:nowrap}
+.lab b{background:#ffb900;color:#000;padding:0 6px;border-radius:3px;font-weight:600;margin-right:4px}
+.lab button{background:none;border:1px solid transparent;color:#fff;padding:3px 10px;border-radius:3px;font-size:12px}
+.lab button:hover{background:#ffffff22}
+.lab button[aria-current="true"]{border-color:#fff8;background:#ffffff1f}
+.lab .sp{flex:1}
+
+/* portal header */
+.phdr{display:flex;align-items:center;gap:10px;color:#fff;height:48px;padding:0 12px}
+body[data-portal="m365"] .phdr,body[data-portal="exchange"] .phdr{background:var(--hdr-blue)}
+body[data-portal="entra"] .phdr,body[data-portal="intune"] .phdr{background:var(--hdr-dark)}
+.phdr .waf{display:grid;place-items:center;width:32px;height:32px}
+.phdr h1{font-size:16px;font-weight:600;margin:0;white-space:nowrap}
+.phdr .search{flex:1;max-width:520px;margin:0 auto;display:flex;align-items:center;gap:8px;background:#ffffff26;border-radius:4px;padding:5px 10px;color:#ffffffd0;min-width:0}
+.phdr .search span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phdr .av{width:30px;height:30px;border-radius:50%;background:#ffffff33;display:grid;place-items:center;font-size:12px;font-weight:600;flex:none}
+
+/* shell */
+.shell{display:flex;flex:1;min-height:0}
+.lnav{width:240px;flex:none;background:var(--navbg);border-right:1px solid var(--line);padding:8px 0;overflow-y:auto}
+.lnav .grp{display:flex;align-items:center;gap:10px;padding:8px 16px;font-weight:600;color:var(--ink)}
+.lnav .sepl{padding:12px 16px 4px;font-size:12px;color:var(--muted)}
+.lnav button.it{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;padding:7px 16px;border-left:3px solid transparent;color:var(--ink)}
+.lnav button.it.kid{padding-left:42px}
+.lnav button.it:hover{background:var(--hover)}
+.lnav button.it[aria-current="true"]{background:var(--sel);border-left-color:var(--brand);font-weight:600}
+.content{flex:1;min-width:0;background:var(--bg);padding:16px 24px 80px;overflow-x:hidden}
+.crumbs{color:var(--muted);font-size:12px;margin-bottom:4px}
+.crumbs button{background:none;border:0;padding:0;color:var(--brand)}
+.ptitle{display:flex;align-items:center;gap:8px;margin:0 0 4px;font-size:20px;line-height:28px;font-weight:600}
+.psub{color:var(--muted);margin:0 0 12px;max-width:760px}
+.cmdbar{display:flex;flex-wrap:wrap;gap:2px;align-items:center;border-bottom:1px solid var(--line);padding:4px 0;margin:8px 0 12px}
+.cmdbar .cb{display:inline-flex;align-items:center;gap:6px;background:none;border:0;border-radius:4px;padding:6px 10px;white-space:nowrap}
+.cmdbar .cb:hover:not(:disabled){background:var(--hover)}
+.cmdbar .cb:disabled{color:var(--line2);cursor:not-allowed}
+.cmdbar .cb .ic{color:var(--brand)}
+.cmdbar .cb:disabled .ic{color:var(--line2)}
+.cmdbar .vr{width:1px;height:20px;background:var(--line);margin:0 4px}
+.cmdbar .lab-only{border:1px dashed #ffb900}
+.srch{display:flex;align-items:center;gap:6px;border:1px solid var(--line2);border-bottom-color:var(--ink);border-radius:4px;padding:0 8px;height:32px;max-width:340px;background:var(--panel);margin:0 0 10px}
+.srch input{border:0;background:none;outline:none;flex:1;min-width:0}
+.srch:focus-within{outline:2px solid var(--brand);outline-offset:1px}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:620px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-weight:600;background:var(--bg);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--hover)}
+tbody tr.on td{background:var(--sel)}
+.ck{width:36px;padding-right:0}
+.lnk{background:none;border:0;padding:0;color:var(--brand);text-align:left}
+.lnk:hover{text-decoration:underline}
+.empty{padding:20px;color:var(--muted);border:1px solid var(--line);border-radius:4px}
+
+/* buttons, badges, fields */
+.btn{border:1px solid var(--line2);background:var(--panel);padding:5px 14px;border-radius:4px;font-weight:600;min-height:32px;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brandh)}
+:root[data-theme="dark"] .btn.primary{color:#0a0a0a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.primary{color:#0a0a0a}}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.sm{min-height:24px;padding:1px 10px;font-weight:400}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.badge{display:inline-block;padding:0 8px;border-radius:10px;font-size:12px;line-height:18px;background:var(--hover);color:var(--muted);white-space:nowrap;border:1px solid var(--line)}
+.badge.ok{background:var(--okbg);color:var(--ok);border-color:transparent}
+.badge.warn{background:var(--warnbg);color:var(--warn);border-color:transparent}
+.badge.bad{background:var(--badbg);color:var(--bad);border-color:transparent}
+.msg{padding:8px 12px;border-radius:4px;margin:8px 0;background:var(--infobg);border:1px solid var(--line)}
+.msg.bad{background:var(--badbg);color:var(--bad)}
+.msg.warn{background:var(--warnbg);color:var(--ink)}
+.msg.ok{background:var(--okbg)}
+.i{display:inline-grid;place-items:center;width:15px;height:15px;margin-left:5px;border:1.3px solid var(--brand);border-radius:50%;background:none;color:var(--brand);font:italic 700 10px/1 Georgia,serif;padding:0;vertical-align:middle}
+.i:hover,.i[aria-expanded="true"]{background:var(--brand);color:#fff}
+#pop{position:absolute;z-index:40;max-width:320px;background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:6px;box-shadow:var(--shadow);padding:12px 14px}
+#pop[hidden]{display:none}
+#pop b{display:block;margin-bottom:4px}
+#pop p{margin:0 0 6px;font-size:13px;line-height:19px}
+#pop .eq{color:var(--muted);border-top:1px solid var(--line);padding-top:6px;margin-top:6px;font-size:12px}
+.grid2{display:grid;grid-template-columns:200px 1fr;gap:8px 16px;max-width:760px}
+.grid2 dt{color:var(--muted)}
+.grid2 dd{margin:0;word-break:break-word}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
+.tile{border:1px solid var(--line);border-radius:6px;padding:14px;background:var(--panel)}
+.tile h3{margin:0 0 6px;font-size:14px;font-weight:600}
+.tile .big{font-size:28px;line-height:36px;font-weight:600}
+.meter{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0}
+.meter i{display:block;height:100%;background:var(--brand)}
+
+/* blade (detail page) */
+.blade{display:flex;gap:20px;align-items:flex-start;margin-top:8px}
+.bnav{width:210px;flex:none;border-right:1px solid var(--line);padding-right:8px}
+.bnav button{display:block;width:100%;text-align:left;background:none;border:0;padding:7px 10px;border-left:3px solid transparent}
+.bnav button:hover{background:var(--hover)}
+.bnav button[aria-current="true"]{background:var(--sel);border-left-color:var(--brand);font-weight:600}
+.bbody{flex:1;min-width:0}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:8px 0 12px;overflow-x:auto}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 12px;white-space:nowrap}
+.tabs button[aria-current="true"]{border-bottom-color:var(--brand);font-weight:600}
+h2.sec{font-size:16px;font-weight:600;margin:18px 0 8px}
+
+/* flyout */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:20}
+.fly{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--panel);border-left:1px solid var(--line);z-index:21;display:flex;flex-direction:column;box-shadow:var(--shadow);padding-top:env(safe-area-inset-top,0px)}
+.fly header{display:flex;align-items:flex-start;gap:8px;padding:16px 20px 0}
+.fly header h2{flex:1;margin:0;font-size:18px;line-height:26px;font-weight:600}
+.fly header .x{background:none;border:0;padding:4px}
+.fly .fsub{padding:0 20px;color:var(--muted)}
+.fly .ftabs{padding:0 12px}
+.fly .fbody{padding:8px 20px 24px;overflow-y:auto;flex:1}
+
+/* wizard + forms */
+.wtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:12px 0 16px;overflow-x:auto}
+.wtabs button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 14px;white-space:nowrap}
+.wtabs button.on{border-bottom-color:var(--brand);font-weight:600}
+.wbody{max-width:640px}
+.wfoot{display:flex;gap:8px;margin-top:20px;padding-top:12px;border-top:1px solid var(--line);max-width:640px;flex-wrap:wrap}
+.fld{margin:0 0 14px}
+.fld .lb{font-weight:600;margin-bottom:4px}
+.fld input[type=text],.fld select{width:100%;max-width:420px;height:32px;padding:0 8px;border:1px solid var(--line2);border-bottom-color:var(--ink);border-radius:4px;background:var(--panel)}
+.fld .hint{color:var(--muted);font-size:12px;margin-top:3px}
+.fld .rad{display:flex;align-items:center;gap:8px;margin:4px 0}
+.fld .chk{display:flex;align-items:center;gap:8px}
+.pwbox{font-family:Consolas,"Cascadia Mono",monospace;background:var(--hover);padding:6px 10px;border-radius:4px;display:inline-block}
+
+/* modal + toast */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+#modal[hidden]{display:none}
+.sheet{background:var(--panel);border-radius:8px;padding:20px 24px;width:100%;max-width:460px;max-height:90vh;overflow:auto;box-shadow:var(--shadow)}
+.sheet h3{margin:0 0 12px;font-size:18px;line-height:26px}
+.merr{color:var(--bad);margin:0;min-height:20px}
+.sheet .btnrow{justify-content:flex-end}
+#toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(60px + env(safe-area-inset-top,0px));background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-left:4px solid var(--brand);padding:10px 16px;border-radius:4px;box-shadow:var(--shadow);max-width:92vw;z-index:60}
+#toast[hidden]{display:none}
+
+/* lab guide drawer */
+.gbtn{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;background:#ffb900;color:#000;border:0;border-radius:20px;padding:8px 16px;font-weight:600;box-shadow:var(--shadow)}
+.guide{position:fixed;right:0;top:0;bottom:0;width:min(380px,100%);background:var(--panel);border-left:1px solid var(--line2);z-index:35;display:flex;flex-direction:column;box-shadow:var(--shadow);padding-top:env(safe-area-inset-top,0px)}
+.guide header{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.guide header h2{flex:1;margin:0;font-size:16px}
+.guide .gb{overflow-y:auto;padding:8px 16px 24px;flex:1}
+.guide .x{background:none;border:0;padding:4px}
+.mis{border-top:1px solid var(--line);padding:10px 0}
+.mis h3{margin:0 0 2px;font-size:14px}
+.mis p{margin:0 0 6px;font-size:13px;color:var(--muted)}
+.mis ul{list-style:none;margin:0;padding:0}
+.mis li{display:flex;gap:8px;padding:2px 0;font-size:13px}
+.mis li i{flex:none;width:16px;height:16px;border:1.5px solid var(--line2);border-radius:50%;margin-top:2px;font-style:normal;text-align:center;font-size:10px;line-height:13px}
+.mis li.on i{background:var(--ok);border-color:var(--ok);color:#fff}
+.mis li.on .st{color:var(--muted);text-decoration:line-through}
+.mis li div{min-width:0}
+.mis .st{display:block}
+.mis .wh{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+.mis .tools{font-size:12px;margin:0 0 4px}
+.tag{display:inline-block;font-weight:600;font-size:11px;line-height:16px;padding:0 6px;border-radius:3px;color:#fff;white-space:nowrap}
+.tag.m365,.tag.exchange{background:#0f6cbd}
+.tag.entra{background:#0a6a62}
+.tag.intune{background:#6446b0}
+.map{background:var(--infobg);border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-size:13px;margin:4px 0 10px;line-height:19px}
+.mis.done h3::after{content:" (done)";color:var(--ok);font-weight:400}
+.gl dt{font-weight:600;margin-top:10px}
+.gl dd{margin:2px 0 0;color:var(--muted);font-size:13px}
+
+@media (max-width:900px){
+  .lnav{width:200px}
+  .content{padding:12px 14px 80px}
+  .blade{flex-direction:column}
+  .bnav{width:100%;border-right:0;display:flex;overflow-x:auto;padding:0;border-bottom:1px solid var(--line)}
+  .bnav button{width:auto;white-space:nowrap;border-left:0;border-bottom:3px solid transparent}
+  .bnav button[aria-current="true"]{border-bottom-color:var(--brand)}
+  .grid2{grid-template-columns:1fr}
+}
+@media (max-width:700px){
+  .shell{flex-direction:column}
+  .lnav{width:100%;display:flex;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:0}
+  .lnav .grp,.lnav .sepl{display:none}
+  .lnav button.it,.lnav button.it.kid{width:auto;white-space:nowrap;padding:10px 14px;border-left:0;border-bottom:3px solid transparent}
+  .lnav button.it[aria-current="true"]{border-bottom-color:var(--brand)}
+  .phdr .search{display:none}
+  .phdr h1{font-size:14px;flex:1}
+}
+
+.mono{font-family:Consolas,"Cascadia Mono",ui-monospace,monospace;font-size:13px}
+body[data-portal="vm"] .phdr{background:#2b2b2b}
+.tag.vm{background:#4b5563}
+.vmbar{display:flex;gap:8px;margin:4px 0 10px}
+.vmgrid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+@media (max-width:1150px){.vmgrid{grid-template-columns:1fr}}
+.vm{position:relative;height:620px;border:10px solid #151515;border-radius:14px;overflow:hidden;background:#0b1a33;color:#fff;font-family:"Segoe UI",system-ui,sans-serif;font-size:14px;line-height:20px;isolation:isolate}
+.vm button,.vm input{font-family:inherit}
+.vm .wall{position:absolute;inset:0;background:radial-gradient(circle at 28% 38%,#3b82e8 0,#1d4fb0 28%,#10306f 55%,#0a1c45 100%);z-index:0}
+.vm .lockwall{filter:saturate(.9) brightness(.8)}
+.lockclock{position:absolute;top:12%;left:0;right:0;text-align:center;z-index:1}
+.lockclock b{display:block;font-size:72px;line-height:80px;font-weight:300}
+.locktiles{position:absolute;left:24px;bottom:24px;z-index:2;display:flex;flex-direction:column;gap:8px;max-width:340px}
+.tile.on,.vm .tile.on{background:#ffffff40}
+.vm .tile{display:flex;align-items:center;gap:12px;background:#00000066;border:1px solid #ffffff33;color:#fff;border-radius:8px;padding:8px 14px;text-align:left;margin:0}
+.vm .tile small{display:block;color:#d0d0d0;font-size:12px}
+.vm .av{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#7a8aa6;color:#fff;font-weight:600;flex:none}
+.vm .av.w{background:#2a8a6a}
+.lockpw{background:#00000088;border-radius:8px;padding:10px}
+.vm .wl{display:block;color:inherit;margin:8px 0;font-size:13px}
+.vm .wi{display:block;width:100%;height:32px;margin-top:3px;padding:0 8px;border:1px solid #8a8a8a;border-bottom:2px solid #0f6cbd;border-radius:4px;background:#fff;color:#1b1b1b}
+.vm .wbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.vm .wbtn{border:1px solid #a0a0a0;background:#fdfdfd;color:#1b1b1b;border-radius:4px;padding:5px 16px;min-height:32px}
+.vm .wbtn:hover{background:#ececec}
+.vm .wbtn.pri{background:#0f6cbd;border-color:#0f6cbd;color:#fff}
+.vm .wbtn:disabled{opacity:.5;cursor:not-allowed}
+.vm .wmsg{background:#eef2f7;color:#1b1b1b;border:1px solid #cfd6df;border-radius:4px;padding:6px 10px;margin:8px 0;font-size:13px}
+.vm .wmsg.bad{background:#fde7e9;border-color:#f1b5bb;color:#7a1220}
+.vm .wmsg.ok{background:#dff6dd;border-color:#a8d5a2;color:#0b4a12}
+.vmdlg{position:absolute;inset:0;z-index:20;background:#00000066;display:grid;place-items:center;padding:12px;overflow:auto}
+.mssign{background:#fff;color:#1b1b1b;border-radius:6px;padding:22px 26px;width:min(420px,100%);box-shadow:0 8px 32px #0007}
+.mssign h3{margin:0 0 8px;font-size:20px;font-weight:600}
+.mssign p{margin:0 0 8px;font-size:13px}
+.mssign .wnum{font-size:44px;line-height:52px;font-weight:600;text-align:center;margin:12px 0}
+.walt{margin-top:16px;font-size:13px;color:#444}
+.wlnk{background:none;border:0;padding:0;color:#0f6cbd;text-decoration:underline;text-align:left}
+.vm .wdl{display:grid;grid-template-columns:160px 1fr;gap:6px 14px;margin:8px 0;font-size:13px}
+.vm .wdl dt{color:#555}.vm .wdl dd{margin:0;word-break:break-word}
+.oobe{position:absolute;inset:0;z-index:2;display:grid;place-items:center;padding:12px;background:radial-gradient(circle at 70% 20%,#e8eefb,#c9d7f2);overflow:auto}
+.ocard{background:#fff;color:#1b1b1b;border-radius:10px;padding:26px 30px;width:min(520px,100%);box-shadow:0 6px 28px #0003}
+.ocard.wide{width:min(480px,100%)}
+.ocard h2{margin:0 0 14px;font-size:22px;font-weight:600}
+.obadge{background:#eef2f7;border-radius:4px;padding:6px 10px;font-size:12px;margin-bottom:12px;color:#333}
+.olist{display:flex;flex-direction:column;gap:6px;max-height:210px;overflow:auto}
+.oi{display:block;text-align:left;background:#f3f3f3;color:#1b1b1b;border:1px solid transparent;border-radius:6px;padding:9px 12px;width:100%}
+.oi.sel{background:#dcebfb;border-color:#0f6cbd}
+.oi small{display:block;color:#555;font-size:12px}
+.opick{display:grid;gap:10px}
+.oc{display:block;text-align:left;background:#f3f3f3;color:#1b1b1b;border:1px solid #d0d0d0;border-radius:8px;padding:12px 14px}
+.oc:hover{border-color:#0f6cbd;background:#eaf3fc}
+.oc small{display:block;color:#555;margin-top:2px}
+.esp{list-style:none;margin:0 0 12px;padding:0}
+.esp li{padding:6px 0 6px 26px;position:relative}
+.esp li::before{content:"";position:absolute;left:0;top:10px;width:14px;height:14px;border-radius:50%;border:2px solid #aaa}
+.esp li.ok::before{background:#107c10;border-color:#107c10}
+.esp li.bad::before{background:#b10e1c;border-color:#b10e1c}
+.dicons{position:absolute;left:12px;top:12px;z-index:1;display:flex;flex-direction:column;gap:12px}
+.vm .dicon{background:none;border:0;color:#fff;text-align:center;width:76px;font-size:12px;line-height:15px}
+.sic{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 4px;border-radius:8px;background:#ffffff33;font-weight:600;font-size:16px}
+.taskbar{position:absolute;left:0;right:0;bottom:0;height:46px;z-index:30;background:#1b1b1bd9;display:flex;align-items:center;justify-content:center}
+.tcenter{display:flex;gap:4px;align-items:center}
+.vm .tbtn{width:42px;height:36px;border:0;border-radius:6px;background:transparent;color:#fff;font-size:16px}
+.vm .tbtn:hover,.vm .tbtn.on{background:#ffffff26}
+.vm .tsearch{height:32px;width:170px;border:1px solid #ffffff44;background:#ffffff1a;border-radius:16px;color:#ddd;text-align:left;padding:0 14px}
+.ttray{position:absolute;right:12px;font-size:12px;color:#eee}
+.startmenu{position:absolute;left:50%;transform:translateX(-50%);bottom:54px;z-index:31;width:min(440px,94%);background:#2b2b2bf5;border-radius:10px;padding:16px;box-shadow:0 8px 30px #0008}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.vm .sapp{background:none;border:0;color:#fff;font-size:12px;line-height:15px;padding:8px 2px;border-radius:6px}
+.vm .sapp:hover{background:#ffffff1f}
+.sfoot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid #ffffff22;gap:8px;flex-wrap:wrap}
+.sfoot .av{width:26px;height:26px}
+.win{position:absolute;left:5%;right:5%;top:4%;bottom:56px;z-index:10;background:#f3f3f3;color:#1b1b1b;border-radius:8px;box-shadow:0 10px 36px #0009;display:flex;flex-direction:column;overflow:hidden}
+.win .tb{display:flex;justify-content:space-between;align-items:center;padding:6px 10px 6px 14px;background:#e8e8e8;font-size:12px}
+.vm .wx{background:none;border:0;color:#222;padding:2px 8px;border-radius:4px}
+.vm .wx:hover{background:#d0d0d0}
+.set{display:grid;grid-template-columns:200px 1fr;flex:1;min-height:0}
+.setnav{background:#ececec;padding:10px 6px;overflow:auto}
+.setuser{display:flex;align-items:center;gap:8px;padding:6px 8px 12px;font-weight:600}
+.setnav .av{width:30px;height:30px;font-size:13px}
+.setnav button{display:block;width:100%;text-align:left;background:none;border:0;color:#1b1b1b;padding:8px 10px;border-radius:6px}
+.setnav button:hover{background:#dedede}
+.setnav button.on{background:#fff;font-weight:600}
+.setbody{padding:16px 22px;overflow:auto;background:#f9f9f9;color:#1b1b1b;flex:1}
+.setbody h2{margin:0 0 10px;font-size:20px;font-weight:600}
+.setbody h3{font-size:15px;margin:14px 0 6px}
+.wtabs2{display:flex;gap:6px;margin:6px 0 12px}
+.wtabs2 button{background:#e8e8e8;color:#1b1b1b;border:0;border-radius:14px;padding:4px 14px}
+.wtabs2 button.on{background:#0f6cbd;color:#fff}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid #dcdcdc;border-radius:6px;padding:10px 14px;margin:8px 0}
+.wacct{background:#fff;border:1px solid #dcdcdc;border-radius:6px;padding:12px 14px;margin:8px 0;display:flex;flex-direction:column;gap:2px}
+.wacct b{font-weight:600}
+.wlist{margin:0;padding-left:18px}
+.wnote{color:#555;font-size:13px}
+.cmdwin{background:#0c0c0c}
+.cmdwin .tb{background:#1f1f1f;color:#ddd}
+.cmdwin .wx{color:#ddd}
+.cmdout{flex:1;margin:0;padding:10px 12px;color:#cfcfcf;font:12.5px/1.35 Consolas,"Cascadia Mono",monospace;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.cmdin{display:flex;gap:8px;align-items:center;padding:8px 10px;background:#161616;color:#ddd;font:12.5px Consolas,monospace}
+.cmdin input{flex:1;min-width:0;background:#0c0c0c;color:#eee;border:1px solid #333;border-radius:4px;height:28px;padding:0 8px;font:12.5px Consolas,monospace}
+.vmside .tile{background:var(--panel)}
+@media (max-width:760px){
+  .vm{height:640px}
+  .set{grid-template-columns:1fr}
+  .setnav{display:flex;overflow-x:auto;padding:4px}
+  .setnav button{width:auto;white-space:nowrap}
+  .setuser{display:none}
+  .win{left:2%;right:2%}
+  .vm .wdl{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body data-portal="m365">
+<div id="app"></div>
+<div id="pop" role="tooltip" hidden></div>
+<div id="modal" hidden></div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+<script>
+(function(){
+"use strict";
+var DOMAIN="practicetenant.onmicrosoft.com",KEY="adminPracticeLabV3",TENANT="7c1e4a52-9b3d-4f08-a1e6-5d2c8b90f3a7";
+var uid=100;function nid(p){uid+=1;return p+uid;}
+function $(s){return document.querySelector(s);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+var PAGES={},A={},WIZ={},FLY={},NR={info:1,closeModal:1};
+
+/* ---------- icons ---------- */
+var IC={plus:"M8 3v10M3 8h10",refresh:"M13 8a5 5 0 1 1-1.5-3.5M13 2.5V5h-2.5",trash:"M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5",
+key:"M5.5 10.5a2.5 2.5 0 1 1 .01 0M7.2 8.8L13 3M11 5l1.5 1.5",search:"M7 11.5a4.5 4.5 0 1 1 .01 0M10.5 10.5L14 14",
+home:"M2.5 8L8 3l5.5 5M4 7.5V13h8V7.5",user:"M8 8a2.5 2.5 0 1 1 .01 0M3 13.5c.5-2.5 2.5-3.5 5-3.5s4.5 1 5 3.5",
+users:"M6 7.5a2 2 0 1 1 .01 0M2 13c.4-2 2-3 4-3s3.6 1 4 3M11 7a1.7 1.7 0 1 1 .01 0M11.5 10c1.6.1 2.5 1 2.8 3",
+device:"M3.5 4h9v6.5h-9zM1.5 12.5h13",shield:"M8 2l5 1.8v4c0 3-2 5-5 6-3-1-5-3-5-6v-4z",
+gear:"M8 10a2 2 0 1 1 .01 0M8 2v2M8 12v2M2 8h2M12 8h2M3.8 3.8l1.4 1.4M10.8 10.8l1.4 1.4M3.8 12.2l1.4-1.4M10.8 5.2l1.4-1.4",
+apps:"M3 3h4v4H3zM9 3h4v4H9zM3 9h4v4H3zM9 9h4v4H9z",mail:"M2.5 4h11v8h-11zM2.5 4.5L8 9l5.5-4.5",license:"M2.5 4h11v8h-11zM2.5 7h11M4.5 10h3",
+block:"M8 2.5a5.5 5.5 0 1 1-.01 0M4 4l8 8",signout:"M6 3H3v10h3M9 5.5L12 8l-3 2.5M12 8H6",download:"M8 2.5v8M5 7.5L8 10.5l3-3M3 13h10",
+lock:"M4.5 7.5h7v5.5h-7zM6 7.5V5.5a2 2 0 1 1 4 0v2",x:"M4 4l8 8M12 4l-8 8",play:"M5 3.5l7 4.5-7 4.5z",
+edit:"M3 13l.5-3L11 2.5l2.5 2.5L6 12.5zM9.5 4l2.5 2.5",restart:"M3 8a5 5 0 1 0 1.5-3.5M3 2.5V5h2.5",folder:"M2.5 4.5h4l1.5 1.5h5.5v6.5h-11z",
+filter:"M2.5 3.5h11l-4.2 5v4l-2.6-1.2v-2.8z",columns:"M2.5 3.5h11v9h-11zM6.5 3.5v9M10 3.5v9",help:"M6 6a2 2 0 1 1 3 1.7c-.7.5-1 .9-1 1.8M8 12h.01",
+book:"M3 3h5v10H3zM8 3h5v10H8z"};
+function ico(n){return '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="'+(IC[n]||IC.help)+'"/></svg>';}
+
+/* ---------- glossary (info popovers) ---------- */
+var GL={
+tenant:["Tenant","Your organization's dedicated space in Microsoft's cloud. Users, groups, devices and licenses all live inside one tenant, and every admin center manages that same tenant.","Google Admin: your Google Workspace account and domain."],
+entra:["Microsoft Entra ID","The cloud identity service. It stores users, groups and devices and decides who can sign in and what they can reach. It used to be called Azure Active Directory.","Google Admin: Directory plus Google sign-in."],
+upn:["User principal name (UPN)","The sign-in name, written like an email address (name@domain). It is what people type to sign in.","Google: the primary email address."],
+usage:["Usage location","The country where the person uses Microsoft services. It must be set before any license can be assigned, because some services are restricted by country.",""],
+license:["License","Permission to use a paid product, bought per user per month. Business Premium bundles the Microsoft 365 apps, Entra ID P1 and Intune. A license left on a former employee is money wasted.","Google Admin: Billing > Subscriptions."],
+grouplic:["Group-based licensing","Assign a license to a group once and every member gets it automatically. Remove someone from the group and the license frees up. Fewer manual steps, fewer mistakes.",""],
+secgroup:["Security group","A list of users used to control access and licensing. Membership is usually assigned by an admin.","Google Admin: Groups."],
+mfa:["Multifactor authentication (MFA)","A second proof of identity after the password, such as approving a prompt in an authenticator app. It stops most account takeovers even when a password has leaked.","Google Admin: 2-Step Verification."],
+secdef:["Security defaults","A free on/off setting that requires MFA registration for everyone and blocks old sign-in methods. It can't be used together with Conditional Access policies.",""],
+ca:["Conditional Access","Rules evaluated at sign-in, such as 'require MFA for all users' or 'only from compliant devices'. More flexible than security defaults. Needs Entra ID P1, which Business Premium includes.","Google Admin: Context-Aware Access."],
+reportonly:["Report-only","A safe test mode. The policy is evaluated and logged ('would have required MFA') but not enforced. Use it before turning a policy On so you don't lock people out.",""],
+signinlogs:["Sign-in logs","A record of each sign-in: who, which app, from where, and whether MFA or Conditional Access applied. The first place to look when you suspect a compromised account.","Google Admin: Reporting > Audit and investigation > Login."],
+auditlogs:["Audit logs","A record of admin changes: who created, edited or deleted what, and when.","Google Admin: Reporting > Audit and investigation > Admin."],
+revoke:["Revoke sessions","Signs the user out everywhere by invalidating their sign-in tokens. A password reset alone doesn't always end sessions that are already signed in, so do both after a compromise.","Google Admin: Sign out and reset sign-in cookies."],
+block:["Block sign-in / Account enabled","Stops new sign-ins without deleting anything. Use it right away when someone leaves, then clean up. Existing sessions may stay valid until revoked.","Google Admin: Suspend user."],
+authm:["Authentication methods","The ways a user can prove who they are: authenticator app, phone, email. Attackers sometimes add their own phone number to keep getting in. Remove any method you don't recognize.",""],
+rereg:["Require re-register MFA","Clears the user's MFA registration so they must set it up again at next sign-in. Useful when you can't be sure which methods are legitimate.",""],
+roles:["Administrator roles","Permissions for managing the tenant. Each person should hold the smallest role that fits their job.","Google Admin: Admin roles."],
+least:["Least privilege","Give people only the access they need to do their job, nothing more. In practice: day-to-day admins get a narrow role and very few people hold Global Administrator.",""],
+ga:["Global Administrator","Can do everything in the tenant. Microsoft recommends keeping these to a small number of accounts, because one compromised Global Administrator is a total compromise.","Google Admin: Super admin."],
+helpdesk:["Helpdesk Administrator","Can reset passwords and sign out non-admin users. A good fit for a support technician who doesn't need to change anything else.",""],
+soft:["Deleted users (soft delete)","A deleted user is kept for 30 days and can be restored. After that it is permanently removed. Deleting is the last step of offboarding, after files are handed off and access is cut.","Google Admin: Deleted users."],
+mailbox:["Mailbox","The user's Exchange Online mailbox. It stays active only while the user holds a license that includes Exchange. An unlicensed mailbox goes inactive and is deleted after a grace period.",""],
+fwd:["Email forwarding","Automatically sends a copy of incoming mail to another address. Attackers set this up after a compromise to quietly collect mail, and it survives password resets. External forwarding you didn't set up is a red flag. (Attackers also create hidden inbox rules, which admins check with PowerShell or the security portal.)","Google Admin: Gmail > user forwarding settings."],
+onedrive:["OneDrive file access","A user's work files live in their OneDrive. On offboarding, give the manager a link to the files before deleting the account, or the files are only kept for a limited retention period.",""],
+mdm:["MDM (mobile device management)","The management channel that lets Intune configure, secure and wipe a device. A device must be enrolled in MDM before Intune can manage it.","Jamf: MDM enrollment."],
+mdmscope:["MDM user scope","Controls whose devices may enroll in Intune automatically when they sign in. If it is None or doesn't include the user, the laptop joins Entra ID but never shows up in Intune. A very common setup mistake.",""],
+intune:["Microsoft Intune","The device management service: enroll devices, push settings and apps, check compliance, retire or wipe.","Jamf Pro."],
+autopilot:["Windows Autopilot","Zero-touch setup for new Windows PCs. The device is registered by serial number, the user signs in, and the PC configures itself and enrolls in Intune. No manual imaging.","Jamf: Automated Device Enrollment."],
+approfile:["Deployment profile","The Autopilot recipe: how setup behaves (for example user-driven, joined to Entra ID). A device with no profile assigned falls back to normal manual Windows setup.","Jamf: PreStage enrollment."],
+entrajoin:["Microsoft Entra joined","The PC belongs to the cloud directory instead of an on-premises domain. People sign in with their work account. Typical for cloud-first companies.",""],
+compliance:["Compliance policy","Defines what a healthy device looks like, such as BitLocker on and Windows 11. It reports Compliant or Noncompliant and can feed Conditional Access. It doesn't change any settings by itself.","Jamf: smart groups and extension attributes."],
+config:["Configuration profile","Settings pushed to devices, like Wi-Fi or password rules. This is what actually makes a setting true on the device.","Jamf: Configuration Profiles."],
+bitlocker:["BitLocker","Windows full-disk encryption. If a laptop is lost the data is unreadable without the key. A compliance policy checks it, and a disk encryption policy turns it on.","Mac: FileVault."],
+assign:["Assignments","Who or what a policy applies to: all users, all devices, or specific groups. A policy with no assignment does nothing.","Jamf: Scope."],
+retire:["Retire","Removes company data, apps and settings from the device and releases it from management. Personal files stay. Good for returned equipment you'll re-image.","Jamf: Remove MDM profile."],
+wipe:["Wipe","Factory-resets the device and erases everything. Use for lost or stolen devices and before reassigning a laptop.","Jamf: Erase device."],
+sync:["Sync","Asks the device to check in with Intune now instead of waiting for its next scheduled check-in.",""],
+primary:["Primary user","The person the device is assigned to. Used in reports and for user-targeted policies.",""],
+required:["Required app","Installed automatically on devices in the assignment. 'Available' apps are only offered in the Company Portal for users to install themselves.","Jamf: Self Service."],
+mailflow:["Mail flow rule","A rule applied to messages as they move through Exchange, such as blocking automatic forwarding to external addresses.",""],
+trouble:["Troubleshooting + support","Intune's helpdesk view for one user: account status, license, MDM eligibility, devices and assignment problems in one place.",""],
+ccount:["Conditional Access state","On enforces the policy. Report-only logs what would happen. Off ignores it.",""],
+devjoin:["Users may join devices to Microsoft Entra","A tenant-wide switch for who is allowed to join a PC to Entra ID. If it is set to None, the join fails with error 801c0003 even when everything else is correct.",""],
+regvsjoin:["Joined vs registered","Joined: the PC belongs to the organization and users sign in to Windows with their work account (company laptops). Registered: a work account is added to a personal device, giving app access but little control (BYOD).",""],
+dsreg:["dsregcmd /status","A built-in command that shows whether a PC is Entra joined or registered, the tenant, and the MDM URL. An empty MdmUrl means the user isn't in the MDM user scope.",""],
+localadmin:["Local administrator","An administrator account that exists only on this PC, not in the cloud. Joining a PC to Entra ID needs an administrator signed in on the PC, which is why IT keeps a local admin account for setup.","Mac: the local admin account on a Mac."],
+oobe:["OOBE (out-of-box experience)","The first-run setup screens on a new or reset PC: region, keyboard, network, and who will use it. Autopilot takes over this experience to set the PC up for a work account automatically.","Mac: Setup Assistant."],
+esp:["Enrollment status page","The progress screen during Autopilot that shows the device being joined and set up. If enrollment fails (license, MDM scope), the error appears here.",""],
+permfa:["Per-user MFA","The older way to enforce MFA user by user. Security defaults or Conditional Access are the current methods.",""]
+};
+function info(k){var g=GL[k];if(!g){return "";}return '<button type="button" class="i" data-a="info" data-t="'+k+'" aria-label="About '+esc(g[0])+'" aria-expanded="false">i</button>';}
+
+/* ---------- state ---------- */
+function seed(){
+  var s={
+    portal:"m365",page:"home",sel:null,tab:null,q:"",checked:[],fly:null,wiz:null,draft:null,guide:true,guideTab:"missions",tUser:"",
+    secDefaults:false,deviceJoin:"all",vmIn:{},total:10,mdm:{scope:"none",group:""},
+    flags:{viewedLogs:false,createdUsers:0,testedMfa:false,caReport:false,troubled:{},vmApSignin:false,vmDsreg:false,vmSync:false,vmAdmin:false,vmWorkSignin:false,vmRegistered:false},
+    users:[
+      {id:"u0",name:"Admin (you)",upn:"admin",loc:"US",direct:true,blocked:false,revoked:false,pwReset:false,fwd:null,deleted:false,filesLink:false,roles:["ga"],
+        methods:[{id:"m0",type:"Microsoft Authenticator",detail:"Your phone",sus:false}]},
+      {id:"u1",name:"Dana Rivera",upn:"dana.rivera",loc:"US",direct:true,blocked:false,revoked:false,pwReset:false,fwd:"collect.dana@mailbox-drop.example",deleted:false,filesLink:false,roles:[],
+        methods:[{id:"m1",type:"Microsoft Authenticator",detail:"iPhone 14",sus:false},{id:"m2",type:"Phone (SMS)",detail:"+234 803 555 0142",sus:true}]},
+      {id:"u2",name:"Sam Ortiz",upn:"sam.ortiz",loc:"US",direct:true,blocked:false,revoked:false,pwReset:false,fwd:null,deleted:false,filesLink:false,roles:[],
+        methods:[{id:"m3",type:"Microsoft Authenticator",detail:"Pixel 8",sus:false}]},
+      {id:"u3",name:"Priya Nair",upn:"priya.nair",loc:"",direct:false,blocked:false,revoked:false,pwReset:false,fwd:null,deleted:false,filesLink:false,roles:[],methods:[]},
+      {id:"u4",name:"Marcus Lee",upn:"marcus.lee",loc:"US",direct:true,blocked:false,revoked:false,pwReset:false,fwd:null,deleted:false,filesLink:false,roles:["ga"],
+        methods:[{id:"m4",type:"Microsoft Authenticator",detail:"Galaxy S23",sus:false}]}
+    ],
+    groups:[{id:"g1",name:"Finance",members:["u1","u2"],created:false},{id:"g2",name:"IT-Support",members:["u4"],created:false}],
+    licenseGroups:[],
+    devices:[
+      {id:"d1",serial:"PF2A8841",name:"LAPTOP-SO-01",model:"Latitude 5430",maker:"Dell",os:"Windows 10 Pro",osVer:"10.0.19045",userId:"u2",state:"enrolled",baseBitlocker:true,autopilot:false,sync:"Today 07:58",join:"joined",joinUser:"u2"},
+      {id:"d2",serial:"PF3K9Q21",name:"(not set up)",model:"Latitude 5440",maker:"Dell",os:"Windows 11 Pro",osVer:"10.0.22631",userId:null,state:"registered",baseBitlocker:false,autopilot:true,sync:"-",join:"",joinUser:null},
+      {id:"d3",serial:"SP2026042",name:"DESKTOP-SP26042",model:"ThinkPad E14",maker:"Lenovo",os:"Windows 11 Pro",osVer:"10.0.22631",userId:null,state:"unmanaged",baseBitlocker:false,autopilot:false,spare:true,sync:"-",join:"",joinUser:null}
+    ],
+    policies:[],profiles:[],apProfiles:[],apps:[],caPolicies:[],mailRules:[],
+    logs:[
+      {id:"c3f1",uid:"u1",when:"Today 03:12",app:"Exchange Online",status:"Success",ip:"102.89.34.7",place:"Lagos, Nigeria",ca:"Not applied",mfa:"Single-factor authentication",odd:true},
+      {id:"a812",uid:"u1",when:"Today 03:14",app:"SharePoint Online",status:"Success",ip:"102.89.34.7",place:"Lagos, Nigeria",ca:"Not applied",mfa:"Single-factor authentication",odd:true},
+      {id:"9d07",uid:"u1",when:"Yesterday 09:02",app:"Outlook",status:"Success",ip:"68.174.22.9",place:"New York, United States",ca:"Not applied",mfa:"MFA satisfied (app notification)",odd:false},
+      {id:"5be2",uid:"u2",when:"Today 08:47",app:"Outlook",status:"Success",ip:"68.174.22.31",place:"New York, United States",ca:"Not applied",mfa:"MFA satisfied (app notification)",odd:false},
+      {id:"e440",uid:"u0",when:"Today 08:15",app:"Microsoft Admin Portals",status:"Success",ip:"73.12.90.4",place:"Brooklyn, United States",ca:"Not applied",mfa:"MFA satisfied (app notification)",odd:false}
+    ],
+    audit:[{when:"Earlier",svc:"Core Directory",cat:"UserManagement",act:"Add user",tgt:"u3",by:"admin@"+DOMAIN}]
+  };
+  s.users.forEach(function(u){u.pw="Welcome#2026";u.mustChange=false;});
+  return s;
+}
+var S=load()||seed();
+function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&o.users&&o.flags&&o.apProfiles&&o.deviceJoin){return o;}}}catch(e){}return null;}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+/* ---------- data helpers ---------- */
+function U(id){return S.users.filter(function(u){return u.id===id;})[0];}
+function G(id){return S.groups.filter(function(g){return g.id===id;})[0];}
+function D(id){return S.devices.filter(function(d){return d.id===id;})[0];}
+function live(){return S.users.filter(function(u){return !u.deleted;});}
+function upn(u){return u.upn+"@"+DOMAIN;}
+function userGroups(id){return S.groups.filter(function(g){return g.members.indexOf(id)>-1;});}
+function viaGroup(u){return S.licenseGroups.some(function(gid){var g=G(gid);return g&&g.members.indexOf(u.id)>-1;});}
+function hasLicense(u){return !u.deleted&&(!!u.direct||(viaGroup(u)&&!!u.loc));}
+function licState(u){
+  if(u.deleted){return {t:"Deleted",k:""};}
+  if(u.direct){return {t:"Direct",k:"ok"};}
+  if(viaGroup(u)&&u.loc){return {t:"Inherited from group",k:"ok"};}
+  if(viaGroup(u)){return {t:"Error: usage location missing",k:"bad"};}
+  return {t:"Unlicensed",k:""};
+}
+function licText(u){var s=licState(u);return (s.k==="ok")?"Microsoft 365 Business Premium":"Unlicensed";}
+function assigned(){return S.users.filter(hasLicense).length;}
+function available(){return S.total-assigned();}
+function role(id){return ROLES.filter(function(r){return r.id===id;})[0];}
+var ROLES=[
+  {id:"ga",name:"Global Administrator",desc:"Can manage all aspects of Microsoft Entra ID and Microsoft services that use Entra identities."},
+  {id:"ua",name:"User Administrator",desc:"Can manage all aspects of users and groups, including resetting passwords for limited admins."},
+  {id:"la",name:"License Administrator",desc:"Can manage product licenses on users and groups."},
+  {id:"ha",name:"Helpdesk Administrator",desc:"Can reset passwords for non-administrators and sign users out."},
+  {id:"ea",name:"Exchange Administrator",desc:"Can manage all aspects of Exchange Online."},
+  {id:"ia",name:"Intune Administrator",desc:"Can manage all aspects of Microsoft Intune."}
+];
+function audit(act,tgt,cat,svc){S.audit.unshift({when:"Just now",svc:svc||"Core Directory",cat:cat||"UserManagement",act:act,tgt:tgt||"",by:"admin@"+DOMAIN});if(S.audit.length>60){S.audit.pop();}}
+function badge(t,k){return '<span class="badge '+(k||"")+'">'+esc(t)+'</span>';}
+function randPw(){var a="abcdefghjkmnpqrstuvwxyz",b="ABCDEFGHJKLMNPQRSTUVWXYZ",d="23456789",o="",i;
+  for(i=0;i<4;i++){o+=a[Math.floor(Math.random()*a.length)];}o+="-";
+  for(i=0;i<4;i++){o+=b[Math.floor(Math.random()*b.length)];}
+  return o+d[Math.floor(Math.random()*d.length)]+d[Math.floor(Math.random()*d.length)];}
+var LOCS=[["","Select a location"],["US","United States"],["CA","Canada"],["GB","United Kingdom"]];
+function locName(c){var f=LOCS.filter(function(l){return l[0]===c;})[0];return c?(f?f[1]:c):"Not set";}
+function opts(list,sel){return list.map(function(l){return '<option value="'+esc(l[0])+'"'+(l[0]===sel?' selected':'')+'>'+esc(l[1])+'</option>';}).join("");}
+function groupList(blank){return (blank?[["",blank]]:[]).concat(S.groups.map(function(g){return [g.id,g.name];}));}
+function userList(blank,filterFn){return (blank?[["",blank]]:[]).concat(live().filter(filterFn||function(){return true;}).map(function(u){return [u.id,u.name];}));}
+function ensureTroubled(){if(!S.flags.troubled){S.flags.troubled={};}}
+
+/* ---------- assignment model ---------- */
+function applies(item,userId){
+  var a=item.assign||{all:"",groups:[]};
+  if(a.all==="users"||a.all==="devices"){return true;}
+  var gids=userGroups(userId).map(function(g){return g.id;});
+  return a.groups.some(function(g){return gids.indexOf(g)>-1;});
+}
+function assignText(a){
+  if(!a){return "Not assigned";}
+  if(a.all==="users"){return "All users";}
+  if(a.all==="devices"){return "All devices";}
+  if(a.groups&&a.groups.length){return a.groups.map(function(g){return G(g)?G(g).name:"?";}).join(", ");}
+  return "Not assigned";
+}
+function sameScope(a,b){
+  var an=a.assign,bn=b.assign;
+  if(!an||!bn){return false;}
+  var aAll=an.all==="users"||an.all==="devices",bAll=bn.all==="users"||bn.all==="devices";
+  if(aAll&&(bAll||bn.groups.length)){return true;}
+  if(bAll&&an.groups.length){return true;}
+  return an.groups.some(function(g){return bn.groups.indexOf(g)>-1;});
+}
+function verNum(v){return String(v).split(".").map(function(x){return parseInt(x,10)||0;});}
+function verLt(a,b){var x=verNum(a),y=verNum(b);for(var i=0;i<Math.max(x.length,y.length);i++){var p=x[i]||0,q=y[i]||0;if(p<q){return true;}if(p>q){return false;}}return false;}
+function inMdmScope(u){
+  if(S.mdm.scope==="all"){return true;}
+  if(S.mdm.scope==="some"&&S.mdm.group){var g=G(S.mdm.group);return !!g&&g.members.indexOf(u.id)>-1;}
+  return false;
+}
+function recompute(){
+  S.devices.forEach(function(d){
+    if(d.state!=="enrolled"||!d.userId){d.compl=null;d.appsIn=[];d.cfgIn=[];return;}
+    var u=U(d.userId);
+    var bit=!!d.baseBitlocker||S.profiles.some(function(p){return p.type==="BitLocker"&&applies(p,d.userId);});
+    d.bitlocker=bit;
+    var rows=[];
+    S.policies.filter(function(p){return applies(p,d.userId);}).forEach(function(p){
+      var bad=[];
+      if(p.bitlocker&&!bit){bad.push("BitLocker is not enabled");}
+      if(p.minOS&&verLt(d.osVer,p.minOS)){bad.push("OS version "+d.osVer+" is below "+p.minOS);}
+      rows.push({policy:p.name,state:bad.length?"Not compliant":"Compliant",reason:bad.join("; "),reqBit:!!p.bitlocker});
+    });
+    var noncomp=rows.some(function(r){return r.state!=="Compliant";});
+    d.compl={state:noncomp?"Not compliant":"Compliant",rows:rows,none:!rows.length};
+    d.appsIn=S.apps.filter(function(a){return a.intent==="required"&&applies(a,d.userId);}).map(function(a){return a.name;});
+    d.cfgIn=S.profiles.filter(function(p){return applies(p,d.userId);}).map(function(p){return p.name;});
+    void u;
+  });
+}
+
+/* ---------- ui builders ---------- */
+function B(label,a,o){o=o||{};var dd="";if(o.d){for(var k in o.d){dd+=' data-'+k+'="'+esc(o.d[k])+'"';}}
+  return '<button type="button" class="btn'+(o.primary?' primary':'')+(o.danger?' danger':'')+(o.sm?' sm':'')+'" data-a="'+a+'"'+dd+(o.dis?' disabled':'')+'>'+(o.icon?ico(o.icon):'')+esc(label)+'</button>';}
+function CB(icon,label,a,o){o=o||{};var dd="";if(o.d){for(var k in o.d){dd+=' data-'+k+'="'+esc(o.d[k])+'"';}}
+  return '<button type="button" class="cb'+(o.lab?' lab-only':'')+'" data-a="'+a+'"'+dd+(o.dis?' disabled':'')+'>'+ico(icon)+esc(label)+'</button>'+(o.i?info(o.i):'');}
+function bar(items){return '<div class="cmdbar" role="toolbar">'+items.join("")+'</div>';}
+var VR='<span class="vr"></span>';
+function lnk(text,a,id,extra){return '<button type="button" class="lnk" data-a="'+a+'" data-id="'+esc(id)+'"'+(extra||"")+'>'+esc(text)+'</button>';}
+function crumbs(list){return '<div class="crumbs">'+list.map(function(c,i){return (i?' &gt; ':'')+(c[1]?'<button type="button" data-a="go" data-pg="'+c[1]+'">'+esc(c[0])+'</button>':esc(c[0]));}).join("")+'</div>';}
+function head(cr,title,infoKey,sub){return crumbs(cr)+'<h1 class="ptitle">'+esc(title)+(infoKey?info(infoKey):'')+'</h1>'+(sub?'<p class="psub">'+sub+'</p>':'');}
+function search(ph){return '<div class="srch">'+ico("search")+'<input id="q" data-q="1" type="text" autocomplete="off" aria-label="'+esc(ph)+'" placeholder="'+esc(ph)+'" value="'+esc(S.q)+'"></div>';}
+function matchQ(s){return !S.q||String(s).toLowerCase().indexOf(S.q.toLowerCase())>-1;}
+function tbl(cols,rows,o){o=o||{};
+  if(!rows.length){return '<div class="empty">'+esc(o.empty||"No results.")+'</div>';}
+  var h='<div class="tbl"><table><thead><tr>'+(o.check?'<th class="ck"><span class="sr"></span></th>':'')+cols.map(function(c){return '<th scope="col">'+c+'</th>';}).join("")+'</tr></thead><tbody>';
+  rows.forEach(function(r){var on=S.checked.indexOf(r.id)>-1;
+    h+='<tr'+(on?' class="on"':'')+'>'+(o.check?'<td class="ck"><input type="checkbox" data-a="chk" data-id="'+esc(r.id)+'" aria-label="Select row"'+(on?' checked':'')+'></td>':'')+r.cells.map(function(c){return '<td>'+c+'</td>';}).join("")+'</tr>';});
+  return h+'</tbody></table></div>';}
+function grid(pairs){return '<dl class="grid2">'+pairs.map(function(p){return '<dt>'+p[0]+'</dt><dd>'+p[1]+'</dd>';}).join("")+'</dl>';}
+function checked1(){return S.checked.length?S.checked[0]:"";}
+function tabs(list,cur,a){return '<div class="tabs" role="tablist">'+list.map(function(t){return '<button type="button" role="tab" data-a="'+a+'" data-t="'+t[0]+'"'+(cur===t[0]?' aria-current="true"':'')+'>'+esc(t[1])+'</button>';}).join("")+'</div>';}
+function blade(list,cur,body){
+  return '<div class="blade"><nav class="bnav" aria-label="Menu">'+list.map(function(t){return '<button type="button" data-a="tab" data-t="'+t[0]+'"'+(cur===t[0]?' aria-current="true"':'')+'>'+esc(t[1])+'</button>';}).join("")+'</nav><div class="bbody">'+body+'</div></div>';}
+
+/* ---------- popover ---------- */
+var popFor=null;
+function showPop(btn){
+  var k=btn.getAttribute("data-t"),g=GL[k];if(!g){return;}
+  var p=$("#pop");
+  p.innerHTML='<b>'+esc(g[0])+'</b><p>'+esc(g[1])+'</p>'+(g[2]?'<div class="eq">'+esc(g[2])+'</div>':'');
+  p.hidden=false;
+  var r=btn.getBoundingClientRect(),w=Math.min(320,window.innerWidth-16);
+  p.style.maxWidth=w+"px";
+  var left=Math.max(8,Math.min(r.left+window.scrollX-8,window.scrollX+window.innerWidth-w-8));
+  p.style.left=left+"px";
+  p.style.top=(r.bottom+window.scrollY+6)+"px";
+  btn.setAttribute("aria-expanded","true");popFor=btn;
+}
+function hidePop(){var p=$("#pop");if(p){p.hidden=true;}if(popFor){try{popFor.setAttribute("aria-expanded","false");}catch(e){}}popFor=null;}
+
+/* ---------- modal + toast ---------- */
+var modalSubmit=null;
+function openModal(title,body,label,fn){
+  modalSubmit=fn;var m=$("#modal");
+  m.innerHTML='<div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><h3>'+esc(title)+'</h3><form id="mf">'+body+'<p class="merr" id="merr" role="alert"></p><div class="btnrow"><button type="button" class="btn" data-a="closeModal">'+(label?'Cancel':'Close')+'</button>'+(label?'<button class="btn primary" type="submit">'+esc(label)+'</button>':'')+'</div></form></div>';
+  m.hidden=false;var f=m.querySelector("input[type=text],select");if(f){f.focus();}
+}
+function closeModal(){$("#modal").hidden=true;$("#modal").innerHTML="";modalSubmit=null;}
+var toastTimer=null;
+function toast(msg){var t=$("#toast");t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.hidden=true;},4800);}
+function mfield(label,html){return '<div class="fld"><div class="lb">'+label+'</div>'+html+'</div>';}
+function mtext(label,name,ph){return mfield(label,'<input type="text" name="'+name+'" aria-label="'+esc(label)+'" autocomplete="off"'+(ph?' placeholder="'+esc(ph)+'"':'')+'>');}
+function msel(label,name,list,sel){return mfield(label,'<select name="'+name+'" aria-label="'+esc(label)+'">'+opts(list,sel||"")+'</select>');}
+function confirmBox(title,text,label,fn){openModal(title,'<p>'+text+'</p>',label,function(){fn();return null;});}
+
+/* ---------- wizard engine ---------- */
+function wizOpen(kind){S.wiz={kind:kind,step:0,err:"",d:JSON.parse(JSON.stringify(WIZ[kind].init||{}))};S.fly=null;S.checked=[];}
+function wv(f){return S.wiz.d[f];}
+function fText(label,f,o){o=o||{};return '<div class="fld"><div class="lb">'+label+(o.i?info(o.i):'')+'</div><input type="text" data-w="'+f+'" aria-label="'+esc(label)+'" autocomplete="off" value="'+esc(wv(f)||"")+'"'+(o.ph?' placeholder="'+esc(o.ph)+'"':'')+'>'+(o.hint?'<div class="hint">'+o.hint+'</div>':'')+'</div>';}
+function fSel(label,f,list,o){o=o||{};return '<div class="fld"><div class="lb">'+label+(o.i?info(o.i):'')+'</div><select data-w="'+f+'"'+(o.rr?' data-rr="1"':'')+' aria-label="'+esc(label)+'">'+opts(list,wv(f)||"")+'</select>'+(o.hint?'<div class="hint">'+o.hint+'</div>':'')+'</div>';}
+function fChk(label,f,o){o=o||{};return '<div class="fld"><label class="chk"><input type="checkbox" data-w="'+f+'"'+(o.rr?' data-rr="1"':'')+(wv(f)?' checked':'')+'> '+label+'</label>'+(o.i?info(o.i):'')+(o.hint?'<div class="hint">'+o.hint+'</div>':'')+'</div>';}
+function fRad(label,f,list,o){o=o||{};return '<div class="fld"><div class="lb">'+label+(o.i?info(o.i):'')+'</div>'+list.map(function(l){return '<label class="rad"><input type="radio" name="'+f+'" data-w="'+f+'" data-rr="1" value="'+esc(l[0])+'"'+(wv(f)===l[0]?' checked':'')+'> '+esc(l[1])+'</label>';}).join("")+(o.hint?'<div class="hint">'+o.hint+'</div>':'')+'</div>';}
+function assignStep(allowAll){
+  var l=[["","Don't assign yet"]];
+  if(allowAll){l.push(["users","All users"]);l.push(["devices","All devices"]);}
+  l.push(["groups","Select groups to include"]);
+  var h=fRad("Included","all",l,{i:"assign"});
+  if(wv("all")==="groups"){h+='<div class="fld"><div class="lb">Groups</div>'+S.groups.map(function(g){return '<label class="rad"><input type="checkbox" data-wg="'+g.id+'"'+((wv("groups")||[]).indexOf(g.id)>-1?' checked':'')+'> '+esc(g.name)+' ('+g.members.length+' members)</label>';}).join("")+'</div>';}
+  return h;
+}
+function assignFromWiz(d){return {all:(d.all==="users"||d.all==="devices")?d.all:"",groups:d.all==="groups"?(d.groups||[]).slice():[]};}
+function wizHtml(){
+  var w=S.wiz,def=WIZ[w.kind],last=w.step===def.steps.length-1;
+  return crumbs(def.crumbs)+'<h1 class="ptitle">'+esc(def.title)+'</h1><div class="wtabs" role="tablist">'+def.steps.map(function(s,i){return '<button type="button" role="tab" class="'+(i===w.step?'on':'')+'" data-a="wizGo" data-n="'+i+'">'+esc(s.n)+'</button>';}).join("")+'</div><div class="wbody">'+def.steps[w.step].h()+'</div>'+
+    (w.err?'<div class="msg bad" role="alert">'+esc(w.err)+'</div>':'')+
+    '<div class="wfoot">'+(last?B(def.btn||"Create","wizCreate",{primary:1}):B("Next","wizNext",{primary:1}))+(w.step>0?B("Previous","wizBack"):"")+B("Cancel","wizCancel")+'</div>';
+}
+function wizBody(){return wizHtml();}
+
+/* =============== ENTRA =============== */
+var E_CR=function(){return [["Home","overview"]];};
+
+PAGES["entra.overview"]=function(){
+  var gas=live().filter(function(u){return u.roles.indexOf("ga")>-1;}).length;
+  return head([["Home"]],"Overview","entra")+
+  '<div class="tabs"><button type="button" aria-current="true">Overview</button><button type="button" data-a="go" data-pg="props">Properties</button><button type="button" data-a="go" data-pg="signins">Monitoring</button></div>'+
+  '<h2 class="sec">Basic information</h2>'+grid([["Name","Practice Tenant"],["Tenant ID"+info("tenant"),'<span class="mono">'+TENANT+'</span>'],["Primary domain",DOMAIN],["License","Microsoft Entra ID P1"]])+
+  '<div class="cards"><div class="tile"><h3>Users</h3><div class="big">'+live().length+'</div></div><div class="tile"><h3>Groups</h3><div class="big">'+S.groups.length+'</div></div><div class="tile"><h3>Devices</h3><div class="big">'+S.devices.filter(function(d){return d.state==="enrolled";}).length+'</div></div></div>'+
+  '<h2 class="sec">Security posture</h2>'+
+  (S.secDefaults||S.caPolicies.some(function(p){return p.state==="on";})?'<div class="msg ok">MFA is being enforced for sign-ins.</div>':'<div class="msg warn">No MFA enforcement is active. Turn on security defaults or create a Conditional Access policy.</div>')+
+  (gas>1?'<div class="msg warn">'+gas+' accounts hold Global Administrator. Review whether each one needs it ('+'least privilege'+info("least")+').</div>':'');
+};
+
+PAGES["entra.props"]=function(){
+  return head([["Home","overview"],["Overview"]],"Properties","tenant")+
+  '<h2 class="sec">Tenant properties</h2>'+grid([["Name","Practice Tenant"],["Country or region","United States"],["Tenant ID",'<span class="mono">'+TENANT+'</span>']])+
+  '<h2 class="sec">Security defaults'+info("secdef")+'</h2><p>Security defaults are currently <b>'+(S.secDefaults?"enabled":"disabled")+'</b>.</p>'+B("Manage security defaults","openSecdef",{icon:"shield"});
+};
+FLY.secdef=function(){
+  var d=S.fly.d;
+  return {title:"Security defaults",sub:"Requires MFA registration and blocks legacy authentication for all users.",body:
+    '<div class="fld"><div class="lb">Security defaults'+info("secdef")+'</div><select data-fd="sd" data-rr="1" aria-label="Security defaults">'+opts([["on","Enabled (recommended)"],["off","Disabled (not recommended)"]],d.sd)+'</select></div>'+
+    (d.sd==="off"?'<div class="fld"><div class="lb">Why are you disabling security defaults?</div>'+[["ca","My organization is using Conditional Access"],["many","My organization is experiencing multifactor authentication prompts"],["other","Other"]].map(function(r){return '<label class="rad"><input type="radio" name="rsn" data-fd="reason" value="'+r[0]+'"'+(d.reason===r[0]?' checked':'')+'> '+esc(r[1])+'</label>';}).join("")+'</div>':'')+
+    '<div class="btnrow">'+B("Save","saveSecdef",{primary:1})+B("Cancel","closeFly")+'</div>'};
+};
+A.openSecdef=function(){S.fly={k:"secdef",d:{sd:S.secDefaults?"on":"off",reason:""}};};
+A.saveSecdef=function(){
+  var d=S.fly.d;
+  if(d.sd==="on"){
+    if(S.caPolicies.some(function(p){return p.state==="on";})){toast("Can't enable security defaults while Conditional Access policies are on. Turn those policies off first.");return;}
+    S.secDefaults=true;audit("Update security defaults (enabled)","","Policy");toast("Security defaults enabled. Everyone must register for MFA.");
+  }else{
+    if(S.secDefaults&&!d.reason){toast("Select a reason for disabling security defaults.");return;}
+    S.secDefaults=false;audit("Update security defaults (disabled)","","Policy");toast("Security defaults disabled.");
+  }
+  S.fly=null;
+};
+
+/* ----- users ----- */
+PAGES["entra.users"]=function(){
+  if(S.sel){return entraUser(U(S.sel));}
+  var rows=live().filter(function(u){return matchQ(u.name+u.upn);}).map(function(u){
+    return {id:u.id,cells:[lnk(u.name,"sel",u.id),'<span class="mono">'+esc(upn(u))+'</span>',"Member",u.blocked?badge("No","bad"):"Yes"]};});
+  var c=checked1();
+  return head([["Home","overview"],["Users"]],"All users","entra")+
+  bar([CB("plus","New user","wizNewEUser"),CB("trash","Delete","delUser",{d:{id:c},dis:!c}),CB("refresh","Refresh","refresh"),VR,CB("lock","Per-user MFA","perUserMfa",{i:"permfa"}),CB("columns","Manage view","noop")])+
+  search("Search by name or user principal name")+tbl(["Display name","User principal name"+info("upn"),"User type","Account enabled"],rows,{check:true});
+};
+function entraUser(u){
+  var tabsL=[["overview","Overview"],["audit","Audit logs"],["signins","Sign-in logs"],["groups","Groups"],["licenses","Licenses"],["devices","Devices"],["auth","Authentication methods"],["roles","Assigned roles"]];
+  var t=S.tab||"overview",body="";
+  if(t==="overview"){
+    body=grid([["Display name",esc(u.name)],["User principal name"+info("upn"),'<span class="mono">'+esc(upn(u))+'</span>'],["Object ID",'<span class="mono">'+esc(u.id)+'-4e1b-9c20-7a31</span>'],["User type","Member"],["Account enabled"+info("block"),u.blocked?"No":"Yes"],["Usage location"+info("usage"),locName(u.loc)],["Sessions valid from"+info("revoke"),u.revoked?"Just now (sessions revoked)":"Today 08:00"],["Last password change",u.pwReset?"Just now":"60 days ago"],["Licenses",esc(licText(u))]]);
+  }else if(t==="signins"){
+    var ls=S.logs.filter(function(l){return l.uid===u.id;});
+    body='<p>Sign-ins for this user, newest first.</p>'+bar([CB("play","Simulate a sign-in as this user","simSignin",{d:{id:u.id},lab:1})])+
+      tbl(["Date","Application","Status","IP address","Location","Conditional Access"],ls.map(function(l){return {cells:[esc(l.when),esc(l.app),statusBadge(l.status),'<span class="mono">'+esc(l.ip)+'</span>',esc(l.place)+(l.odd?" "+badge("Unfamiliar","warn"):""),esc(l.ca)]};}),{empty:"No sign-ins yet."});
+  }else if(t==="audit"){
+    var au=S.audit.filter(function(a){return a.tgt===u.id;});
+    body=tbl(["Date","Service","Category","Activity"],au.map(function(a){return {cells:[esc(a.when),esc(a.svc),esc(a.cat),esc(a.act)]};}),{empty:"No audit events for this user."});
+  }else if(t==="groups"){
+    body=bar([CB("plus","Add memberships","addMembership",{d:{id:u.id}})])+tbl(["Group name","Type",""],userGroups(u.id).map(function(g){return {cells:[esc(g.name),"Security",B("Remove","rmMembership",{sm:1,d:{id:u.id,g:g.id}})]};}),{empty:"Not a member of any group."});
+  }else if(t==="licenses"){
+    var s=licState(u);
+    body='<p>Assignments'+info("license")+'</p>'+tbl(["License","Assignment paths","State"],[{cells:["Microsoft 365 Business Premium",s.k==="ok"?(u.direct?"Direct":"Inherited (group)"):"-",s.k==="ok"?badge("Active","ok"):s.k==="bad"?badge("Error","bad"):badge("Not assigned")]}])+
+      '<div class="btnrow">'+B(u.direct?"Remove direct assignment":"Add direct assignment","licUser",{d:{id:u.id},primary:!u.direct})+'</div>'+(s.k==="bad"?'<div class="msg bad">The group license failed because usage location is missing. Set it with Edit properties.</div>':'');
+  }else if(t==="devices"){
+    var dv=S.devices.filter(function(d){return d.userId===u.id&&d.state==="enrolled";});
+    body=tbl(["Name","Join type","MDM","Compliant"],dv.map(function(d){return {cells:[esc(d.name),"Microsoft Entra joined","Microsoft Intune",d.compl&&d.compl.state==="Compliant"?"Yes":"No"]};}),{empty:"No devices."});
+  }else if(t==="auth"){
+    body=bar([CB("plus","Add authentication method","addMethod",{d:{id:u.id}}),CB("restart","Require re-register multifactor authentication","rereg",{d:{id:u.id},i:"rereg"}),CB("signout","Revoke multifactor authentication sessions","revoke",{d:{id:u.id}})])+
+      '<p>Authentication methods'+info("authm")+' registered by this user:</p>'+tbl(["Method","Detail",""],u.methods.map(function(m){return {cells:[esc(m.type)+(m.sus?" "+badge("Added recently","warn"):""),esc(m.detail),B("Delete","delMethod",{sm:1,danger:1,d:{id:u.id,m:m.id}})]};}),{empty:"No methods registered. With MFA enforced this user would be asked to register."});
+  }else if(t==="roles"){
+    body=bar([CB("plus","Add assignments","addRoleToUser",{d:{id:u.id}})])+p_least()+tbl(["Role","Description",""],u.roles.map(function(r){var ro=role(r);return {cells:[esc(ro.name),esc(ro.desc),B("Remove","rmRole",{sm:1,d:{id:u.id,r:r}})]};}),{empty:"No administrator roles. This is the right default for most people."});
+  }
+  return crumbs([["Home","overview"],["Users","users"],[u.name]])+'<h1 class="ptitle">'+esc(u.name)+' | '+esc(tabsL.filter(function(x){return x[0]===t;})[0][1])+'</h1>'+
+    bar([CB("edit","Edit properties","editProps",{d:{id:u.id}}),CB("trash","Delete","delUser",{d:{id:u.id}}),CB("refresh","Refresh","refresh"),VR,CB("key","Reset password","resetPw",{d:{id:u.id}}),CB("signout","Revoke sessions","revoke",{d:{id:u.id},i:"revoke"})])+
+    blade(tabsL,t,body);
+}
+function p_least(){return '<p class="psub">Assign the smallest role that fits'+info("least")+'. Most people need none.</p>';}
+function statusBadge(s){return s==="Success"?badge("Success","ok"):s==="Failure"?badge("Failure","bad"):badge(s,"warn");}
+
+FLY.editprops=function(){var d=S.fly.d;
+  return {title:"Edit properties",sub:esc(U(S.fly.id).name),body:
+    '<div class="fld"><div class="lb">Account enabled'+info("block")+'</div><select data-fd="enabled" aria-label="Account enabled">'+opts([["yes","Yes"],["no","No (blocks sign-in)"]],d.enabled)+'</select></div>'+
+    '<div class="fld"><div class="lb">Usage location'+info("usage")+'</div><select data-fd="loc" aria-label="Usage location">'+opts(LOCS,d.loc)+'</select></div>'+
+    '<div class="btnrow">'+B("Save","saveProps",{primary:1})+B("Cancel","closeFly")+'</div>'};
+};
+A.editProps=function(d){var u=U(d.id);S.fly={k:"editprops",id:u.id,d:{enabled:u.blocked?"no":"yes",loc:u.loc}};};
+A.saveProps=function(){var u=U(S.fly.id),d=S.fly.d;u.blocked=d.enabled==="no";u.loc=d.loc;audit("Update user",u.id);toast("Properties saved for "+u.name+".");S.fly=null;};
+
+/* new user wizard */
+WIZ.eUser={title:"Create new user",crumbs:[["Home","overview"],["Users","users"],["New user"]],init:{name:"",upn:"",loc:"",grp:"",role:""},btn:"Create",
+  steps:[
+   {n:"Basics",h:function(){return fText("User principal name"+"","upn",{i:"upn",ph:"first.last",hint:"The domain will be @"+DOMAIN})+fText("Display name","name")+'<div class="fld"><div class="lb">Password</div><p>Auto-generated. It is shown once after you create the user.</p></div>';}},
+   {n:"Properties",h:function(){return fSel("Usage location","loc",LOCS,{i:"usage",hint:"Optional here, but a license can't be assigned without it."});}},
+   {n:"Assignments",h:function(){return fSel("Add to group","grp",groupList("None"))+fSel("Assign role","role",[["","None (recommended)"]].concat(ROLES.map(function(r){return [r.id,r.name];})),{i:"least"});}},
+   {n:"Review + create",h:function(){var d=S.wiz.d;return grid([["User principal name",esc((d.upn||"?")+"@"+DOMAIN)],["Display name",esc(d.name||"?")],["Usage location",locName(d.loc)],["Group",d.grp?esc(G(d.grp).name):"None"],["Role",d.role?esc(role(d.role).name):"None"]]);}}
+  ],
+  create:function(d){var r=createUser(d.name,d.upn,d.loc,false);if(r.error){return r;}
+    var u=r.user;if(d.grp){G(d.grp).members.push(u.id);}if(d.role){u.roles.push(d.role);}return {msg:"User created: "+u.name+". Temporary password: "+r.pw};}
+};
+A.wizNewEUser=function(){wizOpen("eUser");};
+function createUser(name,p,loc,lic){
+  name=(name||"").trim();p=(p||"").trim().toLowerCase();
+  if(!name){return {error:"Enter a display name."};}
+  if(!/^[a-z0-9._-]+$/.test(p)){return {error:"The user principal name can only contain letters, numbers, dots, dashes and underscores."};}
+  if(S.users.some(function(u){return u.upn===p;})){return {error:"Another object with the same value for property userPrincipalName already exists."};}
+  if(lic&&!loc){return {error:"Select a usage location before assigning a license."};}
+  if(lic&&available()<=0){return {error:"No licenses available. Free one up first."};}
+  var u={id:nid("u"),name:name,upn:p,loc:loc||"",direct:!!lic,blocked:false,revoked:false,pwReset:false,fwd:null,deleted:false,filesLink:false,roles:[],methods:[],created:true};
+  S.users.push(u);S.flags.createdUsers+=1;audit("Add user",u.id);
+  u.pw=randPw();u.mustChange=true;return {user:u,pw:u.pw};
+}
+
+A.delUser=function(d){var u=U(d.id);if(!u){return;}
+  confirmBox("Delete "+u.name+"?","The user moves to <b>Deleted users</b> for 30 days and can be restored. Their license is released, but group memberships and any files should be handled first."+info("soft"),"Delete",function(){u.deleted=true;S.sel=null;S.checked=[];S.fly=null;audit("Delete user",u.id);toast(u.name+" was deleted. You can restore them for 30 days.");});};
+A.resetPw=function(d){var u=U(d.id),pw=randPw();u.pwReset=true;u.pw=pw;u.mustChange=true;audit("Reset password (by admin)",u.id);
+  openModal("Password reset",'<p>New temporary password for <b>'+esc(u.name)+'</b>:</p><span class="pwbox">'+pw+'</span><p>They must change it at next sign-in. Resetting the password does not end sessions that are already signed in. Use <b>Revoke sessions</b> too.</p>',null,null);};
+A.revoke=function(d){var u=U(d.id);u.revoked=true;audit("Revoke user sign-in sessions",u.id);toast("Sessions revoked for "+u.name+". They must sign in again everywhere.");};
+A.licUser=function(d){var u=U(d.id);
+  if(u.direct){u.direct=false;audit("Remove license from user",u.id,"UserManagement","Core Directory");toast("Direct license removed from "+u.name+(viaGroup(u)?" (still licensed through a group).":"."));return;}
+  if(!u.loc){toast("License assignment failed: usage location isn't set. Set it first.");return;}
+  if(available()<=0){toast("No licenses available.");return;}
+  u.direct=true;audit("Change user license",u.id);toast("Business Premium assigned to "+u.name+".");};
+A.addMembership=function(d){var u=U(d.id);
+  openModal("Add memberships",msel("Group","g",groupList("Select a group")),"Select",function(fd){if(!fd.g){return {error:"Select a group."};}var g=G(fd.g);if(g.members.indexOf(u.id)>-1){return {error:"Already a member."};}g.members.push(u.id);audit("Add member to group",u.id);toast(u.name+" added to "+g.name+".");return null;});};
+A.rmMembership=function(d){var g=G(d.g);g.members=g.members.filter(function(m){return m!==d.id;});audit("Remove member from group",d.id);toast("Removed from "+g.name+".");};
+A.addMethod=function(d){var u=U(d.id);
+  openModal("Add authentication method",msel("Method","t",[["Phone (SMS)","Phone (SMS)"],["Email","Email"]])+mtext("Phone number or email","v"),"Add",function(fd){if(!(fd.v||"").trim()){return {error:"Enter a value."};}u.methods.push({id:nid("m"),type:fd.t,detail:fd.v.trim(),sus:false});audit("Admin registered security info",u.id);toast("Method added.");return null;});};
+A.delMethod=function(d){var u=U(d.id);u.methods=u.methods.filter(function(m){return m.id!==d.m;});audit("Admin deleted security info",u.id);toast("Authentication method deleted. The user may need to register again.");};
+A.rereg=function(d){var u=U(d.id);confirmBox("Require re-register MFA?","All of "+esc(u.name)+"'s registered methods are cleared and they must register again at next sign-in.","Require",function(){u.methods=[];u.revoked=true;audit("Require re-register MFA",u.id);toast("Methods cleared for "+u.name+".");});};
+A.addRoleToUser=function(d){var u=U(d.id);
+  openModal("Add assignments",msel("Role","r",ROLES.map(function(r){return [r.id,r.name];}))+'<p class="hint">Pick the narrowest role that works.</p>',"Add",function(fd){if(u.roles.indexOf(fd.r)>-1){return {error:"Already assigned."};}u.roles.push(fd.r);audit("Add member to role",u.id,"RoleManagement");toast(role(fd.r).name+" assigned to "+u.name+".");return null;});};
+A.rmRole=function(d){var u=U(d.id);u.roles=u.roles.filter(function(r){return r!==d.r;});audit("Remove member from role",u.id,"RoleManagement");toast("Role removed from "+u.name+".");};
+A.simSignin=function(d){
+  var u=U(d.id),good=u.methods.some(function(m){return !m.sus;});
+  var caOn=S.caPolicies.some(function(p){return p.state==="on";}),caRep=S.caPolicies.some(function(p){return p.state==="report";});
+  var need=S.secDefaults||caOn,status,mfa,ca,note;
+  if(u.blocked){status="Failure";mfa="-";ca="Not applied";note="Sign-in failed (50057): the account is disabled.";}
+  else if(need&&!good){status="Interrupted";mfa="MFA registration required (50072)";ca=caOn?"Success":"Security defaults";S.flags.testedMfa=true;note=u.name+" has no MFA method, so they are forced to register one before continuing.";}
+  else if(need){status="Success";mfa="MFA satisfied (app notification)";ca=caOn?"Success":"Security defaults";note="MFA was required and satisfied.";}
+  else{status="Success";mfa="Single-factor authentication";ca=caRep?"Report-only: would require MFA":"Not applied";note="Signed in with a password only. Nothing enforces MFA yet."+(caRep?" The report-only policy logged that it would have required MFA.":"");}
+  S.logs.unshift({id:nid("l"),uid:u.id,when:"Just now",app:"Test sign-in",status:status,ip:"73.12.90.4",place:"Brooklyn, United States",ca:ca,mfa:mfa,odd:false});
+  toast(note);
+};
+
+/* deleted users */
+PAGES["entra.deleted"]=function(){
+  var rows=S.users.filter(function(u){return u.deleted;}).map(function(u){return {cells:[esc(u.name),'<span class="mono">'+esc(upn(u))+'</span>',"30 days",B("Restore","restoreUser",{sm:1,d:{id:u.id}})]};});
+  return head([["Home","overview"],["Users"]],"Deleted users","soft")+tbl(["Display name","User principal name","Days until permanent deletion",""],rows,{empty:"No deleted users."});
+};
+A.restoreUser=function(d){var u=U(d.id);u.deleted=false;u.direct=false;audit("Restore user",u.id);toast(u.name+" restored. They need a license assigned again.");};
+
+/* ----- groups ----- */
+PAGES["entra.groups"]=function(){
+  if(S.sel){return entraGroup(G(S.sel));}
+  var rows=S.groups.filter(function(g){return matchQ(g.name);}).map(function(g){return {cells:[lnk(g.name,"sel",g.id),'<span class="mono">'+g.id+'-77c2-41ef</span>',"Security"+info("secgroup"),"Assigned",g.members.length]};});
+  return head([["Home","overview"],["Groups"]],"All groups","secgroup")+bar([CB("plus","New group","newGroup"),CB("refresh","Refresh","refresh")])+search("Search by name")+tbl(["Name","Object Id","Group type","Membership type","Members"],rows);
+};
+function entraGroup(g){
+  var t=S.tab||"overview",list=[["overview","Overview"],["members","Members"],["licenses","Licenses"]],body="";
+  if(t==="overview"){body=grid([["Name",esc(g.name)],["Group type","Security"],["Membership type","Assigned"],["Members",g.members.filter(function(m){return !U(m).deleted;}).length],["Group license"+info("grouplic"),S.licenseGroups.indexOf(g.id)>-1?"Microsoft 365 Business Premium":"None"]]);}
+  else if(t==="members"){body=bar([CB("plus","Add members","addMemberTo",{d:{g:g.id}})])+tbl(["Name","User principal name",""],g.members.map(U).filter(function(u){return !u.deleted;}).map(function(u){return {cells:[esc(u.name),'<span class="mono">'+esc(upn(u))+'</span>',B("Remove","rmMember",{sm:1,d:{g:g.id,id:u.id}})]};}),{empty:"No members."});}
+  else if(t==="licenses"){
+    var on=S.licenseGroups.indexOf(g.id)>-1,errs=g.members.map(U).filter(function(u){return !u.deleted&&!u.loc&&!u.direct;});
+    body='<p>License assignments'+info("grouplic")+' apply to every member of this group.</p>'+bar([CB("plus","Assignments","licGroupToggle",{d:{g:g.id},dis:on}),CB("trash","Remove","licGroupToggle",{d:{g:g.id},dis:!on})])+
+      tbl(["License","State"],on?[{cells:["Microsoft 365 Business Premium",badge("Assigned","ok")]}]:[],{empty:"No licenses assigned to this group."})+
+      (on&&errs.length?'<div class="msg bad">'+errs.length+' member(s) have a license error because usage location is missing: '+esc(errs.map(function(u){return u.name;}).join(", "))+'.</div>':'');
+  }
+  return crumbs([["Home","overview"],["Groups","groups"],[g.name]])+'<h1 class="ptitle">'+esc(g.name)+' | '+esc(list.filter(function(x){return x[0]===t;})[0][1])+'</h1>'+blade(list,t,body);
+}
+A.newGroup=function(){openModal("New group",msel("Group type","t",[["Security","Security"]])+mtext("Group name","name","NYC-Staff"),"Create",function(fd){
+  var n=(fd.name||"").trim();if(!n){return {error:"Enter a group name."};}
+  if(S.groups.some(function(g){return g.name.toLowerCase()===n.toLowerCase();})){return {error:"A group with that name already exists."};}
+  S.groups.push({id:nid("g"),name:n,members:[],created:true});audit("Add group",n,"GroupManagement");toast("Group created: "+n+".");return null;});};
+A.addMemberTo=function(d){var g=G(d.g);openModal("Add members",msel("User","u",userList("Select a user",function(u){return g.members.indexOf(u.id)<0;})),"Select",function(fd){if(!fd.u){return {error:"Select a user."};}g.members.push(fd.u);audit("Add member to group",fd.u,"GroupManagement");toast(U(fd.u).name+" added to "+g.name+".");return null;});};
+A.rmMember=function(d){var g=G(d.g);g.members=g.members.filter(function(m){return m!==d.id;});audit("Remove member from group",d.id,"GroupManagement");toast(U(d.id).name+" removed from "+g.name+".");};
+A.licGroupToggle=function(d){var g=G(d.g),i=S.licenseGroups.indexOf(g.id);
+  if(i>-1){S.licenseGroups.splice(i,1);audit("Remove license from group",g.name,"GroupManagement");toast("Group license removed. Members lose it unless licensed directly.");}
+  else{S.licenseGroups.push(g.id);audit("Assign license to group",g.name,"GroupManagement");var e=g.members.map(U).filter(function(u){return !u.deleted&&!u.loc;}).length;toast("License assigned to "+g.name+(e?". "+e+" member(s) have errors: usage location missing.":"."));}};
+
+/* ----- devices & MDM ----- */
+PAGES["entra.devices"]=function(){
+  var rows=S.devices.filter(function(d){return d.join;}).map(function(d){var u=U(d.joinUser);return {cells:[esc(d.name),"Yes",esc(d.os),esc(d.osVer),d.join==="joined"?"Microsoft Entra joined"+info("entrajoin"):"Microsoft Entra registered"+info("regvsjoin"),esc(u?u.name:"-"),d.state==="enrolled"?"Microsoft Intune":"None",d.state==="enrolled"?(d.compl&&d.compl.state==="Compliant"?"Yes":"No"):"N/A",esc(d.join==="joined"?"Today":"Today")]};});
+  return head([["Home","overview"],["Devices"]],"All devices","entrajoin")+bar([CB("refresh","Refresh","refresh")])+tbl(["Name","Enabled","OS","Version","Join type","Owner","MDM","Compliant","Registered"],rows,{empty:"No devices yet. Join or register a laptop in the Windows laptop tab."});
+};
+PAGES["entra.devsettings"]=function(){
+  if(!S.draft){S.draft={dj:S.deviceJoin};}
+  return head([["Home","overview"],["Devices"]],"Device settings","devjoin")+'<h2 class="sec">Microsoft Entra join and registration settings</h2>'+
+   '<div class="fld"><div class="lb">Users may join devices to Microsoft Entra'+info("devjoin")+'</div>'+[["all","All"],["none","None"]].map(function(r){return '<label class="rad"><input type="radio" name="dj" data-dr="dj" data-rr="1" value="'+r[0]+'"'+((S.draft&&S.draft.dj?S.draft.dj:S.deviceJoin)===r[0]?' checked':'')+'> '+r[1]+'</label>';}).join("")+'</div>'+
+   '<div class="btnrow">'+B("Save","saveDevSettings",{primary:1})+'</div>'+(S.deviceJoin==="none"?'<div class="msg warn">Nobody can join a device right now. Joins fail with error 801c0003.</div>':'');
+};
+A.saveDevSettings=function(){var v=(S.draft&&S.draft.dj)||S.deviceJoin;S.deviceJoin=v;audit("Set device registration policy","","Policy");toast("Saved. Users may join devices: "+(v==="all"?"All":"None")+".");};
+PAGES["entra.mdm"]=function(){
+  if(!S.draft){S.draft={scope:S.mdm.scope,group:S.mdm.group};}
+  var d=S.draft;
+  return head([["Home","overview"],["Devices"]],"Mobility (MDM and MAM)","mdmscope")+'<h2 class="sec">Microsoft Intune</h2><p class="psub">Configure which users can enroll devices into Intune automatically.</p>'+
+   '<div class="fld"><div class="lb">MDM user scope'+info("mdmscope")+'</div>'+[["none","None"],["some","Some"],["all","All"]].map(function(r){return '<label class="rad"><input type="radio" name="mdm" data-dr="scope" data-rr="1" value="'+r[0]+'"'+(d.scope===r[0]?' checked':'')+'> '+r[1]+'</label>';}).join("")+'</div>'+
+   (d.scope==="some"?'<div class="fld"><div class="lb">Select groups</div><select data-dr="group" aria-label="Group">'+opts(groupList("Select a group"),d.group)+'</select></div>':'')+
+   '<div class="btnrow">'+B("Save","saveMdm",{primary:1})+'</div>'+(S.mdm.scope==="none"?'<div class="msg warn">MDM user scope is None. New laptops will join Entra ID but will not enroll in Intune.</div>':'');
+};
+A.saveMdm=function(){var d=S.draft;if(d.scope==="some"&&!d.group){toast("Select a group for the 'Some' scope.");return;}S.mdm={scope:d.scope,group:d.scope==="some"?d.group:""};audit("Update MDM user scope","","Policy");toast("MDM user scope saved: "+S.mdm.scope+".");};
+
+/* ----- roles ----- */
+PAGES["entra.roles"]=function(){
+  if(S.sel){var r=role(S.sel),us=live().filter(function(u){return u.roles.indexOf(r.id)>-1;}),c=checked1();
+    return crumbs([["Home","overview"],["Roles & admins","roles"],[r.name]])+'<h1 class="ptitle">'+esc(r.name)+(r.id==="ga"?info("ga"):r.id==="ha"?info("helpdesk"):"")+'</h1><p class="psub">'+esc(r.desc)+'</p>'+
+      (r.id==="ga"&&us.length>1?'<div class="msg warn">'+us.length+' Global Administrators. Microsoft recommends keeping this small. Does everyone here need full control?'+info("least")+'</div>':'')+
+      bar([CB("plus","Add assignments","roleAdd",{d:{r:r.id}}),CB("trash","Remove assignments","roleRemove",{d:{r:r.id,id:c},dis:!c})])+
+      tbl(["Name","User principal name","State"],us.map(function(u){return {id:u.id,cells:[esc(u.name),'<span class="mono">'+esc(upn(u))+'</span>',"Permanent"]};}),{check:true,empty:"No assignments."});}
+  return head([["Home","overview"],["Roles & admins"]],"Roles and administrators","roles",p_least_text())+
+    tbl(["Role","Description","Assigned"],ROLES.map(function(r){return {cells:[lnk(r.name,"sel",r.id),esc(r.desc),live().filter(function(u){return u.roles.indexOf(r.id)>-1;}).length]};}));
+};
+function p_least_text(){return "Assign the smallest role that gets the job done.";}
+A.roleAdd=function(d){var r=role(d.r);openModal("Add assignments: "+r.name,msel("User","u",userList("Select a user",function(u){return u.roles.indexOf(r.id)<0;})),"Add",function(fd){if(!fd.u){return {error:"Select a user."};}U(fd.u).roles.push(r.id);audit("Add member to role",fd.u,"RoleManagement");toast(r.name+" assigned to "+U(fd.u).name+".");return null;});};
+A.roleRemove=function(d){var u=U(d.id);if(!u){return;}u.roles=u.roles.filter(function(x){return x!==d.r;});S.checked=[];audit("Remove member from role",u.id,"RoleManagement");toast(role(d.r).name+" removed from "+u.name+".");};
+
+/* ----- conditional access ----- */
+PAGES["entra.ca"]=function(){
+  var rows=S.caPolicies.map(function(p){return {cells:[esc(p.name),p.state==="on"?badge("On","ok"):p.state==="report"?badge("Report-only","warn"):badge("Off"),"All users","All resources","Require multifactor authentication",
+    (p.state!=="on"?B("Turn on","caState",{sm:1,d:{id:p.id,s:"on"}})+" ":"")+(p.state!=="report"?B("Report-only","caState",{sm:1,d:{id:p.id,s:"report"}})+" ":"")+(p.state!=="off"?B("Turn off","caState",{sm:1,d:{id:p.id,s:"off"}})+" ":"")+B("Delete","caDelete",{sm:1,danger:1,d:{id:p.id}})]};});
+  return head([["Home","overview"],["Protection"]],"Conditional Access | Policies","ca")+bar([CB("plus","New policy","wizNewCA"),CB("refresh","Refresh","refresh")])+
+    (S.secDefaults?'<div class="msg warn">Security defaults are enabled. You must disable them (Overview > Properties) before turning a Conditional Access policy on.</div>':'')+
+    tbl(["Policy name","State"+info("ccount"),"Users","Target resources","Grant","Actions"],rows,{empty:"No policies yet. Create one that requires MFA."});
+};
+WIZ.ca={title:"New Conditional Access policy",crumbs:[["Home","overview"],["Protection","ca"],["New"]],init:{name:"",state:"report"},btn:"Create",
+  steps:[{n:"Policy",h:function(){return fText("Name","name",{ph:"Require MFA for all users"})+
+    grid([["Users","All users"],["Target resources","All resources"],["Grant","Grant access: Require multifactor authentication"+info("mfa")]])+
+    '<div style="height:12px"></div>'+fRad("Enable policy","state",[["report","Report-only"],["on","On"],["off","Off"]],{i:"reportonly"});}}],
+  create:function(d){var n=(d.name||"").trim();if(!n){return {error:"Enter a policy name."};}
+    if(d.state==="on"&&S.secDefaults){return {error:"You can't turn this policy on while security defaults are enabled. Disable security defaults first."};}
+    S.caPolicies.push({id:nid("ca"),name:n,state:d.state});if(d.state==="report"){S.flags.caReport=true;}audit("Add Conditional Access policy",n,"Policy");return {msg:"Policy created ("+(d.state==="report"?"report-only":d.state)+")."};}
+};
+A.wizNewCA=function(){wizOpen("ca");};
+A.caState=function(d){var p=S.caPolicies.filter(function(x){return x.id===d.id;})[0];
+  if(d.s==="on"&&S.secDefaults){toast("Turn off security defaults first. They can't run together with Conditional Access.");return;}
+  p.state=d.s;if(d.s==="report"){S.flags.caReport=true;}audit("Update Conditional Access policy",p.name,"Policy");toast("Policy is now "+(d.s==="report"?"report-only":d.s)+".");};
+A.caDelete=function(d){S.caPolicies=S.caPolicies.filter(function(x){return x.id!==d.id;});audit("Delete Conditional Access policy","","Policy");toast("Policy deleted.");};
+
+/* ----- logs ----- */
+PAGES["entra.signins"]=function(){
+  var rows=S.logs.filter(function(l){var u=U(l.uid);return matchQ((u?u.name:"")+l.app);}).map(function(l){var u=U(l.uid);return {cells:[lnk(l.when,"openSignin",l.id),'<span class="mono">'+esc(l.id)+'</span>',esc(u?u.name:"?"),esc(l.app),statusBadge(l.status),'<span class="mono">'+esc(l.ip)+'</span>',esc(l.place)+(l.odd?" "+badge("Unfamiliar","warn"):""),esc(l.ca)]};});
+  return head([["Home","overview"],["Monitoring & health"]],"Sign-in logs","signinlogs","Look for unfamiliar locations and sign-ins where MFA was not required.")+bar([CB("download","Download","noop"),CB("refresh","Refresh","refresh"),CB("filter","Add filters","noop")])+search("Search by user or application")+
+    tbl(["Date","Request ID","User","Application","Status","IP address","Location","Conditional Access"],rows);
+};
+A.openSignin=function(d){S.fly={k:"signin",id:d.id};};
+FLY.signin=function(){var l=S.logs.filter(function(x){return x.id===S.fly.id;})[0],u=U(l.uid);
+  return {title:"Activity details: Sign-ins",sub:esc(l.when),body:grid([["Request ID",'<span class="mono">'+esc(l.id)+'</span>'],["User",esc(u.name)],["Username",'<span class="mono">'+esc(upn(u))+'</span>'],["Application",esc(l.app)],["Status",esc(l.status)],["IP address",'<span class="mono">'+esc(l.ip)+'</span>'],["Location",esc(l.place)],["Authentication requirement"+info("mfa"),esc(l.mfa)],["Conditional Access"+info("ca"),esc(l.ca)]])+
+    (l.odd?'<div class="msg warn">This sign-in came from a location this user doesn\'t normally use, with no MFA. Treat the account as compromised: reset the password, revoke sessions, and check methods and mail forwarding.</div>':'')};
+};
+PAGES["entra.audit"]=function(){
+  var rows=S.audit.filter(function(a){return matchQ(a.act+a.tgt+a.cat);}).map(function(a){var u=U(a.tgt);return {cells:[esc(a.when),esc(a.svc),esc(a.cat),esc(a.act),esc(u?u.name:a.tgt||"-"),'<span class="mono">'+esc(a.by)+'</span>']};});
+  return head([["Home","overview"],["Monitoring & health"]],"Audit logs","auditlogs","Every change made in this lab is recorded here.")+bar([CB("refresh","Refresh","refresh")])+search("Search by activity or target")+tbl(["Date","Service","Category","Activity","Target","Initiated by"],rows);
+};
+
+/* =============== MICROSOFT 365 ADMIN CENTER =============== */
+PAGES["m365.home"]=function(){
+  return '<h1 class="ptitle">Home</h1><p class="psub">Welcome to your practice admin center.</p>'+
+  '<div class="cards"><div class="tile"><h3>Active users</h3><div class="big">'+live().length+'</div>'+B("Add a user","wizNewMUser",{icon:"plus",sm:1})+'</div>'+
+  '<div class="tile"><h3>Licenses'+info("license")+'</h3><div class="big">'+assigned()+' / '+S.total+'</div><div class="meter"><i style="width:'+Math.round(assigned()/S.total*100)+'%"></i></div><span>'+available()+' available</span></div>'+
+  '<div class="tile"><h3>Service health</h3><div class="big" style="font-size:18px">'+badge("All services healthy","ok")+'</div></div></div>'+
+  '<h2 class="sec">Admin centers</h2><div class="btnrow">'+B("Identity (Entra)","go",{d:{p:"entra",pg:"overview"},icon:"shield"})+B("Endpoint Manager (Intune)","go",{d:{p:"intune",pg:"home"},icon:"device"})+B("Exchange","go",{d:{p:"exchange",pg:"mailboxes"},icon:"mail"})+'</div>';
+};
+
+PAGES["m365.users"]=function(){
+  var rows=live().filter(function(u){return matchQ(u.name+u.upn);}).map(function(u){
+    return {id:u.id,cells:[lnk(u.name,"openMUser",u.id)+(u.blocked?" "+badge("Sign-in blocked","bad"):""),'<span class="mono">'+esc(upn(u))+'</span>',esc(licText(u))]};});
+  var c=checked1();
+  return '<h1 class="ptitle">Active users</h1>'+
+  bar([CB("user","Add a user","wizNewMUser"),CB("lock","Multi-factor authentication","perUserMfa",{i:"mfa"}),CB("trash","Delete a user","delUser",{d:{id:c},dis:!c}),CB("refresh","Refresh","refresh"),CB("key","Reset password","resetPw",{d:{id:c},dis:!c}),VR,CB("filter","Filter","noop")])+
+  search("Search active users list")+tbl(["Display name","Username"+info("upn"),"Licenses"+info("license")],rows,{check:true});
+};
+
+/* add user wizard */
+WIZ.mUser={title:"Add a user",crumbs:[["Active users","users"],["Add a user"]],init:{name:"",upn:"",loc:"",lic:true,admin:"user",role:"ha"},btn:"Finish adding",
+  steps:[
+   {n:"Basics",h:function(){return fText("Display name","name")+fText("Username","upn",{i:"upn",hint:"Domain: @"+DOMAIN});}},
+   {n:"Product licenses",h:function(){return fSel("Select location","loc",LOCS,{i:"usage",hint:"Required. Licenses can't be assigned without a usage location."})+
+     '<div class="fld"><div class="lb">Licenses ('+available()+' available)'+info("license")+'</div></div>'+fChk("Microsoft 365 Business Premium","lic",{hint:"Prefer adding the user to a licensed group instead, so offboarding is just a group change."+info("grouplic")});}},
+   {n:"Optional settings",h:function(){return fRad("Roles"+"","admin",[["user","User (no administrator access)"],["admin","Admin center access"]],{i:"roles"})+(wv("admin")==="admin"?fSel("Role","role",ROLES.map(function(r){return [r.id,r.name];}),{i:"least"}):"");}},
+   {n:"Finish",h:function(){var d=S.wiz.d;return grid([["Display name",esc(d.name||"?")],["Username",esc((d.upn||"?")+"@"+DOMAIN)],["Location",locName(d.loc)],["License",d.lic?"Microsoft 365 Business Premium":"None"],["Role",d.admin==="admin"?esc(role(d.role).name):"User (no admin access)"]]);}}
+  ],
+  create:function(d){var r=createUser(d.name,d.upn,d.loc,!!d.lic);if(r.error){return r;}if(d.admin==="admin"){r.user.roles.push(d.role);}return {msg:"User added: "+r.user.name+". Temporary password: "+r.pw};}
+};
+A.wizNewMUser=function(){wizOpen("mUser");};
+
+/* user flyout */
+A.openMUser=function(d){var u=U(d.id);S.fly={k:"muser",id:u.id,tab:"account",d:{loc:u.loc,lic:!!u.direct}};};
+FLY.muser=function(){
+  var u=U(S.fly.id),t=S.fly.tab,d=S.fly.d,body="";
+  if(t==="account"){
+    body='<h2 class="sec">Username</h2><p class="mono">'+esc(upn(u))+'</p>'+
+    '<h2 class="sec">Groups</h2><p>'+(userGroups(u.id).map(function(g){return badge(g.name);}).join(" ")||"None")+'</p>'+
+    '<h2 class="sec">Roles'+info("roles")+'</h2><p>'+(u.roles.map(function(r){return badge(role(r).name,r==="ga"?"warn":"");}).join(" ")||"No administrator access")+'</p>'+
+    '<h2 class="sec">Sign-in status</h2><p>'+(u.blocked?badge("Sign-in blocked","bad"):badge("Sign-in allowed","ok"))+'</p>'+
+    '<div class="btnrow">'+B("Reset password","resetPw",{icon:"key",d:{id:u.id}})+B(u.blocked?"Unblock sign-in":"Block sign-in","block",{icon:"block",danger:!u.blocked,d:{id:u.id}})+B("Sign out of all sessions","revoke",{icon:"signout",d:{id:u.id}})+'</div>'+
+    '<p class="hint">Block sign-in'+info("block")+' and sign out'+info("revoke")+' work together: block stops new sign-ins, sign out ends the ones already open.</p>';
+  }else if(t==="devices"){
+    var dv=S.devices.filter(function(x){return x.userId===u.id&&x.state==="enrolled";});
+    body=tbl(["Device","OS","Compliance"],dv.map(function(x){return {cells:[esc(x.name),esc(x.os),x.compl&&x.compl.state==="Compliant"?badge("Compliant","ok"):badge("Not compliant","bad")]};}),{empty:"No managed devices for this user."});
+  }else if(t==="licenses"){
+    var grpLic=viaGroup(u)&&!!u.loc&&!u.direct;
+    body='<div class="fld"><div class="lb">Select location'+info("usage")+'</div><select data-fd="loc" aria-label="Select location">'+opts(LOCS,d.loc)+'</select></div>'+
+    '<h2 class="sec">Licenses ('+(hasLicense(u)?1:0)+')</h2>'+
+    '<label class="chk"><input type="checkbox" data-fd="lic"'+((d.lic||grpLic)?' checked':'')+(grpLic?' disabled':'')+'> Microsoft 365 Business Premium</label>'+
+    '<div class="hint">'+(grpLic?"Assigned through a group. Remove the user from the group (or the group license) to change it.":available()+" licenses available")+'</div>'+
+    (licState(u).k==="bad"?'<div class="msg bad">Group license error: usage location is missing. Set it above and save.</div>':'')+
+    '<div class="btnrow">'+B("Save changes","saveMLic",{primary:1})+'</div>';
+  }else if(t==="mail"){
+    body='<h2 class="sec">Email forwarding'+info("fwd")+'</h2><p>'+(u.fwd?'Forwarding to <span class="mono">'+esc(u.fwd)+'</span> '+badge("External","bad"):"Not forwarding.")+'</p>'+B("Manage email forwarding","mailFwd",{d:{id:u.id}})+
+    (hasLicense(u)?'':'<div class="msg warn">This user has no license, so the mailbox is inactive.'+info("mailbox")+'</div>');
+  }else if(t==="onedrive"){
+    body='<h2 class="sec">Get access to files'+info("onedrive")+'</h2><p>Create a link so a manager can open this user\'s OneDrive files before the account is deleted.</p>'+
+    (u.filesLink?'<div class="msg ok">Link created: <span class="mono">https://practicetenant-my.sharepoint.com/personal/'+esc(u.upn)+'</span></div>':B("Create link to files","fileLink",{icon:"folder",d:{id:u.id}}));
+  }
+  return {title:u.name,sub:'<span class="mono">'+esc(upn(u))+'</span>',tabs:[["account","Account"],["devices","Devices"],["licenses","Licenses and apps"],["mail","Mail"],["onedrive","OneDrive"]],body:body};
+};
+A.block=function(d){var u=U(d.id);u.blocked=!u.blocked;audit(u.blocked?"Update user (block sign-in)":"Update user (allow sign-in)",u.id);toast(u.name+(u.blocked?" can no longer sign in.":" can sign in again."));};
+A.saveMLic=function(){var u=U(S.fly.id),d=S.fly.d;
+  if(d.lic&&!d.loc){toast("Select a location first. A license can't be assigned without one.");return;}
+  if(d.lic&&!u.direct&&available()<=0){toast("No licenses available.");return;}
+  u.loc=d.loc;u.direct=!!d.lic;audit("Change user license",u.id);toast("License changes saved for "+u.name+".");};
+A.fileLink=function(d){var u=U(d.id);u.filesLink=true;audit("Grant access to OneDrive",u.id,"SharePoint","OneDrive");toast("Link created. Send it to the manager.");};
+A.mailFwd=function(d){var u=U(d.id);
+  openModal("Manage email forwarding",'<div class="fld"><label class="chk"><input type="checkbox" name="on" value="1"'+(u.fwd?' checked':'')+'> Forward all emails sent to this mailbox</label></div>'+mtext("Forward to","addr","name@company.com").replace('aria-label="Forward to"','aria-label="Forward to" value="'+esc(u.fwd||"")+'"'),"Save",function(fd){
+    if(fd.on){var a=(fd.addr||"").trim();if(a.indexOf("@")<1){return {error:"Enter a valid email address."};}u.fwd=a;audit("Set-Mailbox (forwarding enabled)",u.id,"Exchange","Exchange");toast("Forwarding set to "+a+".");}
+    else{u.fwd=null;audit("Set-Mailbox (forwarding removed)",u.id,"Exchange","Exchange");toast("Forwarding removed for "+u.name+".");}return null;});};
+
+/* deleted users */
+PAGES["m365.deleted"]=function(){
+  var rows=S.users.filter(function(u){return u.deleted;}).map(function(u){return {cells:[esc(u.name),'<span class="mono">'+esc(upn(u))+'</span>',B("Restore user","restoreUser",{sm:1,d:{id:u.id}})]};});
+  return '<h1 class="ptitle">Deleted users'+info("soft")+'</h1><p class="psub">Deleted users can be restored for 30 days.</p>'+tbl(["Display name","Username",""],rows,{empty:"No deleted users."});
+};
+
+/* groups */
+PAGES["m365.groups"]=function(){
+  var rows=S.groups.filter(function(g){return matchQ(g.name);}).map(function(g){return {cells:[lnk(g.name,"openMGroup",g.id),"Security"+info("secgroup"),g.members.filter(function(m){return !U(m).deleted;}).length,S.licenseGroups.indexOf(g.id)>-1?badge("Licensed","ok"):"-"]};});
+  return '<h1 class="ptitle">Active teams & groups</h1>'+bar([CB("plus","Add a security group","newGroup"),CB("refresh","Refresh","refresh")])+search("Search groups")+tbl(["Name","Type","Members","Group license"+info("grouplic")],rows);
+};
+A.openMGroup=function(d){S.fly={k:"mgroup",id:d.id,tab:"members"};};
+FLY.mgroup=function(){var g=G(S.fly.id);
+  return {title:g.name,sub:"Security group",body:bar([CB("plus","Add members","addMemberTo",{d:{g:g.id}})])+tbl(["Name",""],g.members.map(U).filter(function(u){return !u.deleted;}).map(function(u){return {cells:[esc(u.name),B("Remove","rmMember",{sm:1,d:{g:g.id,id:u.id}})]};}),{empty:"No members yet."})};
+};
+
+/* licenses */
+PAGES["m365.licenses"]=function(){
+  if(S.sel){return m365Product();}
+  return '<h1 class="ptitle">Licenses'+info("license")+'</h1><p class="psub">Assign licenses to people or, better, to groups.</p>'+
+   tbl(["License","Available licenses","Assigned licenses"],[{cells:[lnk("Microsoft 365 Business Premium","sel","bp"),available(),assigned()+" of "+S.total]}]);
+};
+function m365Product(){
+  var t=S.tab||"users",body="";
+  if(t==="users"){
+    var c=checked1(),rows=live().filter(function(u){return u.direct;}).map(function(u){return {id:u.id,cells:[esc(u.name),'<span class="mono">'+esc(upn(u))+'</span>']};});
+    body=bar([CB("plus","Assign licenses","assignLicUser"),CB("trash","Revoke licenses","licUser",{d:{id:c},dis:!c})])+tbl(["Name","Username"],rows,{check:true,empty:"No directly licensed users."});
+  }else{
+    var errs=live().filter(function(u){return viaGroup(u)&&!u.loc&&!u.direct;});
+    body=bar([CB("plus","Assign licenses","assignLicGroup")])+tbl(["Group","Members",""],S.licenseGroups.map(function(id){var g=G(id);return {cells:[esc(g.name),g.members.length,B("Remove","licGroupToggle",{sm:1,danger:1,d:{g:id}})]};}),{empty:"No groups hold this license yet."})+
+      (errs.length?'<h2 class="sec">Licensing errors</h2>'+tbl(["User","Problem"],errs.map(function(u){return {cells:[esc(u.name),"Usage location is missing. Set it on the user and the license applies."]};})):'');
+  }
+  return crumbs([["Licenses","licenses"],["Microsoft 365 Business Premium"]])+'<h1 class="ptitle">Microsoft 365 Business Premium</h1><p class="psub">'+available()+' of '+S.total+' licenses available.</p>'+tabs([["users","Users"],["groups","Groups"+""]],t,"tab")+body;
+}
+A.assignLicUser=function(){openModal("Assign licenses",msel("User","u",userList("Select a user",function(u){return !u.direct;}))+'<p class="hint">The user needs a usage location first.</p>',"Assign",function(fd){if(!fd.u){return {error:"Select a user."};}var u=U(fd.u);if(!u.loc){return {error:u.name+" has no usage location. Set it first."};}if(available()<=0){return {error:"No licenses available."};}u.direct=true;audit("Change user license",u.id);toast("License assigned to "+u.name+".");return null;});};
+A.assignLicGroup=function(){openModal("Assign licenses to a group",'<p>Everyone in the group gets Business Premium, including people added later.'+info("grouplic")+'</p>'+msel("Group","g",groupList("Select a group")),"Assign",function(fd){
+  if(!fd.g){return {error:"Select a group."};}if(S.licenseGroups.indexOf(fd.g)>-1){return {error:"That group already has this license."};}
+  var g=G(fd.g);S.licenseGroups.push(fd.g);audit("Assign license to group",g.name,"GroupManagement");var e=g.members.map(U).filter(function(u){return !u.deleted&&!u.loc;}).length;
+  toast("License assigned to "+g.name+(e?". "+e+" member(s) have errors: usage location missing.":"."));return null;});};
+
+/* =============== EXCHANGE ADMIN CENTER =============== */
+PAGES["exchange.mailboxes"]=function(){
+  var rows=live().filter(function(u){return matchQ(u.name+u.upn);}).map(function(u){return {cells:[lnk(u.name,"openMailbox",u.id),'<span class="mono">'+esc(upn(u))+'</span>',"UserMailbox",hasLicense(u)?badge("Active","ok"):badge("Inactive (no license)","warn"),u.fwd?badge("Forwarding: external","bad"):"-"]};});
+  return crumbs([["Home","mailboxes"],["Recipients"]])+'<h1 class="ptitle">Mailboxes'+info("mailbox")+'</h1><p class="psub">Open a mailbox to review email forwarding'+info("fwd")+'.</p>'+bar([CB("refresh","Refresh","refresh")])+search("Search mailboxes")+tbl(["Display name","Email address","Recipient type","Status","Forwarding"],rows);
+};
+A.openMailbox=function(d){S.fly={k:"mailbox",id:d.id};};
+FLY.mailbox=function(){var u=U(S.fly.id);
+  return {title:u.name,sub:"User mailbox",body:grid([["Email address",'<span class="mono">'+esc(upn(u))+'</span>'],["Mailbox",hasLicense(u)?"Active":"Inactive"],["Email forwarding"+info("fwd"),u.fwd?'<span class="mono">'+esc(u.fwd)+'</span> '+badge("External","bad"):"Not set"]])+
+    '<div class="btnrow">'+B("Manage email forwarding","mailFwd",{d:{id:u.id}})+'</div>'};
+};
+PAGES["exchange.rules"]=function(){
+  var rows=S.mailRules.map(function(r){return {cells:[esc(r.name),badge("Enabled","ok"),esc(r.what),B("Delete","delRule",{sm:1,danger:1,d:{id:r.id}})]};});
+  return crumbs([["Home","mailboxes"],["Mail flow"]])+'<h1 class="ptitle">Rules'+info("mailflow")+'</h1><p class="psub">Rules act on mail as it flows through Exchange.</p>'+bar([CB("plus","Add a rule","addRule"),CB("refresh","Refresh","refresh")])+tbl(["Rule","Status","Does",""],rows,{empty:"No rules yet. Try one that blocks automatic forwarding to external addresses."});
+};
+A.addRule=function(){openModal("Add a rule",mtext("Name","name","Block external auto-forward")+msel("Template","t",[["Block automatic forwarding to external recipients","Block automatic forwarding to external recipients"],["Add a disclaimer to outbound mail","Add a disclaimer to outbound mail"]]),"Save",function(fd){
+  var n=(fd.name||"").trim();if(!n){return {error:"Enter a rule name."};}S.mailRules.push({id:nid("r"),name:n,what:fd.t});audit("New-TransportRule",n,"Exchange","Exchange");toast("Rule saved.");return null;});};
+A.delRule=function(d){S.mailRules=S.mailRules.filter(function(r){return r.id!==d.id;});toast("Rule deleted.");};
+
+/* =============== INTUNE =============== */
+PAGES["intune.home"]=function(){
+  var en=S.devices.filter(function(d){return d.state==="enrolled";}),ok=en.filter(function(d){return d.compl&&d.compl.state==="Compliant";}).length;
+  return '<h1 class="ptitle">Home</h1><p class="psub">Intune'+info("intune")+' manages devices: enroll, configure, check compliance, deploy apps, retire or wipe.</p>'+
+  '<div class="cards"><div class="tile"><h3>Managed devices</h3><div class="big">'+en.length+'</div></div><div class="tile"><h3>Compliance'+info("compliance")+'</h3><div class="big">'+ok+' / '+en.length+'</div><span>compliant</span></div>'+
+  '<div class="tile"><h3>Policies and apps</h3><div class="big">'+(S.policies.length+S.profiles.length+S.apps.length)+'</div><span>created</span></div></div>'+
+  (S.mdm.scope==="none"?'<div class="msg warn">MDM user scope is None in Microsoft Entra, so new laptops will not enroll in Intune. Check Entra > Devices > Mobility (MDM and MAM).'+info("mdmscope")+'</div>':'')+
+  (!S.apProfiles.some(function(p){return p.assign.all==="devices";})?'<div class="msg warn">No Autopilot deployment profile is assigned. New laptops will not get zero-touch setup.'+info("approfile")+'</div>':'');
+};
+
+/* devices */
+function compBadge(d){if(d.state==="wiping"){return badge("Wipe pending","warn");}if(!d.compl){return "-";}return d.compl.state==="Compliant"?badge("Compliant","ok"):badge("Not compliant","bad");}
+PAGES["intune.devices"]=function(){
+  if(S.sel){return intuneDevice(D(S.sel));}
+  var rows=S.devices.filter(function(d){return (d.state==="enrolled"||d.state==="wiping")&&matchQ(d.name+d.serial);}).map(function(d){var u=U(d.userId);
+    return {cells:[lnk(d.name,"sel",d.id),"Intune","Corporate",compBadge(d),esc(d.os),esc(d.osVer),u?'<span class="mono">'+esc(upn(u))+'</span>':"-",esc(d.sync)]};});
+  return crumbs([["Home","home"],["Devices"]])+'<h1 class="ptitle">Devices | All devices</h1>'+bar([CB("refresh","Refresh","refresh"),CB("filter","Filter","noop"),CB("columns","Columns","noop"),CB("download","Export","noop")])+
+    search("Search by name or serial number")+tbl(["Device name","Managed by"+info("mdm"),"Ownership","Compliance"+info("compliance"),"OS","OS version","Primary user UPN"+info("primary"),"Last check-in"],rows,{empty:"No devices enrolled yet. Enroll one through Autopilot."});
+};
+function intuneDevice(d){
+  var u=U(d.userId),t=S.tab||"overview",list=[["overview","Overview"],["compliance","Device compliance"],["config","Device configuration"],["apps","Discovered apps"]],body="";
+  var live1=d.state==="enrolled";
+  if(t==="overview"){
+    body='<h2 class="sec">Essentials</h2>'+grid([["Device name",esc(d.name)],["Primary user"+info("primary"),u?'<span class="mono">'+esc(upn(u))+'</span>':"-"],["Compliance"+info("compliance"),compBadge(d)],["Management name",esc(d.name)],["Ownership","Corporate"],["Serial number",'<span class="mono">'+esc(d.serial)+'</span>'],["Manufacturer / model",esc(d.maker)+" "+esc(d.model)],["Operating system",esc(d.os)+" "+esc(d.osVer)],["Join type"+info("entrajoin"),"Microsoft Entra joined"],["BitLocker"+info("bitlocker"),d.bitlocker?"Encrypted":"Not encrypted"],["Last check-in",esc(d.sync)]]);
+  }else if(t==="compliance"){
+    body=d.compl?(d.compl.none?'<div class="msg">No compliance policy applies to this device, so it is treated as compliant. Assign a policy to see results.</div>':
+      tbl(["Policy","Status","Why"],d.compl.rows.map(function(r){return {cells:[esc(r.policy),r.state==="Compliant"?badge("Compliant","ok"):badge("Not compliant","bad"),esc(r.reason||"-")]};}))):'<div class="empty">Not managed.</div>';
+  }else if(t==="config"){
+    body=tbl(["Profile","Status"],(d.cfgIn||[]).map(function(n){return {cells:[esc(n),badge("Succeeded","ok")]};}),{empty:"No configuration profiles apply to this device."});
+  }else{
+    body=tbl(["App","State"],(d.appsIn||[]).map(function(n){return {cells:[esc(n),badge("Installed","ok")]};}).concat([{cells:["Company Portal"+info("required"),badge("Installed","ok")]}]),{});
+  }
+  return crumbs([["Home","home"],["Devices","devices"],[d.name]])+'<h1 class="ptitle">'+esc(d.name)+'</h1>'+
+    bar([CB("restart","Retire","retire",{d:{id:d.id},dis:!live1,i:"retire"}),CB("trash","Wipe","wipe",{d:{id:d.id},dis:!live1,i:"wipe"}),CB("trash","Delete","delDevice",{d:{id:d.id}}),CB("lock","Remote lock","lockDev",{d:{id:d.id},dis:!live1}),CB("refresh","Sync","syncDev",{d:{id:d.id},dis:!live1,i:"sync"}),CB("restart","Restart","restartDev",{d:{id:d.id},dis:!live1})])+blade(list,t,body);
+}
+A.retire=function(d){var v=D(d.id);confirmBox("Retire "+v.name+"?","Company data, apps and settings are removed and the device is released from management. Personal files stay."+info("retire"),"Retire",function(){v.state="retired";S.sel=null;audit("Retire device",v.name,"Device","Intune");toast("Retire sent. "+v.name+" is released from management.");});};
+A.wipe=function(d){var v=D(d.id);confirmBox("Wipe "+v.name+"?","This factory-resets the device and erases everything on it."+info("wipe"),"Wipe",function(){v.state="wiping";audit("Wipe device",v.name,"Device","Intune");toast("Wipe sent. The device resets at its next check-in.");});};
+A.delDevice=function(d){var v=D(d.id);confirmBox("Delete "+v.name+"?","Removes this record from Intune. Retire or wipe the device first so company data isn't left behind.","Delete",function(){
+  if(v.autopilot){v.state="registered";v.userId=null;v.name="(not set up)";}else{S.devices=S.devices.filter(function(x){return x.id!==v.id;});}S.sel=null;audit("Delete device",v.name,"Device","Intune");toast("Device record deleted.");});};
+A.syncDev=function(d){var v=D(d.id);v.sync="Just now";toast("Sync sent to "+v.name+". It checks in with Intune now.");};
+A.restartDev=function(d){toast("Restart command sent to "+D(d.id).name+".");};
+A.lockDev=function(d){toast("Remote lock command sent to "+D(d.id).name+".");};
+
+/* autopilot devices */
+function apAssigned(){return S.apProfiles.some(function(p){return p.assign.all==="devices";});}
+PAGES["intune.ap"]=function(){
+  var c=checked1(),rows=S.devices.filter(function(d){return d.autopilot&&d.state!=="retired";}).map(function(d){var u=U(d.userId);
+    return {id:d.id,cells:['<span class="mono">'+esc(d.serial)+'</span>',esc(d.maker),esc(d.model),apAssigned()?badge("Assigned","ok"):badge("Not assigned","warn"),u?esc(u.name):"-",d.state==="enrolled"?badge("Enrolled","ok"):badge("Not enrolled")]};});
+  return crumbs([["Home","home"],["Devices"]])+'<h1 class="ptitle">Windows Autopilot devices'+info("autopilot")+'</h1><p class="psub">Devices registered by serial number. Select one and simulate the first sign-in to see zero-touch setup.</p>'+
+    bar([CB("plus","Import","regDevice"),CB("refresh","Sync","noop",{i:"sync"}),CB("trash","Delete","apDelete",{d:{id:c},dis:!c}),VR,CB("play","Simulate unboxing (quick)","unbox",{d:{id:c},dis:!c,lab:1}),CB("device","Open in Windows laptop tab","openVm",{d:{id:c},dis:!c,lab:1})])+
+    tbl(["Serial number","Manufacturer","Model","Profile status"+info("approfile"),"Assigned user","Enrollment"],rows,{check:true,empty:"No Autopilot devices registered."});
+};
+A.regDevice=function(){openModal("Add Autopilot devices",mtext("Serial number","serial")+mtext("Model","model","Latitude 5440"),"Import",function(fd){
+  var s=(fd.serial||"").trim().toUpperCase();if(!s){return {error:"Enter a serial number."};}
+  if(S.devices.some(function(x){return x.serial===s;})){return {error:"That serial number is already registered."};}
+  S.devices.push({id:nid("d"),serial:s,name:"(not set up)",model:(fd.model||"").trim()||"Latitude 5440",maker:"Dell",os:"Windows 11 Pro",osVer:"10.0.22631",userId:null,state:"registered",baseBitlocker:false,autopilot:true,sync:"-"});
+  audit("Import Autopilot device",s,"Device","Intune");toast("Device imported.");return null;});};
+A.apDelete=function(d){var v=D(d.id);if(!v||v.state==="enrolled"){toast("Retire and delete the managed device first.");return;}S.devices=S.devices.filter(function(x){return x.id!==v.id;});S.checked=[];toast("Autopilot record deleted.");};
+A.unbox=function(d){var dev=D(d.id);if(!dev){return;}
+  openModal("First sign-in on "+dev.serial,'<p>Pretend a new hire opens this laptop, connects to Wi-Fi and signs in. Who is it?</p>'+msel("User","u",userList("Select a user")),"Sign in",function(fd){
+    if(!fd.u){return {error:"Select a user."};}
+    var u=U(fd.u);
+    if(dev.state==="enrolled"){return {error:"This device is already enrolled."};}
+    if(!apAssigned()){return {error:"No Autopilot deployment profile is assigned to this device, so setup falls back to standard Windows setup instead of zero-touch. Create a profile and assign it to All devices."+""};}
+    if(u.blocked){return {error:"Sign-in failed: "+u.name+"'s account is disabled."};}
+    if(!inMdmScope(u)){return {error:"The laptop joined Microsoft Entra ID but did not enroll in Intune: the MDM user scope doesn't include "+u.name+". Fix it in Entra > Devices > Mobility (MDM and MAM)."};}
+    if(!hasLicense(u)){return {error:"Enrollment failed (error 80180018): "+u.name+" doesn't have a license that includes Intune. Assign one in the Microsoft 365 admin center."};}
+    dev.userId=u.id;dev.state="enrolled";dev.sync="Just now";dev.join="joined";dev.joinUser=u.id;var vv=ensureVm(dev);vv.stage="lock";vv.oobe="done";vv.cur=null;if(vv.work.indexOf(u.id)<0){vv.work.push(u.id);}dev.name="LAPTOP-"+u.name.split(" ").map(function(x){return x[0];}).join("")+"-"+dev.serial.slice(-2);
+    audit("Autopilot enrollment",dev.serial,"Device","Intune");toast("Success. "+dev.name+" is enrolled and managed for "+u.name+".");return null;});};
+
+/* deployment profiles */
+PAGES["intune.approf"]=function(){
+  var rows=S.apProfiles.map(function(p){return {cells:[esc(p.name),"User-driven","Microsoft Entra joined",esc(assignText(p.assign)),B("Delete","delItem",{sm:1,danger:1,d:{k:"ap",id:p.id}})]};});
+  return crumbs([["Home","home"],["Devices"]])+'<h1 class="ptitle">Windows Autopilot deployment profiles'+info("approfile")+'</h1>'+bar([CB("plus","Create profile","wizNewApProf"),CB("refresh","Refresh","refresh")])+
+    tbl(["Name","Deployment mode","Join type","Assigned to"],rows,{empty:"No deployment profiles. Without one, new laptops don't get zero-touch setup."});
+};
+WIZ.apProf={title:"Create Windows Autopilot deployment profile",crumbs:[["Home","home"],["Deployment profiles","approf"],["Create"]],init:{name:"",all:""},btn:"Create",
+  steps:[
+   {n:"Basics",h:function(){return fText("Name","name",{ph:"Standard laptops"});}},
+   {n:"Out-of-box experience (OOBE)",h:function(){return grid([["Deployment mode","User-driven"],["Join to Microsoft Entra ID as"+info("entrajoin"),"Microsoft Entra joined"],["User account type","Standard"],["Skip privacy settings","Yes"]])+'<p class="hint">Fixed in this lab. In the real wizard these are dropdowns.</p>';}},
+   {n:"Assignments",h:function(){return fRad("Assign to","all",[["","Don't assign yet"],["devices","All devices"]],{i:"assign"});}},
+   {n:"Review + create",h:function(){var d=S.wiz.d;return grid([["Name",esc(d.name||"?")],["Mode","User-driven"],["Assigned to",d.all==="devices"?"All devices":"Not assigned"]]);}}
+  ],
+  create:function(d){var n=(d.name||"").trim();if(!n){return {error:"Enter a profile name on the Basics tab."};}S.apProfiles.push({id:nid("ap"),name:n,assign:{all:d.all==="devices"?"devices":"",groups:[]}});audit("Create Autopilot profile",n,"Device","Intune");return {msg:"Deployment profile created."};}
+};
+A.wizNewApProf=function(){wizOpen("apProf");};
+
+/* compliance */
+function polSummary(p){var s=[];if(p.bitlocker){s.push("BitLocker");}if(p.minOS){s.push("Windows 11 or later");}if(p.password){s.push("Password");}return s.join(", ")||"Nothing";}
+PAGES["intune.compliance"]=function(){
+  var rows=S.policies.map(function(p){return {cells:[esc(p.name),"Windows 10 and later",esc(polSummary(p)),esc(assignText(p.assign)),B("Assign","assignTo",{sm:1,d:{k:"pol",id:p.id}})+" "+B("Delete","delItem",{sm:1,danger:1,d:{k:"pol",id:p.id}})]};});
+  return crumbs([["Home","home"],["Devices"]])+'<h1 class="ptitle">Devices | Compliance'+info("compliance")+'</h1><p class="psub">A policy defines what a healthy device is. It reports; it does not fix.</p>'+bar([CB("plus","Create policy","wizNewComp"),CB("refresh","Refresh","refresh")])+
+    tbl(["Policy name","Platform","Requires","Assigned"+info("assign"),""],rows,{empty:"No compliance policies. With none assigned, devices are treated as compliant."});
+};
+WIZ.comp={title:"Create a policy: Windows 10 and later",crumbs:[["Home","home"],["Compliance","compliance"],["Create"]],init:{name:"",bit:"",os:"",pw:"",all:"",groups:[]},btn:"Create",
+  steps:[
+   {n:"Basics",h:function(){return fText("Name","name",{ph:"Windows baseline"});}},
+   {n:"Compliance settings",h:function(){return '<h2 class="sec">Device health</h2>'+fSel("Require BitLocker"+"","bit",[["","Not configured"],["1","Require"]],{i:"bitlocker"})+'<h2 class="sec">Device properties</h2>'+fSel("Minimum OS version","os",[["","Not configured"],["10.0.22000","10.0.22000 (Windows 11)"]])+'<h2 class="sec">System security</h2>'+fSel("Require a password to unlock devices","pw",[["","Not configured"],["1","Require"]]);}},
+   {n:"Assignments",h:function(){return assignStep(true);}},
+   {n:"Review + create",h:function(){var d=S.wiz.d;return grid([["Name",esc(d.name||"?")],["BitLocker",d.bit?"Require":"Not configured"],["Minimum OS",d.os||"Not configured"],["Assigned",esc(assignText(assignFromWiz(d)))]]);}}
+  ],
+  create:function(d){var n=(d.name||"").trim();if(!n){return {error:"Enter a policy name on the Basics tab."};}S.policies.push({id:nid("p"),name:n,bitlocker:!!d.bit,minOS:d.os||"",password:!!d.pw,assign:assignFromWiz(d)});audit("Create compliance policy",n,"Policy","Intune");return {msg:"Compliance policy created."};}
+};
+A.wizNewComp=function(){wizOpen("comp");};
+
+/* configuration */
+PAGES["intune.config"]=function(){
+  var rows=S.profiles.filter(function(p){return p.type!=="BitLocker";}).map(function(p){return {cells:[esc(p.name),"Windows 10 and later",esc(p.type),esc(assignText(p.assign)),B("Assign","assignTo",{sm:1,d:{k:"prof",id:p.id}})+" "+B("Delete","delItem",{sm:1,danger:1,d:{k:"prof",id:p.id}})]};});
+  return crumbs([["Home","home"],["Devices"]])+'<h1 class="ptitle">Devices | Configuration'+info("config")+'</h1><p class="psub">Profiles push settings to devices. BitLocker lives under Endpoint security > Disk encryption.</p>'+bar([CB("plus","Create","wizNewCfg"),CB("refresh","Refresh","refresh")])+
+    tbl(["Policy name","Platform","Profile type","Assigned"+info("assign"),""],rows,{empty:"No configuration profiles yet."});
+};
+WIZ.cfg={title:"Create profile: Windows 10 and later",crumbs:[["Home","home"],["Configuration","config"],["Create"]],init:{name:"",type:"Wi-Fi",all:"",groups:[]},btn:"Create",
+  steps:[
+   {n:"Basics",h:function(){return fText("Name","name",{ph:"Corporate Wi-Fi"})+fSel("Profile type","type",[["Wi-Fi","Wi-Fi"],["Device restrictions","Device restrictions (templates)"],["Password rules","Password rules (settings catalog)"]],{i:"config"});}},
+   {n:"Assignments",h:function(){return assignStep(true);}},
+   {n:"Review + create",h:function(){var d=S.wiz.d;return grid([["Name",esc(d.name||"?")],["Type",esc(d.type)],["Assigned",esc(assignText(assignFromWiz(d)))]]);}}
+  ],
+  create:function(d){var n=(d.name||"").trim();if(!n){return {error:"Enter a profile name on the Basics tab."};}S.profiles.push({id:nid("c"),name:n,type:d.type,assign:assignFromWiz(d)});audit("Create configuration profile",n,"Policy","Intune");return {msg:"Configuration profile created."};}
+};
+A.wizNewCfg=function(){wizOpen("cfg");};
+
+/* disk encryption */
+PAGES["intune.disk"]=function(){
+  var rows=S.profiles.filter(function(p){return p.type==="BitLocker";}).map(function(p){return {cells:[esc(p.name),"Windows 10 and later","BitLocker"+info("bitlocker"),esc(assignText(p.assign)),B("Assign","assignTo",{sm:1,d:{k:"prof",id:p.id}})+" "+B("Delete","delItem",{sm:1,danger:1,d:{k:"prof",id:p.id}})]};});
+  return crumbs([["Home","home"],["Endpoint security"]])+'<h1 class="ptitle">Endpoint security | Disk encryption</h1><p class="psub">This is what turns BitLocker on. A compliance policy then checks that it worked.</p>'+bar([CB("plus","Create policy","wizNewDisk"),CB("refresh","Refresh","refresh")])+
+    tbl(["Policy name","Platform","Profile","Assigned"+info("assign"),""],rows,{empty:"No disk encryption policies yet."});
+};
+WIZ.disk={title:"Create profile: BitLocker",crumbs:[["Home","home"],["Disk encryption","disk"],["Create"]],init:{name:"",all:"",groups:[]},btn:"Create",
+  steps:[
+   {n:"Basics",h:function(){return fText("Name","name",{ph:"Turn on BitLocker"});}},
+   {n:"Configuration settings",h:function(){return grid([["Require device encryption"+info("bitlocker"),"Enabled"],["Encryption method","XTS-AES 128-bit"],["Store recovery key in Microsoft Entra ID","Yes"]])+'<p class="hint">Fixed in this lab.</p>';}},
+   {n:"Assignments",h:function(){return assignStep(true);}},
+   {n:"Review + create",h:function(){var d=S.wiz.d;return grid([["Name",esc(d.name||"?")],["Profile","BitLocker"],["Assigned",esc(assignText(assignFromWiz(d)))]]);}}
+  ],
+  create:function(d){var n=(d.name||"").trim();if(!n){return {error:"Enter a policy name on the Basics tab."};}S.profiles.push({id:nid("c"),name:n,type:"BitLocker",assign:assignFromWiz(d)});audit("Create disk encryption policy",n,"Policy","Intune");return {msg:"Disk encryption policy created."};}
+};
+A.wizNewDisk=function(){wizOpen("disk");};
+
+/* apps */
+PAGES["intune.apps"]=function(){
+  var rows=S.apps.map(function(a){return {cells:[esc(a.name),esc(a.type),(a.intent==="required"?"Required":"Available")+info("required"),esc(assignText(a.assign)),B("Assign","assignTo",{sm:1,d:{k:"app",id:a.id}})+" "+B("Delete","delItem",{sm:1,danger:1,d:{k:"app",id:a.id}})]};});
+  return crumbs([["Home","home"],["Apps"]])+'<h1 class="ptitle">Apps | All apps</h1><p class="psub">Required apps install automatically. Available apps appear in the Company Portal.</p>'+bar([CB("plus","Add","wizNewApp"),CB("refresh","Refresh","refresh")])+
+    tbl(["Name","Type","Assignment type","Assigned",""],rows,{empty:"No apps added yet."});
+};
+WIZ.app={title:"Add app",crumbs:[["Home","home"],["Apps","apps"],["Add"]],init:{type:"Microsoft Edge",name:"Microsoft Edge",intent:"required",all:"",groups:[]},btn:"Create",
+  steps:[
+   {n:"App type",h:function(){return fSel("Select app type","type",[["Microsoft Edge","Microsoft Edge, version 77 and later"],["Microsoft 365 Apps","Microsoft 365 Apps (Windows 10 and later)"],["Company Portal","Company Portal (Microsoft Store)"],["Line-of-business","Line-of-business app"]],{rr:1})+fText("Name","name");}},
+   {n:"Assignments",h:function(){return fRad("Assignment type","intent",[["required","Required (installs automatically)"],["available","Available for enrolled devices (user installs)"]],{i:"required"})+assignStep(true);}},
+   {n:"Review + create",h:function(){var d=S.wiz.d;return grid([["App",esc(d.name||d.type)],["Type",esc(d.type)],["Assignment",d.intent==="required"?"Required":"Available"],["Assigned",esc(assignText(assignFromWiz(d)))]]);}}
+  ],
+  create:function(d){var n=(d.name||"").trim()||d.type;S.apps.push({id:nid("a"),name:n,type:d.type,intent:d.intent,assign:assignFromWiz(d)});audit("Add app",n,"Application","Intune");return {msg:"App added."};}
+};
+A.wizNewApp=function(){wizOpen("app");};
+
+/* generic assign + delete */
+A.assignTo=function(d){
+  var list=d.k==="pol"?S.policies:d.k==="app"?S.apps:S.profiles,item=list.filter(function(x){return x.id===d.id;})[0];
+  var o=[["","Select a target"],["users","All users"],["devices","All devices"]].concat(S.groups.map(function(g){return ["g:"+g.id,"Group: "+g.name];}));
+  openModal("Assign: "+item.name,'<p>'+info("assign")+' Choose who this applies to.</p>'+msel("Include","t",o),"Assign",function(fd){
+    if(!fd.t){return {error:"Select a target."};}
+    if(fd.t==="users"||fd.t==="devices"){item.assign.all=fd.t;}
+    else{var g=fd.t.slice(2);if(item.assign.groups.indexOf(g)<0){item.assign.groups.push(g);}}
+    audit("Assign "+item.name,"","Policy","Intune");toast("Assigned: "+assignText(item.assign)+".");return null;});};
+A.delItem=function(d){
+  if(d.k==="pol"){S.policies=S.policies.filter(function(x){return x.id!==d.id;});}
+  else if(d.k==="app"){S.apps=S.apps.filter(function(x){return x.id!==d.id;});}
+  else if(d.k==="ap"){S.apProfiles=S.apProfiles.filter(function(x){return x.id!==d.id;});}
+  else{S.profiles=S.profiles.filter(function(x){return x.id!==d.id;});}
+  toast("Deleted.");};
+
+/* troubleshooting */
+PAGES["intune.trouble"]=function(){
+  var u=S.tUser?U(S.tUser):null,out="";
+  if(u){
+    var finds=[];
+    if(u.blocked){finds.push("Account is disabled, so sign-in and enrollment fail.");}
+    if(!hasLicense(u)){finds.push("No license that includes Intune. Enrollment fails with error 80180018.");}
+    if(!u.loc){finds.push("Usage location is missing, so group licenses can't apply.");}
+    if(!inMdmScope(u)){finds.push("MDM user scope doesn't include this user, so devices join Entra ID but never enroll in Intune.");}
+    if(!userGroups(u.id).length){finds.push("Not in any group, so group-targeted policies and apps won't reach them.");}
+    var dv=S.devices.filter(function(x){return x.userId===u.id&&x.state==="enrolled";});
+    out='<h2 class="sec">Account status</h2>'+grid([["Account",u.blocked?badge("Disabled","bad"):badge("Enabled","ok")],["Intune license"+info("license"),hasLicense(u)?badge("Yes","ok"):badge("No","bad")],["Eligible for MDM enrollment"+info("mdmscope"),inMdmScope(u)?badge("Yes","ok"):badge("No","bad")],["Groups",esc(userGroups(u.id).map(function(g){return g.name;}).join(", ")||"None")],["Devices",dv.length]])+
+      '<h2 class="sec">Findings</h2>'+(finds.length?finds.map(function(f){return '<div class="msg warn">'+esc(f)+'</div>';}).join(""):'<div class="msg ok">No problems found for this user.</div>')+
+      (dv.length?'<h2 class="sec">Devices</h2>'+tbl(["Device","Compliance"],dv.map(function(x){return {cells:[esc(x.name),compBadge(x)]};})):'');
+  }
+  return crumbs([["Home","home"],["Troubleshooting + support"]])+'<h1 class="ptitle">Troubleshoot'+info("trouble")+'</h1><p class="psub">Pick a user to see why their device or policy might not be working.</p>'+
+    '<div class="fld"><div class="lb">Select a user</div><select data-sv="tUser" aria-label="Select a user">'+opts(userList("Select a user"),S.tUser)+'</select></div>'+B("Look up","lookup",{primary:1})+out;
+};
+A.lookup=function(){ensureTroubled();if(S.tUser){S.flags.troubled[S.tUser]=true;}else{toast("Select a user first.");}};
+
+/* =============== WINDOWS LAPTOP (virtual machine) =============== */
+var LOCAL_ADMIN_PW="Practice#2026",STUDENT_PW="Student#2026";
+function freshVm(d){
+  var v={stage:"oobe",oobe:"region",locals:[],cur:null,app:null,start:false,setPage:"about",set2:"work",dlg:null,cmd:["Microsoft Windows [Version "+d.osVer+"]","(c) Practice Lab. Type help for commands.",""],work:[],userApps:[],ssid:"",msg:"",pick:""};
+  if(d.spare){v.stage="lock";v.oobe="done";v.locals=[{name:"LocalAdmin",pw:LOCAL_ADMIN_PW,admin:true},{name:"Student",pw:STUDENT_PW,admin:false}];v.ssid="Practice-Corp";}
+  return v;
+}
+function ensureVm(d){if(!d.vm){d.vm=freshVm(d);}return d.vm;}
+function curDev(){return D(S.page);}
+function vmDevices(){return S.devices.filter(function(d){return d.autopilot||d.vm||d.spare;});}
+function compNameFor(d){return "DESKTOP-"+String(d.serial).replace(/[^A-Z0-9]/g,"").slice(-7);}
+function nameDevice(d){if(d.name==="(not set up)"){d.name=compNameFor(d);}}
+function ipFor(d){var n=0,i;for(i=0;i<d.serial.length;i++){n+=d.serial.charCodeAt(i);}return "192.168.20."+(20+n%200);}
+function guidFor(d){var h="",i,s=d.serial+"4f1e";for(i=0;i<32;i++){h+="0123456789abcdef"[(s.charCodeAt(i%s.length)*(i+7))%16];}return h.slice(0,8)+"-"+h.slice(8,12)+"-"+h.slice(12,16)+"-"+h.slice(16,20)+"-"+h.slice(20,32);}
+function mfaNeeded(){return S.secDefaults||S.caPolicies.some(function(p){return p.state==="on";});}
+function caOnAny(){return S.caPolicies.some(function(p){return p.state==="on";});}
+function findUser(s){s=(s||"").trim().toLowerCase();if(!s){return null;}var parts=s.split("@"),p=parts[0];return live().filter(function(u){return u.upn===p&&(parts.length<2||parts[1]===DOMAIN);})[0]||null;}
+function vmLog(u,app,status,mfa,ca){S.logs.unshift({id:nid("l"),uid:u.id,when:"Just now",app:app,status:status,ip:"73.12.90.4",place:"Brooklyn, United States",ca:ca||"Not applied",mfa:mfa,odd:false});}
+function sessName(d){var v=d.vm;if(!v.cur){return "";}if(v.cur.kind==="local"){return v.cur.name;}var u=U(v.cur.uid);return u?u.name:"";}
+function isAdminSess(d){var v=d.vm;if(!v.cur){return false;}if(v.cur.kind==="work"){return v.cur.uid===d.joinUser;}var l=v.locals.filter(function(x){return x.name===v.cur.name;})[0];return !!l&&l.admin;}
+function enrolledOk(d){return d.state==="enrolled";}
+
+/* ----- device management attempts ----- */
+function tryEnroll(d,u){
+  if(u.blocked){return {ok:false,why:"The account is disabled."};}
+  if(!inMdmScope(u)){return {ok:false,why:"MDM user scope doesn't include "+u.name+", so the laptop joined Entra ID but did not enroll in Intune. Fix: Entra admin center > Devices > Mobility (MDM and MAM)."};}
+  if(!hasLicense(u)){return {ok:false,why:"Enrollment failed (error 80180018): "+u.name+" has no license that includes Intune. Fix: assign Business Premium in the Microsoft 365 admin center."};}
+  nameDevice(d);
+  d.state="enrolled";d.userId=u.id;d.sync="Just now";d.mdmWhy="";
+  if(d.autopilot&&apAssigned()){d.name="LAPTOP-"+u.name.split(" ").map(function(x){return x[0];}).join("")+"-"+d.serial.slice(-2);}
+  audit("Enroll device in Intune",d.name,"Device","Intune");
+  return {ok:true};
+}
+function applyJoin(d,u,mode){
+  nameDevice(d);
+  d.join=mode==="register"?"registered":"joined";d.joinUser=u.id;
+  audit(mode==="register"?"Register device":"Add device",d.name,"Device","Core Directory");
+  if(mode==="register"){S.flags.vmRegistered=true;d.mdmWhy="";return {ok:true};}
+  var r=tryEnroll(d,u);
+  if(!r.ok){d.state="unmanaged";d.mdmWhy=r.why;}
+  if(d.vm&&d.vm.work.indexOf(u.id)<0){d.vm.work.push(u.id);}
+  return r;
+}
+function resetDevice(d){
+  d.vm=null;d.join="";d.joinUser=null;d.userId=null;d.mdmWhy="";d.sync="-";
+  d.state=d.autopilot?"registered":"unmanaged";
+  d.name=d.spare?"DESKTOP-SP26042":"(not set up)";
+  S.vmIn={};ensureVm(d);
+}
+
+/* ----- small UI helpers ----- */
+function wb(label,a,o){o=o||{};var dd="",k;if(o.d){for(k in o.d){dd+=' data-'+k+'="'+esc(o.d[k])+'"';}}return '<button type="button" class="wbtn'+(o.pri?' pri':'')+'" data-a="'+a+'"'+dd+(o.dis?' disabled':'')+'>'+esc(label)+'</button>';}
+function vi(key,label,type,ph,enter){return '<label class="wl">'+esc(label)+'<input class="wi" type="'+(type||"text")+'" data-vi="'+key+'"'+(enter?' data-enter="'+enter+'"':'')+' autocomplete="off" value="'+esc(S.vmIn[key]||"")+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+'></label>';}
+function oobeCard(title,body,btns){return '<div class="oobe"><div class="ocard"><h2>'+esc(title)+'</h2>'+body+'<div class="wbtns">'+(btns||[]).join("")+'</div></div></div>';}
+
+/* ----- work account sign-in dialog (used by Settings, OOBE, Autopilot, lock screen) ----- */
+function dlgInner(d){
+  var g=d.vm.dlg,u=g.uid?U(g.uid):null,err=g.err?'<div class="wmsg bad" role="alert">'+esc(g.err)+'</div>':"",h="";
+  var cancel=wb("Cancel","vmDlgClose");
+  if(g.step==="email"){
+    var ttl=g.mode==="register"?"Set up a work or school account":g.mode==="ap"?"Welcome to Practice Tenant":"Sign in";
+    var sub=g.mode==="register"?"You'll get access to resources like email, apps, and the network. Connecting means your work or school might control some things on this device, such as which settings you can change.":g.mode==="ap"?"This device was set up by your organization. Sign in with your work account to continue.":"Use your work or school account.";
+    h='<h3>'+ttl+'</h3><p>'+sub+'</p>'+vi("email","Email address","text","someone@"+DOMAIN,"vmDlgNext")+err+
+      '<div class="wbtns">'+wb("Next","vmDlgNext",{pri:1})+(g.mode==="ap"||g.mode==="oobejoin"?"":cancel)+'</div>'+
+      (g.mode==="register"?'<div class="walt">Alternate actions:<br><button type="button" class="wlnk" data-a="vmJoinLink">Join this device to Microsoft Entra ID</button></div>':'');
+  }else if(g.step==="pw"){
+    h='<h3>Enter password</h3><p class="mono">'+esc(upn(u))+'</p>'+vi("pw","Password","password","Password","vmDlgNext")+err+'<div class="wbtns">'+wb("Sign in","vmDlgNext",{pri:1})+cancel+'</div>';
+  }else if(g.step==="change"){
+    h='<h3>Update your password</h3><p>You need to update your password because this is the first time you are signing in, or because your password was reset.</p>'+vi("np","New password","password","At least 8 characters")+vi("np2","Confirm password","password","","vmDlgNext")+err+'<div class="wbtns">'+wb("Sign in","vmDlgNext",{pri:1})+cancel+'</div>';
+  }else if(g.step==="mfa"){
+    h='<h3>Approve sign in request</h3><p>We sent a notification to your Microsoft Authenticator app. Open it and approve the request.</p><p class="wnum">47</p>'+err+'<div class="wbtns">'+wb("Approve on my phone (simulated)","vmDlgNext",{pri:1})+cancel+'</div>';
+  }else if(g.step==="reg"){
+    h='<h3>More information required</h3><p>Your organization needs more information to keep your account secure. Multifactor authentication is required, and you have no method registered yet.</p>'+err+'<div class="wbtns">'+wb("Next: set up Authenticator (simulated)","vmDlgNext",{pri:1})+cancel+'</div>';
+  }else if(g.step==="confirm"){
+    h='<h3>Make sure this is your organization</h3><p>If you continue, system policies might be turned on or other changes might be made to this device. Make sure this is your organization before you continue.</p>'+
+      '<dl class="wdl"><dt>Organization</dt><dd>Practice Tenant</dd><dt>User name</dt><dd>'+esc(upn(u))+'</dd><dt>User type</dt><dd>'+(g.mode==="join"?"Administrator":"Standard")+'</dd></dl>'+err+
+      '<div class="wbtns">'+wb(g.mode==="join"?"Join":"Connect","vmDlgNext",{pri:1})+cancel+'</div>';
+  }else if(g.step==="done"){
+    h='<h3>You\'re all set!</h3><p>This device is now '+(g.mode==="join"?"joined to":"registered with")+' Practice Tenant.</p>'+
+      (g.mode==="join"?(d.state==="enrolled"?'<div class="wmsg ok">Device management started. This laptop now appears in Intune.</div>':'<div class="wmsg bad">The laptop joined Entra ID but is not managed by Intune. '+esc(d.mdmWhy)+'</div>'):'<div class="wmsg">A registered device gets access to work apps but is not fully managed.</div>')+
+      (g.mode==="join"?'<p>Sign out and sign back in with your work account to finish.</p>':'')+'<div class="wbtns">'+wb("Done","vmDlgClose",{pri:1})+'</div>';
+  }else if(g.step==="err"){
+    h='<h3>Something went wrong</h3>'+err+'<div class="wbtns">'+wb("Try again","vmDlgRetry",{pri:1})+cancel+'</div>';
+  }
+  return '<div class="mssign">'+h+'</div>';
+}
+A.vmDlgOpen=function(ds){var d=curDev(),v=ensureVm(d);S.vmIn={};v.dlg={mode:ds.mode,step:"email",uid:null,err:""};};
+A.vmJoinLink=function(){var d=curDev(),v=d.vm;if(d.join==="joined"){v.dlg=null;v.msg="This device is already joined to Microsoft Entra ID.";return;}v.dlg.mode="join";S.vmIn={};};
+A.vmDlgClose=function(){var d=curDev(),v=d.vm;v.dlg=null;S.vmIn={};if(v.stage==="oobe"&&v.oobe==="apsignin"){v.dlg={mode:"ap",step:"email",uid:null,err:""};}};
+A.vmDlgRetry=function(){var d=curDev(),g=d.vm.dlg;g.err="";g.step=g.uid?"confirm":"email";if(g.mode==="lock"||g.mode==="ap"||g.mode==="oobejoin"){g.step="email";g.uid=null;}S.vmIn={};};
+function dlgProceed(d,g,u){
+  if(g.mode==="register"||g.mode==="join"){g.step="confirm";return;}
+  dlgFinish(d,g,u);
+}
+function dlgAfterPw(d,g,u){
+  if(mfaNeeded()){g.step=u.methods.some(function(m){return !m.sus;})?"mfa":"reg";return;}
+  dlgProceed(d,g,u);
+}
+function dlgFinish(d,g,u){
+  var v=d.vm,mfa=mfaNeeded()?"MFA satisfied (app notification)":"Single-factor authentication",ca=mfaNeeded()?(caOnAny()?"Success":"Security defaults"):"Not applied";
+  if(g.mode==="lock"){
+    if(d.join!=="joined"){g.step="err";g.err="We can't sign you in with this account because this device isn't joined to Microsoft Entra ID.";return;}
+    vmLog(u,"Windows Sign In","Success",mfa,ca);
+    v.cur={kind:"work",uid:u.id};if(v.work.indexOf(u.id)<0){v.work.push(u.id);}v.stage="desktop";v.dlg=null;v.app=null;v.start=false;S.flags.vmWorkSignin=true;S.vmIn={};return;
+  }
+  if(g.mode!=="register"&&S.deviceJoin==="none"){
+    g.step="err";g.err="Something went wrong. Your organization doesn't allow users to join devices to Microsoft Entra ID (error 801c0003). Ask an administrator to allow it in Entra > Devices > Device settings, then try again.";
+    vmLog(u,"Windows Sign In","Failure",mfa,ca);return;
+  }
+  vmLog(u,g.mode==="register"?"Microsoft Authentication Broker":"Windows Sign In","Success",mfa,ca);
+  if(g.mode==="register"){applyJoin(d,u,"register");g.step="done";return;}
+  var r=applyJoin(d,u,"join");
+  if(g.mode==="join"){g.step="done";return;}
+  v.cur={kind:"work",uid:u.id};S.flags.vmWorkSignin=true;S.vmIn={};
+  if(g.mode==="oobejoin"){v.stage="desktop";v.dlg=null;toast(r.ok?"Welcome. This laptop is joined and managed.":"Welcome. The laptop joined Entra but is not managed by Intune yet.");return;}
+  if(g.mode==="ap"){v.dlg=null;v.oobe=r.ok?"espok":"espfail";}
+}
+A.vmDlgNext=function(){
+  var d=curDev(),v=d.vm,g=v.dlg,u;
+  if(!g){return;}
+  g.err="";
+  if(g.step==="email"){
+    u=findUser(S.vmIn.email);
+    if(!u){g.err="We couldn't find an account with that username. Use the full work email, for example priya.nair@"+DOMAIN+".";return;}
+    g.uid=u.id;g.step="pw";S.vmIn.pw="";return;
+  }
+  u=U(g.uid);
+  if(g.step==="pw"){
+    if(S.vmIn.pw!==u.pw){g.err="Your account or password is incorrect. Check the practice credentials on the right.";vmLog(u,"Windows Sign In","Failure","Single-factor authentication");return;}
+    if(u.blocked){g.err="Your account has been disabled (error 50057). Contact your administrator.";vmLog(u,"Windows Sign In","Failure","Single-factor authentication");return;}
+    if(u.mustChange){g.step="change";S.vmIn.np="";S.vmIn.np2="";return;}
+    dlgAfterPw(d,g,u);return;
+  }
+  if(g.step==="change"){
+    if((S.vmIn.np||"").length<8){g.err="Your new password must be at least 8 characters.";return;}
+    if(S.vmIn.np!==S.vmIn.np2){g.err="The passwords don't match.";return;}
+    u.pw=S.vmIn.np;u.mustChange=false;audit("Change password (self-service)",u.id);dlgAfterPw(d,g,u);return;
+  }
+  if(g.step==="reg"){u.methods.push({id:nid("m"),type:"Microsoft Authenticator",detail:"Lab phone",sus:false});audit("User registered security info",u.id);dlgProceed(d,g,u);return;}
+  if(g.step==="mfa"){dlgProceed(d,g,u);return;}
+  if(g.step==="confirm"){dlgFinish(d,g,u);return;}
+};
+
+/* ----- OOBE ----- */
+function ssidList(){return [["Practice-Corp","Practice-Corp","Secured, staff network"],["Practice-Guest","Practice-Guest","Secured, guest network"]];}
+function oobeHtml(d){
+  var v=d.vm,s=v.oobe,h="";
+  if(s==="region"){h=oobeCard("Is this the right country or region?",'<div class="olist"><div class="oi sel">United States</div><div class="oi">Canada</div><div class="oi">United Kingdom</div></div>',[wb("Yes","vmOobeNext",{pri:1})]);}
+  else if(s==="keyboard"){h=oobeCard("Is this the right keyboard layout?",'<div class="olist"><div class="oi sel">US</div><div class="oi">Canadian French</div></div>',[wb("Yes","vmOobeNext",{pri:1})]);}
+  else if(s==="network"){h=oobeCard("Let's connect you to a network",'<div class="olist">'+ssidList().map(function(n){return '<button type="button" class="oi'+(v.ssid===n[0]?' sel':'')+'" data-a="vmSsid" data-s="'+n[0]+'">'+esc(n[1])+'<small>'+esc(n[2])+(v.ssid===n[0]?" - connected, "+ipFor(d):"")+'</small></button>';}).join("")+'</div>',[wb("Next","vmOobeNext",{pri:1,dis:!v.ssid})]);}
+  else if(s==="apsignin"){h='<div class="oobe"><div class="ocard wide"><div class="obadge">Autopilot: this laptop was recognized by its serial number ('+esc(d.serial)+')</div>'+(v.dlg?dlgInner(d):"")+'</div></div>';}
+  else if(s==="espok"){h=oobeCard("Your device is ready",'<ul class="esp"><li class="ok">Device preparation</li><li class="ok">Device setup</li><li class="ok">Account setup</li></ul><p>'+esc(d.name)+' is joined to Microsoft Entra ID and enrolled in Intune.</p>',[wb("Continue to desktop","vmEspDone",{pri:1})]);}
+  else if(s==="espfail"){h=oobeCard("We ran into a problem during device setup",'<ul class="esp"><li class="ok">Device preparation</li><li class="bad">Device setup</li><li>Account setup</li></ul><div class="wmsg bad">'+esc(d.mdmWhy||"Enrollment failed.")+'</div><p>You can fix the cause in the admin centers (use the tabs at the top), then try again.</p>',[wb("Try again","vmEspRetry",{pri:1}),wb("Reset device","vmReset")]);}
+  else if(s==="setup"){h=oobeCard("How would you like to set up this device?",'<div class="opick"><button type="button" class="oc" data-a="vmSetup" data-k="personal"><b>Set up for personal use</b><small>Creates a local account on this PC. You can join it to your organization later in Settings.</small></button><button type="button" class="oc" data-a="vmSetup" data-k="work"><b>Set up for work or school</b><small>Sign in with a work account and join this PC to Microsoft Entra ID right now.</small></button></div>'+(apAssigned()?"":'<div class="wmsg">No Autopilot profile is assigned, so you get standard setup instead of zero-touch.</div>'),[]);}
+  else if(s==="worksign"){h='<div class="oobe"><div class="ocard wide">'+(v.dlg?dlgInner(d):"")+'</div></div>';}
+  else if(s==="local"){h=oobeCard("Create a local account",vi("lname","Who's going to use this PC?","text","LocalAdmin")+vi("lpw","Create a password","password","","vmLocalDone")+(v.msg?'<div class="wmsg bad">'+esc(v.msg)+'</div>':""),[wb("Next","vmLocalDone",{pri:1}),wb("Back","vmOobeBack")]);}
+  return h;
+}
+A.vmOobeNext=function(){var d=curDev(),v=d.vm;
+  if(v.oobe==="region"){v.oobe="keyboard";return;}
+  if(v.oobe==="keyboard"){v.oobe="network";return;}
+  if(v.oobe==="network"){
+    if(!v.ssid){return;}
+    if(d.autopilot&&apAssigned()){v.oobe="apsignin";v.dlg={mode:"ap",step:"email",uid:null,err:""};S.vmIn={};S.flags.vmApSignin=true;}
+    else{v.oobe="setup";}
+  }
+};
+A.vmOobeBack=function(){var v=curDev().vm;v.oobe="setup";v.msg="";};
+A.vmSsid=function(ds){curDev().vm.ssid=ds.s;};
+A.vmSetup=function(ds){var d=curDev(),v=d.vm;S.vmIn={};v.msg="";
+  if(ds.k==="personal"){v.oobe="local";}
+  else{v.oobe="worksign";v.dlg={mode:"oobejoin",step:"email",uid:null,err:""};}
+};
+A.vmLocalDone=function(){var d=curDev(),v=d.vm,n=(S.vmIn.lname||"").trim(),p=S.vmIn.lpw||"";
+  if(!n){v.msg="Enter a user name.";return;}if(p.length<4){v.msg="Enter a password of at least 4 characters.";return;}
+  nameDevice(d);v.locals=[{name:n,pw:p,admin:true}];v.cur={kind:"local",name:n};v.stage="desktop";v.oobe="done";v.msg="";S.vmIn={};
+  if(n==="LocalAdmin"){S.flags.vmAdmin=true;}
+  toast("Local account created. This PC is not managed yet. Join it in Settings > Accounts > Access work or school.");};
+A.vmEspDone=function(){var d=curDev(),v=d.vm;v.stage="desktop";v.oobe="done";v.app=null;v.start=false;};
+A.vmEspRetry=function(){var d=curDev(),v=d.vm,u=U(d.joinUser);
+  if(!u){return;}var r=tryEnroll(d,u);
+  if(r.ok){v.oobe="espok";}else{d.mdmWhy=r.why;toast("Still failing. Read the message and check the admin centers.");}
+};
+A.vmReset=function(){var d=curDev();resetDevice(d);toast("The laptop was reset to the start of setup.");};
+
+/* ----- lock screen ----- */
+function lockHtml(d){
+  var v=d.vm,tiles="";
+  v.locals.forEach(function(l){tiles+='<button type="button" class="tile'+(v.pick==="l:"+l.name?' on':'')+'" data-a="vmPick" data-k="l:'+esc(l.name)+'"><span class="av">'+esc(l.name[0])+'</span><span>'+esc(l.name)+'<small>'+(l.admin?"Local administrator":"Local account")+'</small></span></button>';});
+  v.work.forEach(function(id){var u=U(id);if(u&&!u.deleted){tiles+='<button type="button" class="tile'+(v.pick==="w:"+id?' on':'')+'" data-a="vmPick" data-k="w:'+id+'"><span class="av w">'+esc(u.name[0])+'</span><span>'+esc(u.name)+'<small>'+esc(upn(u))+'</small></span></button>';}});
+  tiles+='<button type="button" class="tile" data-a="vmDlgOpen" data-mode="lock"><span class="av">+</span><span>Other user<small>Sign in with a work account</small></span></button>';
+  return '<div class="wall lockwall"></div><div class="lockclock"><b>9:41</b><span>Thursday, October 8</span></div>'+
+   (v.dlg?'<div class="vmdlg">'+dlgInner(d)+'</div>':'<div class="locktiles">'+tiles+(v.pick?'<div class="lockpw">'+vi("lockpw","Password","password","","vmLockIn")+wb("Sign in","vmLockIn",{pri:1})+(v.msg?'<div class="wmsg bad">'+esc(v.msg)+'</div>':'')+'</div>':'')+'</div>');
+}
+A.vmPick=function(ds){var v=curDev().vm;v.pick=ds.k;v.msg="";S.vmIn.lockpw="";};
+A.vmLockIn=function(){
+  var d=curDev(),v=d.vm,k=v.pick,pw=S.vmIn.lockpw||"";
+  if(!k){return;}
+  if(k.indexOf("l:")===0){
+    var l=v.locals.filter(function(x){return x.name===k.slice(2);})[0];
+    if(!l||l.pw!==pw){v.msg="The password is incorrect. Try again.";return;}
+    v.cur={kind:"local",name:l.name};v.stage="desktop";v.pick="";v.msg="";v.app=null;v.start=false;S.vmIn={};
+    if(l.admin&&d.spare){S.flags.vmAdmin=true;}
+    return;
+  }
+  var u=U(k.slice(2));
+  if(!u||u.pw!==pw){v.msg="The password is incorrect. Try again.";return;}
+  if(u.blocked){v.msg="Your account has been disabled (error 50057).";return;}
+  if(u.mustChange){v.msg="Your password must be updated. Use Other user to sign in and change it.";return;}
+  v.cur={kind:"work",uid:u.id};v.stage="desktop";v.pick="";v.msg="";v.app=null;v.start=false;S.vmIn={};S.flags.vmWorkSignin=true;
+  vmLog(u,"Windows Sign In","Success","Single-factor authentication");
+};
+
+/* ----- desktop ----- */
+function installedApps(d){
+  var base=["Microsoft Edge","Notepad","Windows Security"];
+  if(enrolledOk(d)){base.push("Company Portal");}
+  return base.concat(d.appsIn||[]).concat(d.vm.userApps||[]);
+}
+function desktopHtml(d){
+  var v=d.vm,name=sessName(d),win="",start="";
+  if(v.app==="settings"){win=settingsHtml(d);}
+  else if(v.app==="cmd"){win=cmdHtml(d);}
+  else if(v.app==="portal"){win=portalHtml(d);}
+  var apps=[["settings","Settings"],["cmd","Command Prompt"]];
+  if(enrolledOk(d)){apps.push(["portal","Company Portal"]);}
+  var ia=installedApps(d),extra=ia.filter(function(n){return ["Microsoft Edge","Notepad","Windows Security","Company Portal"].indexOf(n)<0;});
+  if(v.start){
+    start='<div class="startmenu"><div class="sgrid">'+apps.map(function(a){return '<button type="button" class="sapp" data-a="vmOpen" data-app="'+a[0]+'"><span class="sic">'+esc(a[1][0])+'</span>'+esc(a[1])+'</button>';}).join("")+
+      extra.map(function(n){return '<button type="button" class="sapp" data-a="vmFake" data-n="'+esc(n)+'"><span class="sic">'+esc(n[0])+'</span>'+esc(n)+'</button>';}).join("")+'</div>'+
+      '<div class="sfoot"><span><span class="av">'+esc((name||"?")[0])+'</span> '+esc(name)+'</span><span>'+wb("Sign out","vmSignout")+wb("Restart","vmRestart")+'</span></div></div>';
+  }
+  return '<div class="wall"></div><div class="dicons"><div class="dicon"><span class="sic">&#9851;</span>Recycle Bin</div>'+(enrolledOk(d)?'<button type="button" class="dicon" data-a="vmOpen" data-app="portal"><span class="sic">C</span>Company Portal</button>':'')+'</div>'+win+start+
+   '<div class="taskbar"><div class="tcenter"><button type="button" class="tbtn" data-a="vmStart" aria-label="Start">&#9638;</button><button type="button" class="tsearch" data-a="vmStart">Search</button><button type="button" class="tbtn'+(v.app==="settings"?' on':'')+'" data-a="vmOpen" data-app="settings" aria-label="Settings">&#9881;</button><button type="button" class="tbtn'+(v.app==="cmd"?' on':'')+'" data-a="vmOpen" data-app="cmd" aria-label="Command Prompt">&gt;_</button></div><div class="ttray">'+esc(d.vm.ssid||"No network")+' &nbsp; 9:41 AM</div></div>'+
+   (v.dlg?'<div class="vmdlg">'+dlgInner(d)+'</div>':'');
+}
+A.vmStart=function(){var v=curDev().vm;v.start=!v.start;};
+A.vmOpen=function(ds){var v=curDev().vm;v.app=ds.app;v.start=false;v.msg="";if(ds.app==="settings"){v.setPage="about";}};
+A.vmClose=function(){var v=curDev().vm;v.app=null;v.dlg=null;v.msg="";};
+A.vmFake=function(ds){toast("Opened "+ds.n+" (simulated).");curDev().vm.start=false;};
+A.vmSignout=function(){var v=curDev().vm;v.stage="lock";v.cur=null;v.app=null;v.start=false;v.pick="";v.dlg=null;S.vmIn={};};
+A.vmRestart=function(){var d=curDev(),v=d.vm;v.stage="lock";v.cur=null;v.app=null;v.start=false;v.pick="";v.dlg=null;S.vmIn={};
+  if(d.join==="joined"&&d.state!=="enrolled"&&d.joinUser){var r=tryEnroll(d,U(d.joinUser));if(r.ok){toast("After restart, the laptop enrolled in Intune.");}}
+};
+
+/* ----- Settings ----- */
+function settingsHtml(d){
+  var v=d.vm,pg=v.setPage,body="",u=d.joinUser?U(d.joinUser):null,name=sessName(d);
+  var nav=[["about","System"],["network","Network & internet"],["apps","Apps"],["accounts","Accounts"],["privacy","Privacy & security"]];
+  if(pg==="about"){
+    body='<h2>System &gt; About</h2><dl class="wdl"><dt>Device name</dt><dd>'+esc(d.name==="(not set up)"?compNameFor(d):d.name)+'</dd><dt>Processor</dt><dd>Intel Core i5 (virtual)</dd><dt>Installed RAM</dt><dd>16.0 GB</dd><dt>Device ID</dt><dd class="mono">'+guidFor(d)+'</dd><dt>Edition</dt><dd>'+esc(d.os)+'</dd><dt>OS build</dt><dd>'+esc(d.osVer)+'</dd><dt>Serial number</dt><dd class="mono">'+esc(d.serial)+'</dd></dl>';
+  }else if(pg==="network"){
+    body='<h2>Network &amp; internet &gt; Wi-Fi</h2><dl class="wdl"><dt>Network</dt><dd>'+esc(v.ssid||"Not connected")+'</dd><dt>IPv4 address</dt><dd class="mono">'+ipFor(d)+'</dd><dt>IP assignment</dt><dd>Automatic (DHCP)</dd><dt>DHCP server</dt><dd class="mono">192.168.20.1</dd></dl><p class="wnote">Each device holds one address from the DHCP pool for the lease time. When the pool runs out, new devices connect to Wi-Fi but get no IP.</p>';
+  }else if(pg==="apps"){
+    body='<h2>Apps &gt; Installed apps</h2><ul class="wlist">'+installedApps(d).map(function(n){return '<li>'+esc(n)+'</li>';}).join("")+'</ul>';
+  }else if(pg==="privacy"){
+    var bl=d.bitlocker||d.baseBitlocker;
+    body='<h2>Privacy &amp; security &gt; Device encryption</h2><dl class="wdl"><dt>Device encryption (BitLocker)</dt><dd>'+(bl?"On":"Off")+'</dd><dt>Managed by</dt><dd>'+(enrolledOk(d)&&bl&&!d.baseBitlocker?"Your organization (policy from Intune)":"-")+'</dd><dt>Recovery key</dt><dd>'+(bl&&d.join==="joined"?"Backed up to Microsoft Entra ID":"-")+'</dd></dl>'+(bl?"":'<p class="wnote">Not encrypted. A disk encryption policy assigned in Intune would turn this on after the device syncs.</p>');
+  }else{
+    var sub=v.set2,tabs='<div class="wtabs2"><button type="button" class="'+(sub!=="work"&&sub!=="workinfo"?'on':'')+'" data-a="vmSet2" data-k="info">Your info</button><button type="button" class="'+(sub==="work"||sub==="workinfo"?'on':'')+'" data-a="vmSet2" data-k="work">Access work or school</button></div>';
+    if(sub==="work"||sub==="workinfo"||!sub){
+      var acct="";
+      if(d.join){acct='<div class="wacct"><b>Connected to Practice Tenant\'s Microsoft Entra ID</b><span class="mono">'+esc(u?upn(u):"")+'</span><span>'+(d.join==="joined"?"Joined":"Registered")+'</span><div class="wbtns">'+wb("Info","vmSet2",{d:{k:"workinfo"}})+(d.join==="registered"?wb("Disconnect","vmDisconnect"):"")+'</div></div>';}
+      if(sub==="workinfo"&&d.join){
+        body='<h2>Accounts &gt; Access work or school</h2>'+tabs+'<div class="wacct"><b>Connection info</b><dl class="wdl"><dt>Join type</dt><dd>'+(d.join==="joined"?"Microsoft Entra joined":"Microsoft Entra registered")+'</dd><dt>Areas managed by Practice Tenant</dt><dd>'+(enrolledOk(d)?"Device management (Intune)":"None. This device is not managed.")+'</dd><dt>Last attempted sync</dt><dd>'+esc(d.sync||"-")+'</dd></dl>'+
+          (d.join==="joined"&&!enrolledOk(d)&&d.mdmWhy?'<div class="wmsg bad">'+esc(d.mdmWhy)+'</div>':"")+'<div class="wbtns">'+wb("Sync","vmSync",{pri:1})+wb("Back","vmSet2",{d:{k:"work"}})+'</div></div>';
+      }else{
+        body='<h2>Accounts &gt; Access work or school</h2>'+tabs+'<p>Get access to resources like email, apps, and the network. Connecting means your work or school might control some things on this device.</p><div class="srow"><span>Add a work or school account</span>'+wb("Connect","vmConnect",{pri:1})+'</div>'+(v.msg?'<div class="wmsg bad" role="alert">'+esc(v.msg)+'</div>':"")+acct;
+      }
+    }else{
+      body='<h2>Accounts &gt; Your info</h2>'+tabs+'<dl class="wdl"><dt>Signed in as</dt><dd>'+esc(name)+'</dd><dt>Account type</dt><dd>'+(v.cur&&v.cur.kind==="work"?"Work account (Microsoft Entra ID)":isAdminSess(d)?"Local administrator":"Local standard user")+'</dd></dl>';
+    }
+  }
+  return '<div class="win"><div class="tb"><span>Settings</span><button type="button" class="wx" data-a="vmClose" aria-label="Close">&#10005;</button></div><div class="set"><nav class="setnav"><div class="setuser"><span class="av">'+esc((name||"?")[0])+'</span>'+esc(name)+'</div>'+
+    nav.map(function(n){return '<button type="button" class="'+(pg===n[0]?'on':'')+'" data-a="vmSetPage" data-p="'+n[0]+'">'+esc(n[1])+'</button>';}).join("")+'</nav><div class="setbody">'+body+'</div></div></div>';
+}
+A.vmSetPage=function(ds){var v=curDev().vm;v.setPage=ds.p;v.msg="";if(ds.p==="accounts"){v.set2="work";}};
+A.vmSet2=function(ds){var v=curDev().vm;v.set2=ds.k;v.msg="";};
+A.vmConnect=function(){var d=curDev(),v=d.vm;v.msg="";
+  if(!isAdminSess(d)){v.msg="You need to be signed in as an administrator to connect this device. Sign out and sign in as LocalAdmin.";return;}
+  if(d.join){v.msg="This device is already "+(d.join==="joined"?"joined to Microsoft Entra ID":"registered")+". Disconnect the work account first.";return;}
+  S.vmIn={};v.dlg={mode:"register",step:"email",uid:null,err:""};
+};
+A.vmDisconnect=function(){var d=curDev();d.join="";d.joinUser=null;audit("Delete device registration",d.name,"Device","Core Directory");toast("Work account removed from this device.");};
+A.vmSync=function(){var d=curDev(),v=d.vm,u=d.joinUser?U(d.joinUser):null;
+  if(d.state==="wiping"){resetDevice(d);toast("The wipe command arrived. The laptop restarted into setup.");return;}
+  if(d.join==="joined"&&u&&d.state!=="enrolled"){var r=tryEnroll(d,u);if(r.ok){toast("Sync succeeded. The laptop is now enrolled in Intune.");S.flags.vmSync=true;}else{d.mdmWhy=r.why;toast("Sync failed. See the message under Connection info.");}return;}
+  if(d.join==="joined"&&enrolledOk(d)){d.sync="Just now";S.flags.vmSync=true;toast("Sync completed. New policies and apps are applied.");return;}
+  toast("Nothing to sync. This device isn't managed.");
+};
+
+/* ----- Command Prompt ----- */
+function dsreg(d){
+  var j=d.join==="joined",r=d.join==="registered",u=d.joinUser?U(d.joinUser):null,L=[];
+  var mdm=(j&&u&&inMdmScope(u))?"https://enrollment.manage.microsoft.com/enrollmentserver/discovery.svc":"";
+  var comp=d.name==="(not set up)"?compNameFor(d):d.name;
+  L.push("+----------------------------------------------------------------------+","| Device State                                                         |","+----------------------------------------------------------------------+","");
+  L.push("             AzureAdJoined : "+(j?"YES":"NO"),"          EnterpriseJoined : NO","              DomainJoined : NO","               Device Name : "+comp,"");
+  if(j){L.push("+----------------------------------------------------------------------+","| Device Details                                                       |","+----------------------------------------------------------------------+","","                  DeviceId : "+guidFor(d),"                TpmProtected : YES","");
+    L.push("+----------------------------------------------------------------------+","| Tenant Details                                                       |","+----------------------------------------------------------------------+","","                TenantName : Practice Tenant","                  TenantId : "+TENANT,"                    MdmUrl : "+mdm,"               MdmTouUrl : "+(mdm?"https://portal.manage.microsoft.com/TermsofUse.aspx":""),"");}
+  L.push("+----------------------------------------------------------------------+","| User State                                                           |","+----------------------------------------------------------------------+","","                    NgcSet : NO","           WorkplaceJoined : "+(r?"YES":"NO"),"");
+  L.push("+----------------------------------------------------------------------+","| SSO State                                                            |","+----------------------------------------------------------------------+","","                AzureAdPrt : "+(j&&d.vm.cur&&d.vm.cur.kind==="work"?"YES":"NO"),"");
+  return L;
+}
+function runCmd(d,line){
+  var c=line.trim().toLowerCase(),v=d.vm,out=[],nm=sessName(d),comp=d.name==="(not set up)"?compNameFor(d):d.name;
+  if(!c){return out;}
+  if(c==="help"){out=["Commands in this lab:","  dsregcmd /status   Show Entra join state","  whoami             Show the signed-in user","  hostname           Show the computer name","  ipconfig [/all]    Show network and DHCP details","  cls                Clear the screen"];}
+  else if(c==="dsregcmd /status"||c==="dsregcmd"){out=dsreg(d);if(d.join){S.flags.vmDsreg=true;}}
+  else if(c==="whoami"){out=[v.cur&&v.cur.kind==="work"?"azuread\\"+(U(v.cur.uid).name.replace(/\s/g,"").toLowerCase()):comp.toLowerCase()+"\\"+nm.toLowerCase()];}
+  else if(c==="hostname"){out=[comp];}
+  else if(c==="ipconfig"||c==="ipconfig /all"){
+    out=["Windows IP Configuration","","Wireless LAN adapter Wi-Fi:","","   Connection-specific DNS Suffix  . : "+(d.join==="joined"?"practice.local":""),"   IPv4 Address. . . . . . . . . . . : "+ipFor(d),"   Subnet Mask . . . . . . . . . . . : 255.255.255.0","   Default Gateway . . . . . . . . . : 192.168.20.1"];
+    if(c==="ipconfig /all"){out.push("   DHCP Enabled. . . . . . . . . . . : Yes","   DHCP Server . . . . . . . . . . . : 192.168.20.1","   Lease Obtained. . . . . . . . . . : Thursday, October 8, 2026 9:12:04 AM","   Lease Expires . . . . . . . . . . : Thursday, October 8, 2026 5:12:04 PM");}
+  }else if(c==="cls"){v.cmd=[];return null;}
+  else{out=["'"+line.trim().split(" ")[0]+"' is not recognized as an internal or external command,","operable program or batch file."];}
+  return out;
+}
+function cmdHtml(d){
+  var v=d.vm,nm=sessName(d),path="C:\\Users\\"+(v.cur&&v.cur.kind==="work"?U(v.cur.uid).name.replace(/\s/g,"").toLowerCase():nm)+">";
+  return '<div class="win cmdwin"><div class="tb"><span>Command Prompt</span><button type="button" class="wx" data-a="vmClose" aria-label="Close">&#10005;</button></div><pre class="cmdout">'+esc(v.cmd.join("\n"))+'</pre><div class="cmdin"><span>'+esc(path)+'</span><input type="text" data-vi="cmdin" data-enter="vmCmd" autocomplete="off" aria-label="Command" value="'+esc(S.vmIn.cmdin||"")+'" placeholder="try: dsregcmd /status"><button type="button" class="wbtn pri" data-a="vmCmd">Run</button></div></div>';
+}
+A.vmCmd=function(){var d=curDev(),v=d.vm,line=S.vmIn.cmdin||"";S.vmIn.cmdin="";if(!line.trim()){return;}
+  var nm=sessName(d),path="C:\\Users\\"+(v.cur&&v.cur.kind==="work"?U(v.cur.uid).name.replace(/\s/g,"").toLowerCase():nm)+">";
+  var out=runCmd(d,line);if(out===null){return;}
+  v.cmd.push(path+line.trim());v.cmd=v.cmd.concat(out);v.cmd.push("");if(v.cmd.length>400){v.cmd=v.cmd.slice(-300);}
+};
+
+/* ----- Company Portal ----- */
+function portalHtml(d){
+  var u=d.userId?U(d.userId):null,avail=S.apps.filter(function(a){return a.intent==="available"&&d.userId&&applies(a,d.userId);});
+  var cmp=d.compl?(d.compl.state==="Compliant"?'<div class="wmsg ok">This device meets your organization\'s requirements.</div>':'<div class="wmsg bad">This device doesn\'t meet requirements: '+esc(d.compl.rows.filter(function(r){return r.state!=="Compliant";}).map(function(r){return r.reason;}).join("; "))+'</div>'):"";
+  return '<div class="win"><div class="tb"><span>Company Portal</span><button type="button" class="wx" data-a="vmClose" aria-label="Close">&#10005;</button></div><div class="setbody"><h2>'+esc(d.name)+'</h2><p>Signed in as '+esc(u?upn(u):"")+'</p>'+cmp+
+    '<div class="wbtns">'+wb("Check status (sync)","vmSync",{pri:1})+'</div><h3>Available apps</h3>'+(avail.length?avail.map(function(a){var on=(d.vm.userApps||[]).indexOf(a.name)>-1;return '<div class="srow"><span>'+esc(a.name)+'</span>'+(on?"Installed":wb("Install","vmInstall",{d:{n:a.name},pri:1}))+'</div>';}).join(""):'<p class="wnote">No apps are available. In Intune > Apps, assign an app as "Available".</p>')+'</div></div>';
+}
+A.vmInstall=function(ds){var v=curDev().vm;if(v.userApps.indexOf(ds.n)<0){v.userApps.push(ds.n);}toast(ds.n+" installed.");};
+
+/* ----- page ----- */
+function vmTip(d){
+  var v=d.vm;
+  if(v.stage==="oobe"){
+    if(v.oobe==="apsignin"){return "Autopilot recognized this laptop by its serial number. Sign in as the new hire. If an error appears, fix it in the admin centers and try again.";}
+    if(v.oobe==="setup"){return "No Autopilot profile is assigned, so this is standard setup. Pick personal use to create a local admin and join later, or work or school to join now.";}
+    if(v.oobe==="espfail"){return "Read the message. Fix it in Entra (MDM scope) or Microsoft 365 (license), then press Try again.";}
+    return "Click through the setup screens. On the network screen choose Practice-Corp.";
+  }
+  if(v.stage==="lock"){return d.spare&&!d.join?"Sign in as LocalAdmin. Joining a PC to Entra needs an administrator on the PC.":"Pick an account, or choose Other user to sign in with a work account.";}
+  return "Open Start, then Settings > Accounts > Access work or school. Command Prompt has dsregcmd /status.";
+}
+function vmSide(d){
+  var v=d.vm,rows="";
+  v.locals.forEach(function(l){rows+='<tr><td>'+esc(l.name)+'</td><td class="mono">'+esc(l.pw)+'</td></tr>';});
+  live().forEach(function(u){rows+='<tr><td class="mono">'+esc(upn(u))+'</td><td class="mono">'+esc(u.pw||"-")+(u.mustChange?' <small>(must change)</small>':'')+'</td></tr>';});
+  return '<div class="tile"><h3>What to do</h3><p>'+esc(vmTip(d))+'</p></div><div class="tile" style="margin-top:12px"><h3>Practice credentials</h3><p class="psub">Normally these come from a ticket or the user. Local accounts first, then work accounts.</p><div class="tbl"><table style="min-width:0"><thead><tr><th>Account</th><th>Password</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'+
+    '<div class="tile" style="margin-top:12px"><h3>Laptop status</h3>'+grid([["Name",esc(d.name)],["Entra",d.join==="joined"?"Joined":d.join==="registered"?"Registered":"Not connected"],["Intune",d.state==="enrolled"?"Managed":"Not managed"]])+'</div>';
+}
+function vmPage(){
+  var d=curDev();
+  if(!d||!(d.autopilot||d.vm||d.spare)){S.page="d2";d=D("d2");}
+  var v=ensureVm(d);
+  if(d.state==="wiping"){resetDevice(d);v=d.vm;toast("The Intune wipe command arrived. The laptop restarted into setup.");}
+  var scr=v.stage==="oobe"?oobeHtml(d):v.stage==="lock"?lockHtml(d):desktopHtml(d);
+  return '<h1 class="ptitle">Windows laptop (virtual machine)'+info("oobe")+'</h1><p class="psub">'+esc(d.maker+" "+d.model)+', serial <span class="mono">'+esc(d.serial)+'</span>. Whatever you do here is reflected in Entra and Intune.</p>'+
+    '<div class="vmbar">'+B("Reset this PC","vmReset",{sm:1})+'</div><div class="vmgrid"><div class="vm" id="vmscreen">'+scr+'</div><aside class="vmside">'+vmSide(d)+'</aside></div>';
+}
+A.openVm=function(ds){var d=D(ds.id);if(!d){return;}ensureVm(d);S.portal="vm";S.page=d.id;resetNav();};
+
+/* =============== NAV + SHELL =============== */
+var TITLES={m365:"Microsoft 365 admin center",entra:"Microsoft Entra admin center",intune:"Microsoft Intune admin center",exchange:"Exchange admin center",vm:"Windows laptop (virtual)"};
+var DEFAULT={m365:"home",entra:"overview",intune:"home",exchange:"mailboxes",vm:"d2"};
+var NAVS={
+  m365:[{pg:"home",l:"Home",i:"home"},{l:"Users",i:"user",kids:[["users","Active users"],["deleted","Deleted users"]]},{l:"Teams & groups",i:"users",kids:[["groups","Active teams & groups"]]},{l:"Billing",i:"license",kids:[["licenses","Licenses"]]},
+    {sep:"Admin centers"},{go:["entra","overview"],l:"Identity",i:"shield"},{go:["intune","home"],l:"Endpoint Manager",i:"device"},{go:["exchange","mailboxes"],l:"Exchange",i:"mail"}],
+  entra:[{l:"Overview",i:"home",kids:[["overview","Overview"],["props","Properties"]]},{l:"Users",i:"user",kids:[["users","All users"],["deleted","Deleted users"]]},{l:"Groups",i:"users",kids:[["groups","All groups"]]},
+    {l:"Devices",i:"device",kids:[["devices","All devices"],["devsettings","Device settings"],["mdm","Mobility (MDM and MAM)"]]},{l:"Roles & admins",i:"key",kids:[["roles","Roles & admins"]]},{l:"Protection",i:"shield",kids:[["ca","Conditional Access"]]},
+    {l:"Monitoring & health",i:"search",kids:[["signins","Sign-in logs"],["audit","Audit logs"]]}],
+  intune:[{pg:"home",l:"Home",i:"home"},{l:"Devices",i:"device",kids:[["devices","All devices"],["ap","Windows Autopilot devices"],["approf","Deployment profiles"],["compliance","Compliance"],["config","Configuration"]]},
+    {l:"Apps",i:"apps",kids:[["apps","All apps"]]},{l:"Endpoint security",i:"shield",kids:[["disk","Disk encryption"]]},{l:"Troubleshooting + support",i:"gear",kids:[["trouble","Troubleshoot"]]},
+    {sep:"Related"},{go:["entra","users"],l:"Users and groups (Entra)",i:"user"}],
+  exchange:[{l:"Recipients",i:"user",kids:[["mailboxes","Mailboxes"]]},{l:"Mail flow",i:"mail",kids:[["rules","Rules"]]}]
+};
+function leftNav(){
+  if(S.portal==="vm"){return '<nav class="lnav" aria-label="Laptops"><div class="grp">'+ico("device")+'Virtual laptops</div>'+vmDevices().map(function(x){return '<button type="button" class="it kid" data-a="go" data-p="vm" data-pg="'+x.id+'"'+(S.page===x.id?' aria-current="true"':'')+'>'+esc(x.spare?"Spare ThinkPad (manual join)":x.maker+" "+x.model+" (Autopilot)")+'</button>';}).join("")+'</nav>';}
+  var h='<nav class="lnav" aria-label="'+esc(TITLES[S.portal])+' navigation">';
+  NAVS[S.portal].forEach(function(n){
+    if(n.sep){h+='<div class="sepl">'+esc(n.sep)+'</div>';return;}
+    if(n.kids){h+='<div class="grp">'+ico(n.i)+esc(n.l)+'</div>'+n.kids.map(function(k){return '<button type="button" class="it kid" data-a="go" data-pg="'+k[0]+'"'+(S.page===k[0]?' aria-current="true"':'')+'>'+esc(k[1])+'</button>';}).join("");return;}
+    if(n.go){h+='<button type="button" class="it" data-a="go" data-p="'+n.go[0]+'" data-pg="'+n.go[1]+'">'+ico(n.i)+esc(n.l)+'</button>';return;}
+    h+='<button type="button" class="it" data-a="go" data-pg="'+n.pg+'"'+(S.page===n.pg?' aria-current="true"':'')+'>'+ico(n.i)+esc(n.l)+'</button>';
+  });
+  return h+'</nav>';
+}
+function labBar(){
+  var tot=0,done=0;missions().forEach(function(m){m.s.forEach(function(x){tot+=1;if(x[1]){done+=1;}});});
+  return '<div class="lab"><b>Practice lab</b>'+["m365","entra","intune","exchange","vm"].map(function(p){return '<button type="button" data-a="go" data-p="'+p+'" data-pg="'+DEFAULT[p]+'"'+(S.portal===p?' aria-current="true"':'')+'>'+esc(TITLES[p])+'</button>';}).join("")+'<span class="sp"></span><span>Simulated. Not the real portals.</span></div>';
+}
+function portalHeader(){
+  return '<header class="phdr"><span class="waf">'+ico("apps")+'</span><h1>'+esc(TITLES[S.portal])+'</h1><div class="search">'+ico("search")+'<span>Search</span></div><span class="av" title="Admin (you)">AD</span></header>';
+}
+function flyHtml(){
+  if(!S.fly){return "";}
+  var f=FLY[S.fly.k]();
+  return '<div class="scrim" data-a="closeFly"></div><aside class="fly" role="dialog" aria-modal="true" aria-label="'+esc(f.title)+'"><header><h2>'+esc(f.title)+'</h2><button type="button" class="x" data-a="closeFly" aria-label="Close">'+ico("x")+'</button></header>'+
+    (f.sub?'<div class="fsub">'+f.sub+'</div>':'')+(f.tabs?'<div class="ftabs">'+tabs(f.tabs,S.fly.tab,"flyTab")+'</div>':'')+'<div class="fbody">'+f.body+'</div></aside>';
+}
+
+/* =============== MISSIONS =============== */
+function missions(){
+  var dana=U("u1"),sam=U("u2"),priya=U("u3"),marcus=U("u4"),d2=D("d2"),d1=D("d1");
+  ensureTroubled();
+  var biscope=S.policies.some(function(p){return p.bitlocker&&p.assign&&(p.assign.all||p.assign.groups.length);});
+  var diskOK=S.profiles.some(function(p){return p.type==="BitLocker"&&(p.assign.all||p.assign.groups.length);});
+  var same=S.policies.some(function(p){return p.bitlocker&&S.profiles.some(function(c){return c.type==="BitLocker"&&sameScope(p,c);});});
+  var compliantReq=S.devices.some(function(d){return d.state==="enrolled"&&d.compl&&d.compl.rows.some(function(r){return r.reqBit&&r.state==="Compliant";});});
+  var mfaOn=S.secDefaults||S.caPolicies.some(function(p){return p.state==="on";});
+  var newG=S.groups.filter(function(g){return g.created;});
+  return [
+   {t:"Contain a compromised account: Dana Rivera",w:"A password reset alone leaves sessions, a backup phone number and a mail rule in place. Close every door.",s:[
+     ["Spot the 3 a.m. login from Lagos",S.flags.viewedLogs,["entra","signins","Monitoring & health > Sign-in logs"]],
+     ["Reset her password",dana.pwReset,["entra","users","Users > All users > Dana Rivera > Reset password"]],
+     ["Revoke her sessions",dana.revoked,["entra","users","Users > All users > Dana Rivera > Revoke sessions"]],
+     ["Delete the unfamiliar phone number",!dana.methods.some(function(m){return m.sus;}),["entra","users","Users > All users > Dana Rivera > Authentication methods > Delete"]],
+     ["Remove the mail forwarding rule",!dana.fwd,["exchange","mailboxes","Recipients > Mailboxes > Dana Rivera > Manage email forwarding"]]]},
+   {t:"Get Intune ready for new Windows laptops",w:"Two tenant-level settings decide whether a new laptop can enroll at all.",s:[
+     ["Set the MDM user scope to All (or Some)",S.mdm.scope!=="none",["entra","mdm","Devices > Mobility (MDM and MAM) > MDM user scope > Save"]],
+     ["Create an Autopilot profile assigned to All devices",apAssigned(),["intune","approf","Devices > Deployment profiles > Create profile > Assignments"]]]},
+   {t:"Onboard Priya Nair",w:"The full new-hire flow, including the part that breaks when a step is missed.",s:[
+     ["Look up Priya and read what's wrong",!!S.flags.troubled.u3,["intune","trouble","Troubleshooting + support > Troubleshoot > pick Priya > Look up"]],
+     ["Set her usage location",!!priya.loc,["m365","users","Users > Active users > Priya Nair > Licenses and apps > Select location"]],
+     ["Give her a license (directly or through a group)",hasLicense(priya),["m365","users","Users > Active users > Priya Nair > Licenses and apps > Save changes"]],
+     ["Add her to at least one group",userGroups("u3").length>0,["entra","groups","Groups > All groups > a group > Members > Add members"]],
+     ["Enroll her Autopilot laptop",!!d2&&d2.state==="enrolled"&&d2.userId==="u3",["intune","ap","Devices > Windows Autopilot devices > tick the device > Simulate unboxing"]]]},
+   {t:"Offboard Sam Ortiz",w:"Cut access first, save his work, reclaim the license and the laptop, then delete the account.",s:[
+     ["Block his sign-in",sam.blocked,["m365","users","Users > Active users > Sam Ortiz > Account > Block sign-in"]],
+     ["Sign him out of all sessions",sam.revoked,["m365","users","Users > Active users > Sam Ortiz > Account > Sign out of all sessions"]],
+     ["Create a link to his OneDrive files",sam.filesLink,["m365","users","Users > Active users > Sam Ortiz > OneDrive > Create link to files"]],
+     ["Remove him from every group",userGroups("u2").length===0,["entra","groups","Groups > All groups > Finance > Members > Remove"]],
+     ["Remove his license",!sam.direct&&!viaGroup(sam),["m365","licenses","Billing > Licenses > Business Premium > Users > tick Sam > Revoke licenses"]],
+     ["Retire or wipe his laptop",!!d1&&d1.state!=="enrolled",["intune","devices","Devices > All devices > his laptop > Retire"]],
+     ["Delete the user (last step)",sam.deleted,["m365","users","Users > Active users > tick Sam > Delete a user"]]]},
+   {t:"Apply least privilege: Marcus Lee",w:"Marcus is a Global Administrator but only does password resets and support.",s:[
+     ["Remove his Global Administrator role",marcus.roles.indexOf("ga")<0,["entra","roles","Roles & admins > Global Administrator > tick Marcus > Remove assignments"]],
+     ["Give him Helpdesk Administrator instead",marcus.roles.indexOf("ha")>-1,["entra","roles","Roles & admins > Helpdesk Administrator > Add assignments"]]]},
+   {t:"Require MFA for everyone",w:"Start safe with report-only, then enforce.",s:[
+     ["Create a Conditional Access policy in Report-only mode",!!S.flags.caReport,["entra","ca","Protection > Conditional Access > New policy > Report-only"]],
+     ["Enforce MFA: turn the policy On or enable security defaults",mfaOn,["entra","ca","Protection > Conditional Access > Turn on (or Overview > Properties > Manage security defaults)"]],
+     ["Run a test sign-in for a user with no MFA method",!!S.flags.testedMfa,["entra","users","Users > All users > Priya Nair > Sign-in logs > Simulate a sign-in"]]]},
+   {t:"License by group, the scalable way",w:"Membership drives licensing, so onboarding and offboarding are group changes.",s:[
+     ["Create a new group, for example NYC-Staff",newG.length>0,["entra","groups","Groups > All groups > New group"]],
+     ["Add at least two people to it",newG.some(function(g){return g.members.length>=2;}),["entra","groups","Groups > All groups > your group > Members > Add members"]],
+     ["Assign Business Premium to that group",S.licenseGroups.some(function(id){var g=G(id);return g&&g.created;}),["m365","licenses","Billing > Licenses > Business Premium > Groups > Assign licenses"]],
+     ["Create a new user in the group and watch the license appear",S.users.some(function(u){return u.created&&!u.deleted&&viaGroup(u)&&!!u.loc;}),["entra","users","Users > All users > New user > Properties (location) > Assignments (group)"]]]},
+   {t:"Enforce BitLocker with Intune",w:"A disk encryption policy makes it true. A compliance policy checks that it's true.",s:[
+     ["Create and assign a BitLocker policy",diskOK,["intune","disk","Endpoint security > Disk encryption > Create policy"]],
+     ["Create and assign a compliance policy that requires BitLocker",biscope,["intune","compliance","Devices > Compliance > Create policy"]],
+     ["Assign both to the same group (or All users)",same,["intune","compliance","Devices > Compliance > Create policy > Assignments"]],
+     ["See a laptop show Compliant under the policy",compliantReq,["intune","devices","Devices > All devices > a laptop > Device compliance"]]]},
+   {t:"Deploy an app",w:"Required apps install without the user doing anything.",s:[
+     ["Add an app and assign it as Required",S.apps.some(function(a){return a.intent==="required"&&(a.assign.all||a.assign.groups.length);}),["intune","apps","Apps > All apps > Add > Assignments > Required"]],
+     ["See it installed on an enrolled device",S.devices.some(function(d){return d.state==="enrolled"&&d.appsIn&&d.appsIn.length>0;}),["intune","devices","Devices > All devices > a laptop > Discovered apps"]]]},
+   {t:"Set up Priya's laptop on the virtual Windows PC",w:"The hands-on side of Autopilot: the setup screens, the sign-in, and what happens when something is missing.",s:[
+     ["Click through setup until Autopilot asks for a work account (needs a deployment profile on All devices)",!!S.flags.vmApSignin,["vm","d2","Dell Latitude > Region > Keyboard > Network (Practice-Corp) > Next"]],
+     ["Sign in as priya.nair and finish device setup (if it errors, fix the cause in the admin centers, then Try again)",!!d2&&d2.state==="enrolled"&&d2.userId==="u3"&&d2.join==="joined",["vm","d2","Dell Latitude > Sign in > Enrollment status page"]],
+     ["Open Command Prompt and run dsregcmd /status. Find AzureAdJoined and MdmUrl",!!S.flags.vmDsreg,["vm","d2","Start > Command Prompt > dsregcmd /status"]],
+     ["Settings > Accounts > Access work or school > Info > Sync",!!S.flags.vmSync,["vm","d2","Settings > Accounts > Access work or school > Info > Sync"]]]},
+   {t:"Join a spare laptop to Entra by hand",w:"The manual route: local admin on the PC, then Join this device to Microsoft Entra ID.",s:[
+     ["Sign in to the spare ThinkPad as LocalAdmin",!!S.flags.vmAdmin,["vm","d3","Spare ThinkPad > Lock screen > LocalAdmin"]],
+     ["Settings > Accounts > Access work or school > Connect > Join this device to Microsoft Entra ID",(function(){var d3=D("d3");return !!d3&&d3.join==="joined";})(),["vm","d3","Start > Settings > Accounts > Access work or school > Connect"]],
+     ["Sign out, then sign in with a work account (Other user)",!!S.flags.vmWorkSignin,["vm","d3","Start > Sign out > Other user"]],
+     ["Confirm it's managed in Intune (if not, fix the MDM scope or license and press Sync)",(function(){var d3=D("d3");return !!d3&&d3.state==="enrolled";})(),["intune","devices","Devices > All devices > the ThinkPad"]],
+     ["Optional: Connect without Join on a laptop and compare Registered vs Joined in Entra",!!S.flags.vmRegistered,["entra","devices","Devices > All devices > Join type"]]]}
+  ];
+}
+var PNAME={m365:"Microsoft 365 admin center",entra:"Entra admin center",intune:"Intune admin center",exchange:"Exchange admin center",vm:"Windows laptop (virtual)"};
+function toolsOf(m){var seen=[];m.s.forEach(function(x){if(seen.indexOf(x[2][0])<0){seen.push(x[2][0]);}});return seen;}
+function stepHtml(x){
+  var w=x[2];
+  return '<li class="'+(x[1]?'on':'')+'"><i aria-hidden="true">'+(x[1]?"&#10003;":"")+'</i><div><span class="st">'+esc(x[0])+'</span><span class="wh"><b class="tag '+w[0]+'">'+esc(PNAME[w[0]])+'</b> '+esc(w[2])+' <button type="button" class="lnk" data-a="go" data-p="'+w[0]+'" data-pg="'+w[1]+'" data-g="1">Go there</button></span></div></li>';
+}
+function progress(){var tot=0,done=0;missions().forEach(function(m){m.s.forEach(function(x){tot+=1;if(x[1]){done+=1;}});});return [done,tot];}
+function guideHtml(){
+  var pr=progress(),pct=Math.round(pr[0]/pr[1]*100);
+  if(!S.guide){return '<button type="button" class="gbtn" data-a="guide">Lab guide '+pr[0]+'/'+pr[1]+'</button>';}
+  var body="";
+  if(S.guideTab==="missions"){
+    body='<div class="map"><b>Which tool for what</b><br>Microsoft 365 admin center: people, licenses, mail forwarding and files.<br>Entra admin center: sign-in security, MFA, roles, groups, and the MDM setting.<br>Intune admin center: laptops, policies, apps, Autopilot.<br>Exchange admin center: mailboxes and mail flow.<br>Windows laptop (virtual): the real work on the PC itself: setup, Settings, joining, Command Prompt.</div><p>Work through these in any order. The portals behave like the real ones: they share the same users, groups, licenses and devices. Click the <b>i</b> icons for definitions.</p><div class="meter" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div>'+
+    missions().map(function(m){var all=m.s.every(function(x){return x[1];});return '<div class="mis'+(all?' done':'')+'"><h3>'+esc(m.t)+'</h3><p>'+esc(m.w)+'</p><div class="tools">Tools: '+toolsOf(m).map(function(p){return '<b class="tag '+p+'">'+esc(PNAME[p])+'</b>';}).join(" ")+'</div><ul>'+m.s.map(stepHtml).join("")+'</ul></div>';}).join("")+'<div class="btnrow">'+B("Reset lab","resetLab",{sm:1})+'</div>';
+  }else{
+    body='<dl class="gl">'+Object.keys(GL).sort(function(a,b){return GL[a][0].localeCompare(GL[b][0]);}).map(function(k){return '<dt>'+esc(GL[k][0])+'</dt><dd>'+esc(GL[k][1])+(GL[k][2]?' <i>'+esc(GL[k][2])+'</i>':'')+'</dd>';}).join("")+'</dl>';
+  }
+  return '<aside class="guide" aria-label="Lab guide"><header><h2>Lab guide ('+pr[0]+'/'+pr[1]+')</h2><button type="button" class="x" data-a="guide" aria-label="Close guide">'+ico("x")+'</button></header>'+tabs([["missions","Missions"],["glossary","Glossary"]],S.guideTab,"gtab")+'<div class="gb">'+body+'</div></aside>';
+}
+
+/* =============== ACTIONS (shared) =============== */
+function resetNav(){S.sel=null;S.tab=null;S.q="";S.checked=[];S.fly=null;S.wiz=null;S.draft=null;}
+A.go=function(d){if(d.g&&window.innerWidth<900){S.guide=false;}if(d.p&&d.p!==S.portal){S.portal=d.p;if(!d.pg){d.pg=DEFAULT[d.p];}}S.page=d.pg||DEFAULT[S.portal];resetNav();if(S.portal==="entra"&&S.page==="signins"){S.flags.viewedLogs=true;}window.scrollTo(0,0);};
+A.sel=function(d){S.sel=d.id;S.tab=null;S.checked=[];if(d.id==="u1"&&S.portal==="entra"){S.flags.viewedLogs=true;}};
+A.back=function(){S.sel=null;S.tab=null;};
+A.tab=function(d){S.tab=d.t;if(d.t==="signins"&&S.sel==="u1"){S.flags.viewedLogs=true;}};
+A.flyTab=function(d){if(S.fly){S.fly.tab=d.t;}};
+A.closeFly=function(){S.fly=null;};
+A.closeModal=function(){closeModal();};
+A.chk=function(d){S.checked=S.checked[0]===d.id?[]:[d.id];};
+A.refresh=function(){toast("Refreshed.");};
+A.noop=function(){toast("Not needed for this lab.");};
+A.perUserMfa=function(){openModal("Per-user MFA","<p>Per-user MFA is the older way to enforce MFA one person at a time. Use security defaults or Conditional Access instead (Entra > Protection or Properties).</p>",null,null);};
+A.guide=function(){S.guide=!S.guide;};
+A.gtab=function(d){S.guideTab=d.t;};
+A.info=function(d,el){hidePop();showPop(el);};
+A.wizGo=function(d){S.wiz.step=parseInt(d.n,10);S.wiz.err="";};
+A.wizBack=function(){S.wiz.step=Math.max(0,S.wiz.step-1);S.wiz.err="";};
+A.wizNext=function(){var def=WIZ[S.wiz.kind];S.wiz.step=Math.min(def.steps.length-1,S.wiz.step+1);S.wiz.err="";};
+A.wizCancel=function(){S.wiz=null;};
+A.wizCreate=function(){var def=WIZ[S.wiz.kind],r=def.create(S.wiz.d);if(r&&r.error){S.wiz.err=r.error;return;}S.wiz=null;S.checked=[];toast(r&&r.msg?r.msg:"Created.");};
+A.resetLab=function(){openModal("Reset the lab?","<p>This restores every user, group, license, device and policy to the starting state and clears mission progress.</p>","Reset lab",function(){S=seed();toast("Lab reset.");return null;});};
+
+/* =============== RENDER =============== */
+function render(){
+  hidePop();recompute();
+  document.body.dataset.portal=S.portal;
+  var key=S.portal+"."+S.page,content;
+  if(S.portal==="vm"){content=vmPage();}
+  else if(S.wiz){content=wizHtml();}
+  else if(PAGES[key]){content=PAGES[key]();}
+  else{content='<p>Page not found.</p>';}
+  var qf=document.activeElement&&document.activeElement.id==="q",pos=qf?document.activeElement.selectionStart:0;
+  $("#app").innerHTML=labBar()+portalHeader()+'<div class="shell">'+leftNav()+'<main class="content" id="main">'+content+'</main></div>'+flyHtml()+guideHtml();
+  if(qf){var q=$("#q");if(q){q.focus();try{q.setSelectionRange(pos,pos);}catch(e){}}}
+  save();
+}
+
+/* =============== EVENTS =============== */
+document.addEventListener("click",function(e){
+  var t=e.target.closest("[data-a]");
+  if(!t){if(!e.target.closest("#pop")){hidePop();}return;}
+  if(t.disabled){return;}
+  var name=t.dataset.a,f=A[name];
+  if(!f){return;}
+  if(name==="chk"){f(t.dataset,t);render();return;}
+  f(t.dataset,t);
+  if(!NR[name]){render();}
+});
+document.addEventListener("mouseover",function(e){var t=e.target.closest&&e.target.closest(".i");if(t&&t!==popFor){hidePop();showPop(t);}});
+document.addEventListener("submit",function(e){
+  if(e.target.id!=="mf"){return;}
+  e.preventDefault();
+  var fd={};new FormData(e.target).forEach(function(v,k){fd[k]=v;});
+  var r=modalSubmit?modalSubmit(fd):null;
+  if(r&&r.error){$("#merr").textContent=r.error;return;}
+  closeModal();render();
+});
+document.addEventListener("input",function(e){
+  var t=e.target;
+  if(t.hasAttribute&&t.hasAttribute("data-vi")){S.vmIn[t.getAttribute("data-vi")]=t.value;return;}
+  if(t.hasAttribute&&t.hasAttribute("data-q")){S.q=t.value;S.checked=[];render();return;}
+  if(t.hasAttribute&&t.hasAttribute("data-w")&&t.type==="text"&&S.wiz){S.wiz.d[t.getAttribute("data-w")]=t.value;}
+});
+document.addEventListener("change",function(e){
+  var t=e.target,rr=false;
+  if(!t.hasAttribute){return;}
+  if(t.hasAttribute("data-w")&&S.wiz){
+    var f=t.getAttribute("data-w");
+    S.wiz.d[f]=t.type==="checkbox"?t.checked:t.value;
+    if(S.wiz.kind==="app"&&f==="type"){S.wiz.d.name=t.value;}
+    rr=t.hasAttribute("data-rr")||t.type==="radio"||t.type==="checkbox"||t.tagName==="SELECT";
+  }else if(t.hasAttribute("data-wg")&&S.wiz){
+    var g=t.getAttribute("data-wg"),arr=S.wiz.d.groups||[],i=arr.indexOf(g);
+    if(t.checked&&i<0){arr.push(g);}if(!t.checked&&i>-1){arr.splice(i,1);}S.wiz.d.groups=arr;
+  }else if(t.hasAttribute("data-fd")&&S.fly){
+    S.fly.d[t.getAttribute("data-fd")]=t.type==="checkbox"?t.checked:t.value;rr=t.hasAttribute("data-rr");
+  }else if(t.hasAttribute("data-dr")&&S.draft){
+    S.draft[t.getAttribute("data-dr")]=t.value;rr=t.hasAttribute("data-rr");
+  }else if(t.hasAttribute("data-sv")){
+    S[t.getAttribute("data-sv")]=t.value;
+  }
+  if(rr){render();}
+});
+document.addEventListener("keydown",function(e){
+  if(e.key==="Enter"&&e.target.hasAttribute&&e.target.hasAttribute("data-enter")){var fn=A[e.target.getAttribute("data-enter")];if(fn){e.preventDefault();fn({},e.target);render();}return;}
+  if(e.key!=="Escape"){return;}
+  if(!$("#modal").hidden){closeModal();}else if(popFor){hidePop();}else if(S.fly){S.fly=null;render();}
+});
+window.addEventListener("scroll",function(){if(popFor){hidePop();}},true);
+render();
+})();
+</script>
+</body>
+</html>
