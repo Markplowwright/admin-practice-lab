@@ -264,7 +264,8 @@ h2.sec{font-size:16px;font-weight:600;margin:18px 0 8px}
 
 /* tour steps and finish screen */
 #intro:empty{display:none}
-.introwrap{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.55)}
+.introwrap{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px;background:linear-gradient(135deg,#0b3d6e 0%,#0f6cbd 55%,#4a63d8 100%)}
+#app[inert]{visibility:hidden}
 .intro{background:var(--panel);color:var(--ink);border-radius:8px;box-shadow:var(--shadow);width:100%;max-width:580px;max-height:100%;overflow:auto;padding:20px 24px}
 .intro .stp{font-size:12px;color:var(--muted);margin:0 0 4px}
 .intro h2{margin:0 0 8px;font-size:20px;line-height:28px}
@@ -288,8 +289,8 @@ h2.sec{font-size:16px;font-weight:600;margin:18px 0 8px}
 .intro .pf li,.intro .pf li:first-child{display:block;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--infobg)}
 .intro .pf .tag{display:inline-block;margin:0 0 4px}
 .intro .pf span{display:block}
-.intro .pflap{display:flex;align-items:center;justify-content:center;gap:14px;max-width:480px;margin:0 auto 10px;padding:10px 16px;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:var(--infobg);font-size:13px;line-height:18px}
-.intro .pflap .ic{flex:none;width:24px;height:24px;color:var(--brand)}
+.intro .pflap{display:flex;align-items:center;justify-content:center;gap:10px;max-width:440px;margin:0 auto 8px;padding:6px 12px;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:var(--infobg);font-size:12px;line-height:16px}
+.intro .pflap .ic{flex:none;width:16px;height:16px;color:var(--brand)}
 .intro .pflap span{display:block}
 .intro .pflap .tag{display:inline-block;margin:0 0 4px}
 @media (max-width:480px){.intro .pflap{flex-direction:column;text-align:center}}
