@@ -202,6 +202,44 @@ h2.sec{font-size:16px;font-weight:600;margin:18px 0 8px}
 .gl dt{font-weight:600;margin-top:10px}
 .gl dd{margin:2px 0 0;color:var(--muted);font-size:13px}
 
+/* levels, explanations, equivalents */
+.lvl{margin:14px 0 0}
+.lvl>h3{margin:0;font-size:15px;display:flex;align-items:baseline;gap:8px}
+.lvl>h3 .ct{margin-left:auto;font-size:12px;font-weight:400;color:var(--muted)}
+.lvl.done>h3 .ct{color:var(--ok);font-weight:600}
+.lvl>p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.lvl .meter{height:4px}
+.badge{display:inline-block;font-size:11px;font-weight:600;line-height:16px;padding:0 6px;border-radius:3px;background:#ffb900;color:#000;margin-left:6px;vertical-align:1px}
+.why{background:var(--infobg);border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:8px 0 2px;font-size:13px;line-height:19px}
+.why b{display:block;margin-bottom:2px}
+.why p{margin:0 0 6px;color:var(--ink)}
+.why p.eq{margin:0;color:var(--muted)}
+.fin{background:var(--okbg);border:1px solid var(--ok);border-radius:6px;padding:10px 12px;margin:8px 0;font-size:13px}
+.fin b{display:block;margin-bottom:4px}
+.eqn{font-size:13px;color:var(--muted);margin:6px 0 0}
+.eql dt{font-weight:600;margin-top:12px}
+.eql dd{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.eql dd b{color:var(--ink);font-weight:600}
+
+/* first-open tour and finish screen */
+#intro:empty{display:none}
+.introwrap{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.55)}
+.intro{background:var(--panel);color:var(--ink);border-radius:8px;box-shadow:var(--shadow);width:100%;max-width:580px;max-height:100%;overflow:auto;padding:20px 24px}
+.intro .stp{font-size:12px;color:var(--muted);margin:0 0 4px}
+.intro h2{margin:0 0 8px;font-size:20px;line-height:28px}
+.intro p{margin:0 0 10px}
+.intro .dots{display:flex;gap:6px;margin:0 0 14px}
+.intro .dots i{width:8px;height:8px;border-radius:50%;background:var(--line2)}
+.intro .dots i.on{background:var(--brand)}
+.intro .pl{list-style:none;margin:0 0 10px;padding:0}
+.intro .pl li{padding:7px 0;border-top:1px solid var(--line)}
+.intro .pl li:first-child{border-top:0}
+.intro .pl .tag{margin-right:6px}
+.intro .small{font-size:12px;color:var(--muted)}
+.intro .btnrow{justify-content:flex-end;align-items:center}
+.intro .btnrow .sp{flex:1}
+.intro .btn.link{border:0;background:none;color:var(--brand);font-weight:400;padding:5px 4px}
+
 @media (max-width:900px){
   .lnav{width:200px}
   .content{padding:12px 14px 80px}
@@ -335,6 +373,7 @@ body[data-portal="vm"] .phdr{background:#2b2b2b}
 </head>
 <body data-portal="m365">
 <div id="app"></div>
+<div id="intro"></div>
 <div id="pop" role="tooltip" hidden></div>
 <div id="modal" hidden></div>
 <div id="toast" role="status" aria-live="polite" hidden></div>
@@ -421,6 +460,7 @@ function info(k){var g=GL[k];if(!g){return "";}return '<button type="button" cla
 function seed(){
   var s={
     portal:"m365",page:"home",sel:null,tab:null,q:"",checked:[],fly:null,wiz:null,draft:null,guide:true,guideTab:"missions",tUser:"",
+    onboarded:false,intro:0,lvlDone:[],finishSeen:false,
     secDefaults:false,deviceJoin:"all",vmIn:{},total:10,mdm:{scope:"none",group:""},
     flags:{viewedLogs:false,createdUsers:0,testedMfa:false,caReport:false,troubled:{},vmApSignin:false,vmDsreg:false,vmSync:false,vmAdmin:false,vmWorkSignin:false,vmRegistered:false},
     users:[
@@ -1622,7 +1662,7 @@ function missions(){
   var compliantReq=S.devices.some(function(d){return d.state==="enrolled"&&d.compl&&d.compl.rows.some(function(r){return r.reqBit&&r.state==="Compliant";});});
   var mfaOn=S.secDefaults||S.caPolicies.some(function(p){return p.state==="on";});
   var newG=S.groups.filter(function(g){return g.created;});
-  return [
+  var list=[
    {t:"Contain a compromised account: Dana Rivera",w:"A password reset alone leaves sessions, a backup phone number and a mail rule in place. Close every door.",s:[
      ["Spot the 3 a.m. login from Lagos",S.flags.viewedLogs,["entra","signins","Monitoring & health > Sign-in logs"]],
      ["Reset her password",dana.pwReset,["entra","users","Users > All users > Dana Rivera > Reset password"]],
@@ -1678,7 +1718,51 @@ function missions(){
      ["Confirm it's managed in Intune (if not, fix the MDM scope or license and press Sync)",(function(){var d3=D("d3");return !!d3&&d3.state==="enrolled";})(),["intune","devices","Devices > All devices > the ThinkPad"]],
      ["Optional: Connect without Join on a laptop and compare Registered vs Joined in Entra",!!S.flags.vmRegistered,["entra","devices","Devices > All devices > Join type"]]]}
   ];
+  list.forEach(function(m){var x=MMETA[m.t]||{};m.l=x.l||1;m.why=x.why||"";m.eq=x.eq||"";});
+  return list;
 }
+/* Level and "why it works this way" text for each mission, keyed by mission title. */
+var LEVELS=[
+  {n:1,name:"Onboarding",d:"Prepare the tenant, bring a new hire online, and learn group licensing."},
+  {n:2,name:"Offboarding",d:"Cut access in the right order, keep the files, and shrink admin rights."},
+  {n:3,name:"Compromised accounts and MFA",d:"Close every door an attacker opened, then make the next attack harder."},
+  {n:4,name:"Intune and laptops",d:"Encrypt, deploy apps, and watch enrollment succeed and fail on a virtual PC."}
+];
+var MMETA={
+"Contain a compromised account: Dana Rivera":{l:3,
+  why:"Attackers want to stay in. A password reset blocks sign-ins with the old password, but sessions that are already signed in keep working until you revoke them. A phone number the attacker added can reset the password again, and a forwarding rule keeps copying her mail without any sign-in at all. Each one is a different mechanism, so each needs its own step.",
+  eq:"Google Admin: reset the password, reset sign-in cookies, remove the recovery phone, check Gmail forwarding. Jamf manages devices, so these identity steps happen in your identity provider."},
+"Get Intune ready for new Windows laptops":{l:1,
+  why:"Intune only enrolls a laptop automatically when the person who signs in falls inside the MDM user scope. Outside it, the laptop joins Entra ID and never shows up in Intune. The Autopilot deployment profile is the recipe a new PC follows during setup, and a device with no profile falls back to ordinary manual setup. Both are tenant-wide, set once, which is why they come before any laptop.",
+  eq:"Jamf: link Apple Business Manager and create a PreStage enrollment. That plays the role of the MDM scope plus the deployment profile."},
+"Onboard Priya Nair":{l:1,
+  why:"A license can't be assigned until a usage location is set, because some services are restricted by country. Groups give access, and the license (direct or through a group) is what lets her mailbox and Intune enrollment work. If the license or MDM scope is missing, the laptop's setup fails at the work-account sign-in even though her account exists.",
+  eq:"Google Admin: create the user, assign a license under Billing, add them to Groups. Jamf: the device side is Automated Device Enrollment."},
+"License by group, the scalable way":{l:1,
+  why:"Group-based licensing turns onboarding and offboarding into membership changes: add someone to the group and the license follows, remove them and it frees up. The usage location still has to be set on each user, which is why the last step checks for it.",
+  eq:"Google Admin: licenses can be applied automatically by organizational unit. Jamf is licensed per managed device, so there is no per-user license to assign."},
+"Offboard Sam Ortiz":{l:2,
+  why:"The order matters. Block sign-in and sign out sessions first so access ends now. Create the OneDrive link before the account is deleted, because the files are only kept for a limited retention period. Reclaim the license and retire the laptop, and delete the user last, since a deleted user can be restored for 30 days and is permanently removed after that.",
+  eq:"Google Admin: suspend the user, transfer Drive and Gmail data, remove the license, wipe or remove the device, then delete. Jamf: Erase Device on a Mac."},
+"Apply least privilege: Marcus Lee":{l:2,
+  why:"Global Administrator can change anything, so one stolen password on that account is a full compromise of the tenant. Helpdesk Administrator can reset passwords and sign out non-admin users, which is what support work needs. Giving each person the smallest role that fits their job limits the damage of any single compromised account.",
+  eq:"Google Admin: custom admin roles, with Super admin kept to a few people. Jamf: privilege sets on console accounts."},
+"Require MFA for everyone":{l:3,
+  why:"Report-only mode logs what the policy would have done without blocking anyone, so you can find the people it would lock out, such as users with no MFA method registered, before you enforce. Security defaults is the free all-or-nothing option and Conditional Access is the flexible one. They can't be used together.",
+  eq:"Google Admin: enforce 2-Step Verification, with Context-Aware Access for finer rules. Jamf: enforce MFA at your identity provider."},
+"Enforce BitLocker with Intune":{l:4,
+  why:"Two different jobs. A disk encryption policy configures BitLocker on the device, which makes it true. A compliance policy only checks whether it is on and reports Compliant or Noncompliant. If the two are assigned to different groups, the check evaluates laptops that never received the setting.",
+  eq:"Jamf: the Mac version is a FileVault configuration profile plus a smart group that checks it is on."},
+"Deploy an app":{l:4,
+  why:"Required apps install without the user doing anything, while Available apps are only offered in the Company Portal for users to choose. The assignment decides who gets the app, and an app with no assignment does nothing at all.",
+  eq:"Jamf: a policy that installs the package, with Self Service for optional apps. Google Admin: force-install apps by organizational unit."},
+"Set up Priya's laptop on the virtual Windows PC":{l:4,
+  why:"This is the Autopilot flow seen from the PC's side. The errors you can hit on the sign-in screen come from settings you changed in the admin centers: the license, the MDM user scope and the deployment profile. dsregcmd /status is the quickest way to see whether the PC is joined and which MDM URL it received. An empty MdmUrl means the user isn't in the MDM scope.",
+  eq:"Jamf: the same moment is Setup Assistant with Automated Device Enrollment. The check command on a Mac is profiles status -type enrollment."},
+"Join a spare laptop to Entra by hand":{l:4,
+  why:"Joined means the organization owns the PC and people sign in to Windows with their work account. Registered only adds a work account to a personal device, with little control. Joining needs a local administrator on the PC. A joined PC still isn't managed until the user is in the MDM scope and licensed, so joined does not mean managed.",
+  eq:"Jamf: this is manual, user-initiated enrollment through the enrollment URL instead of Automated Device Enrollment."}
+};
 var PNAME={m365:"Microsoft 365 admin center",entra:"Entra admin center",intune:"Intune admin center",exchange:"Exchange admin center",vm:"Windows laptop (virtual)"};
 function toolsOf(m){var seen=[];m.s.forEach(function(x){if(seen.indexOf(x[2][0])<0){seen.push(x[2][0]);}});return seen;}
 function stepHtml(x){
@@ -1686,17 +1770,94 @@ function stepHtml(x){
   return '<li class="'+(x[1]?'on':'')+'"><i aria-hidden="true">'+(x[1]?"&#10003;":"")+'</i><div><span class="st">'+esc(x[0])+'</span><span class="wh"><b class="tag '+w[0]+'">'+esc(PNAME[w[0]])+'</b> '+esc(w[2])+' <button type="button" class="lnk" data-a="go" data-p="'+w[0]+'" data-pg="'+w[1]+'" data-g="1">Go there</button></span></div></li>';
 }
 function progress(){var tot=0,done=0;missions().forEach(function(m){m.s.forEach(function(x){tot+=1;if(x[1]){done+=1;}});});return [done,tot];}
+function levelsView(){
+  var ms=missions();
+  return LEVELS.map(function(L){
+    var list=ms.filter(function(m){return m.l===L.n;}),tot=0,done=0;
+    list.forEach(function(m){m.s.forEach(function(x){tot+=1;if(x[1]){done+=1;}});});
+    return {n:L.n,name:L.name,d:L.d,ms:list,tot:tot,done:done,complete:tot>0&&done===tot};
+  });
+}
+function nextMission(lv){
+  for(var i=0;i<lv.length;i++){for(var j=0;j<lv[i].ms.length;j++){if(!lv[i].ms[j].s.every(function(x){return x[1];})){return lv[i].ms[j];}}}
+  return null;
+}
+function firstOpenStep(m){for(var i=0;i<m.s.length;i++){if(!m.s[i][1]){return m.s[i];}}return m.s[0];}
+function whyHtml(m){
+  if(!m.why){return "";}
+  return '<div class="why"><b>Why it works this way</b><p>'+esc(m.why)+'</p>'+(m.eq?'<p class="eq"><b>Coming from Jamf or Google Admin?</b> '+esc(m.eq)+'</p>':'')+'</div>';
+}
+function missionHtml(m,next){
+  var all=m.s.every(function(x){return x[1];});
+  return '<div class="mis'+(all?' done':'')+'"><h3>'+esc(m.t)+(next&&next.t===m.t?'<span class="badge">Next up</span>':'')+'</h3><p>'+esc(m.w)+'</p><div class="tools">Tools: '+toolsOf(m).map(function(p){return '<b class="tag '+p+'">'+esc(PNAME[p])+'</b>';}).join(" ")+'</div><ul>'+m.s.map(stepHtml).join("")+'</ul>'+(all?whyHtml(m):'')+'</div>';
+}
+var EQ=[
+ ["Tenant","Your Jamf Pro instance (the server).","Your Google Workspace account and domain."],
+ ["Users and groups (Entra ID)","Users usually come from your identity provider. Jamf has static and smart groups.","Directory > Users and Groups."],
+ ["License assignment","Jamf Pro is licensed per managed device, so there is no per-user license to assign.","Billing > Subscriptions, then assign a license to the user."],
+ ["Administrator roles","Jamf Pro accounts with privilege sets.","Admin roles. Super admin is the closest to Global Administrator."],
+ ["MFA","Enforced at your identity provider through single sign-on.","2-Step Verification."],
+ ["Conditional Access","Lives in your identity provider. Jamf can supply device compliance signals.","Context-Aware Access."],
+ ["Sign-in and audit logs","Change management log, plus your identity provider's sign-in logs.","Reporting > Audit and investigation (Login and Admin)."],
+ ["Block sign-in","Disable the user at your identity provider.","Suspend user."],
+ ["Revoke sessions","Revoke at your identity provider.","Sign out the user and reset sign-in cookies."],
+ ["Windows Autopilot","Automated Device Enrollment through Apple Business Manager or Apple School Manager.","Chrome device enrollment."],
+ ["Deployment profile","PreStage enrollment.",""],
+ ["Compliance policy","Smart groups and extension attributes that check a setting.",""],
+ ["Configuration profile","Configuration Profiles.","Device settings applied per organizational unit."],
+ ["Assignments","Scope.","Organizational units and groups."],
+ ["Required and Available apps","A policy that installs the app. Self Service for optional apps.","Force-install or allow apps by organizational unit."],
+ ["Retire","Remove the MDM profile.","Account wipe."],
+ ["Wipe","Erase Device.","Device wipe."],
+ ["dsregcmd /status","profiles status -type enrollment (Mac Terminal).",""]
+];
+function equivHtml(){
+  return '<p>Rough translations of the ideas in this lab. They are not one-to-one, because each product splits the work differently, and menus change, so confirm in each vendor\'s current docs.</p><dl class="eql">'+EQ.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd><b>Jamf:</b> '+esc(r[1])+(r[2]?'<br><b>Google Admin:</b> '+esc(r[2]):'')+'</dd>';}).join("")+'</dl>';
+}
 function guideHtml(){
   var pr=progress(),pct=Math.round(pr[0]/pr[1]*100);
   if(!S.guide){return '<button type="button" class="gbtn" data-a="guide">Lab guide '+pr[0]+'/'+pr[1]+'</button>';}
   var body="";
   if(S.guideTab==="missions"){
-    body='<div class="map"><b>Which tool for what</b><br>Microsoft 365 admin center: people, licenses, mail forwarding and files.<br>Entra admin center: sign-in security, MFA, roles, groups, and the MDM setting.<br>Intune admin center: laptops, policies, apps, Autopilot.<br>Exchange admin center: mailboxes and mail flow.<br>Windows laptop (virtual): the real work on the PC itself: setup, Settings, joining, Command Prompt.</div><p>Work through these in any order. The portals behave like the real ones: they share the same users, groups, licenses and devices. Click the <b>i</b> icons for definitions.</p><div class="meter" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div>'+
-    missions().map(function(m){var all=m.s.every(function(x){return x[1];});return '<div class="mis'+(all?' done':'')+'"><h3>'+esc(m.t)+'</h3><p>'+esc(m.w)+'</p><div class="tools">Tools: '+toolsOf(m).map(function(p){return '<b class="tag '+p+'">'+esc(PNAME[p])+'</b>';}).join(" ")+'</div><ul>'+m.s.map(stepHtml).join("")+'</ul></div>';}).join("")+'<div class="btnrow">'+B("Reset lab","resetLab",{sm:1})+'</div>';
+    var lv=levelsView(),next=nextMission(lv),alldone=lv.every(function(L){return L.complete;});
+    body='<p>Work through the levels in order, or jump around. The portals share the same users, groups, licenses and devices, like a real tenant. Click the <b>i</b> icons for definitions.</p>'+
+    (alldone?'<div class="fin"><b>All four levels complete.</b>You finished every mission. <button type="button" class="lnk" data-a="finish">View your summary</button></div>':'')+
+    '<div class="meter" role="progressbar" aria-label="Overall progress" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div><div class="eqn">'+pr[0]+' of '+pr[1]+' steps done</div>'+
+    '<div class="map"><b>Which tool for what</b><br>Microsoft 365 admin center: people, licenses, mail forwarding and files.<br>Entra admin center: sign-in security, MFA, roles, groups, and the MDM setting.<br>Intune admin center: laptops, policies, apps, Autopilot.<br>Exchange admin center: mailboxes and mail flow.<br>Windows laptop (virtual): the real work on the PC itself: setup, Settings, joining, Command Prompt.</div>'+
+    lv.map(function(L){var lp=L.tot?Math.round(L.done/L.tot*100):0;return '<section class="lvl'+(L.complete?' done':'')+'" aria-label="Level '+L.n+'"><h3>Level '+L.n+': '+esc(L.name)+'<span class="ct">'+(L.complete?'Complete':L.done+'/'+L.tot)+'</span></h3><p>'+esc(L.d)+'</p><div class="meter" role="progressbar" aria-label="Level '+L.n+' progress" aria-valuenow="'+lp+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+lp+'%"></i></div>'+L.ms.map(function(m){return missionHtml(m,next);}).join("")+'</section>';}).join("")+
+    '<div class="btnrow">'+B("Replay the tour","tour",{sm:1})+B("Reset lab","resetLab",{sm:1})+'</div>';
+  }else if(S.guideTab==="equiv"){
+    body='<h3 style="margin:8px 0 0">Coming from Jamf or Google Admin?</h3>'+equivHtml();
   }else{
     body='<dl class="gl">'+Object.keys(GL).sort(function(a,b){return GL[a][0].localeCompare(GL[b][0]);}).map(function(k){return '<dt>'+esc(GL[k][0])+'</dt><dd>'+esc(GL[k][1])+(GL[k][2]?' <i>'+esc(GL[k][2])+'</i>':'')+'</dd>';}).join("")+'</dl>';
   }
-  return '<aside class="guide" aria-label="Lab guide"><header><h2>Lab guide ('+pr[0]+'/'+pr[1]+')</h2><button type="button" class="x" data-a="guide" aria-label="Close guide">'+ico("x")+'</button></header>'+tabs([["missions","Missions"],["glossary","Glossary"]],S.guideTab,"gtab")+'<div class="gb">'+body+'</div></aside>';
+  return '<aside class="guide" aria-label="Lab guide"><header><h2>Lab guide ('+pr[0]+'/'+pr[1]+')</h2><button type="button" class="x" data-a="guide" aria-label="Close guide">'+ico("x")+'</button></header>'+tabs([["missions","Missions"],["glossary","Glossary"],["equiv","Jamf / Google"]],S.guideTab,"gtab")+'<div class="gb">'+body+'</div></aside>';
+}
+
+/* =============== FIRST-OPEN TOUR AND FINISH SCREEN =============== */
+var INTRO_STEPS=4;
+function dots(n){var h='<div class="dots" aria-hidden="true">';for(var i=0;i<INTRO_STEPS;i++){h+='<i'+(i===n?' class="on"':'')+'></i>';}return h+'</div>';}
+function introHtml(){
+  var n=Math.max(0,Math.min(INTRO_STEPS-1,S.intro||0)),lv=levelsView(),next=nextMission(lv),h="",btns="";
+  if(n===0){
+    h='<h2 id="introT">Welcome to Admin Practice Lab</h2><p>Practice real Microsoft 365 admin work with nothing to break. There is no tenant to set up and no sign-up. You get a simulated admin console with fake users, passwords and devices, and missions that tell you exactly where to click.</p><p>Take the 3-minute tour, or skip it and start Level 1 right away.</p><p class="small">This is a learning simulator, not affiliated with Microsoft. Nothing here connects to a real tenant.</p>';
+    btns='<button type="button" class="btn link" data-a="introSkip">Skip, start Level 1</button><span class="sp"></span><button type="button" class="btn primary" data-a="introNext">Take the 3-minute tour</button>';
+  }else if(n===1){
+    h='<h2 id="introT">Five places you will work</h2><ul class="pl">'+
+      ['m365','entra','intune','exchange','vm'].map(function(p){var t={m365:"Everyday people tasks: create users, assign licenses, handle files and mail forwarding.",entra:"Identity and security: sign-in logs, MFA, Conditional Access, roles, groups, and which devices may enroll.",intune:"Device management: Autopilot, compliance and configuration policies, apps, retire and wipe.",exchange:"Email: mailboxes, forwarding and mail flow rules.",vm:"A pretend PC for the on-device steps: setup screens, joining to Entra, Command Prompt. What you do here shows up in Entra and Intune."}[p];return '<li><b class="tag '+p+'">'+esc(PNAME[p])+'</b> '+esc(t)+'</li>';}).join("")+'</ul><p>They all share one set of users, groups, licenses and devices, just like a real tenant. Change something in one place and the others reflect it.</p>';
+    btns='<button type="button" class="btn link" data-a="introSkip">Skip</button><span class="sp"></span><button type="button" class="btn" data-a="introBack">Back</button><button type="button" class="btn primary" data-a="introNext">Next</button>';
+  }else if(n===2){
+    h='<h2 id="introT">How missions work</h2><ul class="pl"><li>Open the <b>Lab guide</b> with the yellow button at the bottom right. Each mission is a short list of steps.</li><li>Every step names the portal and the menu path, with a <b>Go there</b> button that jumps straight to it.</li><li>A step is checked off when you actually do it in the lab, not when you click it.</li><li>When you finish a mission, the guide explains <b>why it works that way</b>.</li><li>Click the <b>i</b> icons anywhere for plain-English definitions.</li><li>Mistakes are safe. <b>Reset lab</b> in the guide restores the starting state.</li></ul><p class="small">Progress is saved in this browser only.</p>';
+    btns='<button type="button" class="btn link" data-a="introSkip">Skip</button><span class="sp"></span><button type="button" class="btn" data-a="introBack">Back</button><button type="button" class="btn primary" data-a="introNext">Next</button>';
+  }else{
+    h='<h2 id="introT">Your learning path</h2><ul class="pl">'+lv.map(function(L){return '<li><b>Level '+L.n+': '+esc(L.name)+'</b> ('+L.ms.length+(L.ms.length===1?' mission':' missions')+')<br><span class="small">'+esc(L.d)+'</span></li>';}).join("")+'</ul>'+(next?'<p>First up: <b>'+esc(next.t)+'</b>. '+esc(next.w)+'</p>':'')+'<p class="small">Coming from Jamf or Google Admin? The guide has a Jamf / Google tab that translates the ideas.</p>';
+    btns='<span class="sp"></span><button type="button" class="btn" data-a="introBack">Back</button><button type="button" class="btn primary" data-a="introStart">Start Level 1</button>';
+  }
+  return '<div class="introwrap"><div class="intro" role="dialog" aria-modal="true" aria-labelledby="introT"><div class="stp">Step '+(n+1)+' of '+INTRO_STEPS+'</div>'+dots(n)+h+'<div class="btnrow">'+btns+'</div></div></div>';
+}
+function finishHtml(){
+  var lv=levelsView();
+  return '<div class="introwrap"><div class="intro" role="dialog" aria-modal="true" aria-labelledby="finT"><h2 id="finT">You finished Admin Practice Lab</h2><p>All four levels are complete. Here is what you practiced:</p><ul class="pl">'+lv.map(function(L){return '<li><b>Level '+L.n+': '+esc(L.name)+'</b><br><span class="small">'+L.ms.map(function(m){return esc(m.t);}).join("; ")+'</span></li>';}).join("")+'</ul><p>Next, check each procedure against Microsoft\'s current documentation, and try the real thing in a test tenant before you touch a production one. This lab is a simulation, so portal layouts will differ.</p><div class="btnrow"><button type="button" class="btn link" data-a="finishReset">Reset lab to practice again</button><span class="sp"></span><button type="button" class="btn primary" data-a="finishClose">Close</button></div></div></div>';
 }
 
 /* =============== ACTIONS (shared) =============== */
@@ -1720,7 +1881,19 @@ A.wizBack=function(){S.wiz.step=Math.max(0,S.wiz.step-1);S.wiz.err="";};
 A.wizNext=function(){var def=WIZ[S.wiz.kind];S.wiz.step=Math.min(def.steps.length-1,S.wiz.step+1);S.wiz.err="";};
 A.wizCancel=function(){S.wiz=null;};
 A.wizCreate=function(){var def=WIZ[S.wiz.kind],r=def.create(S.wiz.d);if(r&&r.error){S.wiz.err=r.error;return;}S.wiz=null;S.checked=[];toast(r&&r.msg?r.msg:"Created.");};
-A.resetLab=function(){openModal("Reset the lab?","<p>This restores every user, group, license, device and policy to the starting state and clears mission progress.</p>","Reset lab",function(){S=seed();toast("Lab reset.");return null;});};
+A.resetLab=function(){openModal("Reset the lab?","<p>This restores every user, group, license, device and policy to the starting state and clears mission progress.</p>","Reset lab",function(){S=seed();S.onboarded=true;toast("Lab reset.");return null;});};
+A.tour=function(){S.onboarded=false;S.intro=0;};
+A.introNext=function(){S.intro=Math.min(INTRO_STEPS-1,(S.intro||0)+1);};
+A.introBack=function(){S.intro=Math.max(0,(S.intro||0)-1);};
+A.introSkip=function(){S.onboarded=true;S.guide=true;S.guideTab="missions";};
+A.introStart=function(){
+  var m=nextMission(levelsView());
+  S.onboarded=true;S.guide=true;S.guideTab="missions";
+  if(m){var st=firstOpenStep(m),w=st[2];S.portal=w[0];S.page=w[1];resetNav();window.scrollTo(0,0);}
+};
+A.finish=function(){S.finishSeen=false;};
+A.finishClose=function(){S.finishSeen=true;};
+A.finishReset=function(){S.finishSeen=true;A.resetLab();};
 
 /* =============== RENDER =============== */
 function render(){
@@ -1734,6 +1907,16 @@ function render(){
   var qf=document.activeElement&&document.activeElement.id==="q",pos=qf?document.activeElement.selectionStart:0;
   $("#app").innerHTML=labBar()+portalHeader()+'<div class="shell">'+leftNav()+'<main class="content" id="main">'+content+'</main></div>'+flyHtml()+guideHtml();
   if(qf){var q=$("#q");if(q){q.focus();try{q.setSelectionRange(pos,pos);}catch(e){}}}
+  /* level completion toast, then the tour or the finish screen */
+  var lv=levelsView(),fresh=null;
+  lv.forEach(function(L){var i=S.lvlDone.indexOf(L.n);if(L.complete&&i<0){S.lvlDone.push(L.n);fresh=L;}if(!L.complete&&i>-1){S.lvlDone.splice(i,1);}});
+  if(fresh&&S.onboarded){toast("Level "+fresh.n+" complete: "+fresh.name+".");}
+  var allDone=lv.every(function(L){return L.complete;}),ov=$("#intro"),app=$("#app");
+  if(!S.onboarded){ov.innerHTML=introHtml();}
+  else if(allDone&&!S.finishSeen){ov.innerHTML=finishHtml();}
+  else{ov.innerHTML="";}
+  if(ov.innerHTML){app.setAttribute("inert","");var pb=ov.querySelector(".btn.primary");if(pb&&!ov.contains(document.activeElement)){pb.focus();}}
+  else{app.removeAttribute("inert");}
   save();
 }
 
@@ -1786,9 +1969,14 @@ document.addEventListener("change",function(e){
 document.addEventListener("keydown",function(e){
   if(e.key==="Enter"&&e.target.hasAttribute&&e.target.hasAttribute("data-enter")){var fn=A[e.target.getAttribute("data-enter")];if(fn){e.preventDefault();fn({},e.target);render();}return;}
   if(e.key!=="Escape"){return;}
-  if(!$("#modal").hidden){closeModal();}else if(popFor){hidePop();}else if(S.fly){S.fly=null;render();}
+  if(!$("#modal").hidden){closeModal();}else if(popFor){hidePop();}else if(!S.onboarded){A.introSkip();render();}else if(!$("#intro").hidden&&$("#intro").firstChild){A.finishClose();render();}else if(S.fly){S.fly=null;render();}
 });
 window.addEventListener("scroll",function(){if(popFor){hidePop();}},true);
+/* Saved labs from before the tour existed: add the new fields, and don't show the tour to someone who already has progress. */
+if(S.lvlDone===undefined){S.lvlDone=levelsView().filter(function(L){return L.complete;}).map(function(L){return L.n;});}
+if(S.intro===undefined){S.intro=0;}
+if(S.finishSeen===undefined){S.finishSeen=false;}
+if(S.onboarded===undefined){S.onboarded=progress()[0]>0;S.finishSeen=levelsView().every(function(L){return L.complete;});}
 render();
 })();
 </script>

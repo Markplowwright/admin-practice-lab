@@ -1,23 +1,41 @@
 # Admin Practice Lab
 
-A browser-based sandbox for practicing day-to-day IT admin work in a **simulated** Microsoft 365 tenant: Microsoft 365 admin center, Entra ID, Intune, Exchange, and a virtual Windows laptop, all linked together.
+Practice real Microsoft 365 admin work with nothing to break. A browser-based simulator of the Microsoft 365 admin center, Entra ID, Intune, Exchange, and a virtual Windows laptop, all linked together. No tenant, no sign-up, no install.
 
-**Live demo:** https://markplowwright.github.io/admin-practice-lab/
+**Try it now:** https://markplowwright.github.io/admin-practice-lab/
+
+<!-- Add a screenshot or GIF here once you have one:
+![Admin Practice Lab](docs/screenshot.png)
+-->
 
 > This is a learning simulator. It does not connect to Microsoft, and all users, passwords, and domains in it are fake. Nothing you do here touches a real tenant.
 
-## What you can practice
+## Who it's for
 
-- **Onboarding:** create a user, assign a license (group-based licensing, usage location), add to groups, set MFA
-- **Offboarding:** block sign-in, revoke sessions, convert or remove the mailbox, reclaim the license, wipe or retire the device
-- **Compromised account response:** reset password, revoke sessions, review sign-in logs, check forwarding rules and mail flow rules
-- **Least privilege:** Helpdesk Administrator vs Global Administrator
-- **Intune:** Autopilot, compliance vs configuration policies, apps, retire/wipe, troubleshooting
-- **Windows laptop:** join a device (Entra joined, registered, or local), sign in as admin, check `dsregcmd /status`, and see the result in Entra and Intune
-- **Missions:** guided tasks that tell you which portal and menu path to use
-- **(i) icons:** click for plain-English definitions, with Jamf and Google Admin equivalents
+People who want to learn IT admin tasks before they have access to a real tenant: help desk and IT support beginners, career changers, and admins coming from Jamf or Google Admin who are learning Entra ID and Intune.
 
-## Run it
+## How it works
+
+The first time you open it, a 3-minute tour explains the five places you'll work and how missions work (or skip it). Then you follow a four-level path in the **Lab guide**:
+
+| Level | What you practice |
+|---|---|
+| 1. Onboarding | Prepare Intune for new laptops, onboard a new hire (usage location, license, groups, Autopilot laptop), license by group |
+| 2. Offboarding | Block sign-in, revoke sessions, hand off OneDrive files, reclaim the license and laptop, apply least privilege |
+| 3. Compromised accounts and MFA | Contain a compromised account (password, sessions, rogue phone number, mail forwarding), roll out MFA with Conditional Access |
+| 4. Intune and laptops | BitLocker disk encryption vs compliance, app deployment, Autopilot setup and enrollment errors, joining a laptop by hand and checking `dsregcmd /status` |
+
+There are 11 missions and 43 steps. Every step names the portal and the menu path and has a **Go there** button. A step is checked off when you actually do it in the lab, and when you finish a mission the guide explains **why it works that way**.
+
+## Coming from Jamf or Google Admin?
+
+Click the **i** icons for plain-English definitions with Jamf and Google Admin equivalents, open the **Jamf / Google** tab in the guide for a concept-by-concept translation, and read the short comparison at the end of each completed mission. The mappings are approximate because each product splits the work differently.
+
+## Realistic failures
+
+Enrollment can fail the way it does in a real tenant: a blocked account, a user outside the MDM user scope, a missing license (error 80180018), or device join disabled (error 801c0003). A joined but unmanaged device is fixed by correcting the scope or license and then syncing.
+
+## Run it locally
 
 No build step. Open `index.html` in a browser, or serve the folder:
 
@@ -25,18 +43,24 @@ No build step. Open `index.html` in a browser, or serve the folder:
 python3 -m http.server 8000
 ```
 
-Progress is saved in your browser's `localStorage`. Use the reset control in the lab to start over.
+Progress is saved in your browser's `localStorage`, so it stays on that browser and device. Use **Reset lab** in the guide to start over, or **Replay the tour** to see the intro again.
 
 ## Deploy to GitHub Pages
 
 Settings > Pages > Source: **Deploy from a branch** > Branch: `main`, folder `/ (root)`.
 
+## Known limitations
+
+- It is a simulator. Layouts approximate the real portals, which change often, so confirm steps in Microsoft's current documentation before acting on a production tenant.
+- Progress is stored only in your browser. Clearing site data resets it.
+- Not every real setting exists here. The lab covers the common admin tasks above, not the full product surface.
+- Not affiliated with or endorsed by Microsoft, Jamf, or Google.
+
 ## Project layout
 
 | File | Purpose |
 |---|---|
-| `index.html` | The whole app (HTML, CSS, vanilla JS, no dependencies) |
-| `.nojekyll` | Tells Pages to serve files as-is |
+| `index.html` | The whole app (HTML, CSS, vanilla JS, no dependencies, no backend) |
 | `LICENSE` | MIT |
 
 ## Disclaimer
