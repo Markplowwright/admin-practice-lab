@@ -279,6 +279,15 @@ h2.sec{font-size:16px;font-weight:600;margin:18px 0 8px}
 .intro .small{font-size:12px;color:var(--muted)}
 .intro .btnrow{justify-content:flex-end;align-items:center}
 .intro .btnrow .sp{flex:1}
+.intro.compact{max-width:520px;padding:14px 18px}
+.intro.compact .stp{margin-bottom:2px}
+.intro.compact .dots{margin-bottom:8px}
+.intro.compact h2{font-size:17px;line-height:24px;margin-bottom:6px}
+.intro.compact .btnrow{margin:8px 0 0}
+.intro .pf{font-size:13px;line-height:18px;margin-bottom:6px}
+.intro .pf li{display:grid;grid-template-columns:184px 1fr;gap:4px 10px;align-items:start;padding:5px 0}
+.intro .pf .tag{margin:0;justify-self:start}
+@media (max-width:560px){.intro .pf li{grid-template-columns:1fr}}
 .intro .btn.link{border:0;background:none;color:var(--brand);font-weight:400;padding:5px 4px}
 
 @media (max-width:900px){
@@ -1909,8 +1918,8 @@ function introHtml(){
   var n=Math.max(0,Math.min(INTRO_STEPS-1,S.intro||0)),lv=levelsView(),next=nextMission(lv),h="",btns="";
   if(n===0){return welcomeHtml();}
   if(n===1){
-    h='<h2 id="introT">Five places you will work</h2><ul class="pl">'+
-      ['m365','entra','intune','exchange','vm'].map(function(p){var t={m365:"Everyday people tasks: create users, assign licenses, handle files and mail forwarding.",entra:"Identity and security: sign-in logs, MFA, Conditional Access, roles, groups, and which devices may enroll.",intune:"Device management: Autopilot, compliance and configuration policies, apps, retire and wipe.",exchange:"Email: mailboxes, forwarding and mail flow rules.",vm:"A pretend laptop for the on-device steps: setup screens, joining to Entra, Command Prompt. What you do here shows up in Entra and Intune."}[p];return '<li><b class="tag '+p+'">'+esc(PNAME[p])+'</b> '+esc(t)+'</li>';}).join("")+'</ul><p>They all share one set of users, groups, licenses and devices, just like a real tenant. Change something in one place and the others reflect it.</p>';
+    h='<h2 id="introT">Five places you will work</h2><ul class="pl pf">'+
+      ['m365','entra','intune','exchange','vm'].map(function(p){var t={m365:"People, licenses, mail forwarding and files.",entra:"Sign-in security, MFA, roles, groups, and who can enroll devices.",intune:"Laptops: Autopilot, policies, apps, retire and wipe.",exchange:"Mailboxes, forwarding and mail flow rules.",vm:"A pretend laptop for on-device steps. What you do here shows up in Entra and Intune."}[p];return '<li><b class="tag '+p+'">'+esc(PNAME[p])+'</b><span>'+esc(t)+'</span></li>';}).join("")+'</ul><p class="small">All five share one set of users, groups, licenses and devices, like a real tenant.</p>';
     btns='<button type="button" class="btn link" data-a="introSkip">Skip</button><span class="sp"></span><button type="button" class="btn" data-a="introBack">Back</button><button type="button" class="btn primary" data-a="introNext">Next</button>';
   }else if(n===2){
     h='<h2 id="introT">How missions work</h2><ul class="pl"><li>Open the <b>Lab guide</b> with the yellow button at the bottom right. Each mission is a short list of steps.</li><li>Every step names the portal and the menu path, with a <b>Go there</b> button that jumps straight to it.</li><li>A step is checked off when you actually do it in the lab, not when you click it.</li><li>When you finish a mission, the guide explains <b>why it works that way</b>.</li><li>Click the <b>i</b> icons anywhere for plain-English definitions.</li><li>Mistakes are safe. <b>Reset lab</b> in the guide restores the starting state.</li></ul><p class="small">Progress is saved in this browser only.</p>';
@@ -1920,7 +1929,7 @@ function introHtml(){
     h='<h2 id="introT">Your learning path</h2><ul class="pl">'+lv.map(function(L){return '<li><b>Level '+L.n+': '+esc(L.name)+'</b> ('+L.ms.length+(L.ms.length===1?' mission':' missions')+')<br><span class="small">'+esc(L.d)+'</span></li>';}).join("")+'</ul>'+(next?'<p>'+(fresh?'First up':'Next up')+': <b>'+esc(next.t)+'</b>. '+esc(next.w)+'</p>':'')+'<p class="small">Coming from Jamf or Google Admin? The guide has a Jamf / Google tab that translates the ideas.</p>';
     btns='<span class="sp"></span><button type="button" class="btn" data-a="introBack">Back</button>'+(fresh?'<button type="button" class="btn primary" data-a="introStart">Start Level 1</button>':'<button type="button" class="btn primary" data-a="introStart">Continue where I left off</button>');
   }
-  return '<div class="introwrap"><div class="intro" role="dialog" aria-modal="true" aria-labelledby="introT"><div class="stp">Step '+n+' of '+(INTRO_STEPS-1)+'</div>'+dots(n)+h+'<div class="btnrow">'+btns+'</div></div></div>';
+  return '<div class="introwrap"><div class="intro'+(n===1?' compact':'')+'" role="dialog" aria-modal="true" aria-labelledby="introT"><div class="stp">Step '+n+' of '+(INTRO_STEPS-1)+'</div>'+dots(n)+h+'<div class="btnrow">'+btns+'</div></div></div>';
 }
 function finishHtml(){
   var lv=levelsView();
