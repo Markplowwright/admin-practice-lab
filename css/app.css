@@ -273,11 +273,12 @@ h2.sec{font-size:16px;font-weight:600;margin:18px 0 8px}
 .intro .pf li,.intro .pf li:first-child{display:block;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--infobg)}
 .intro .pf .tag{display:inline-block;margin:0 0 4px}
 .intro .pf span{display:block}
-.intro .pflap{display:flex;align-items:center;justify-content:center;gap:10px;max-width:440px;margin:0 auto 8px;padding:6px 12px;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:var(--infobg);font-size:12px;line-height:16px}
-.intro .pflap .ic{flex:none;width:16px;height:16px;color:var(--brand)}
+.intro .pflap{display:flex;align-items:flex-start;gap:10px;width:100%;margin:0 0 8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--infobg);font-size:13px;line-height:18px}
+.intro .pflap > div{min-width:0}
+.intro .pflap .ic{flex:none;width:16px;height:16px;margin-top:2px;color:var(--brand)}
 .intro .pflap span{display:block}
 .intro .pflap .tag{display:inline-block;margin:0 0 4px}
-@media (max-width:480px){.intro .pflap{flex-direction:column;text-align:center}}
+@media (max-width:480px){.intro .pflap{flex-direction:column;align-items:center;text-align:center}}
 .intro .btn.link{border:0;background:none;color:var(--brand);font-weight:400;padding:5px 4px}
 
 @media (max-width:900px){
@@ -301,7 +302,7 @@ h2.sec{font-size:16px;font-weight:600;margin:18px 0 8px}
 
 .mono{font-family:Consolas,"Cascadia Mono",ui-monospace,monospace;font-size:13px}
 body[data-portal="vm"] .phdr{background:#2b2b2b}
-.tag.vm{background:#4b5563}
+.tag.vm{position:static;width:auto;height:auto;margin:0;border:0;border-radius:3px;overflow:visible;background:#4b5563;color:#fff;font-family:inherit;font-size:11px;font-weight:600;line-height:16px;isolation:auto}
 .vmbar{display:flex;gap:8px;margin:4px 0 10px}
 .vmgrid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
 @media (max-width:1150px){.vmgrid{grid-template-columns:1fr}}
