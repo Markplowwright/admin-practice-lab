@@ -5,16 +5,16 @@ PAGES["m365.home"]=function(){
   '<div class="cards"><div class="tile"><h3>Active users</h3><div class="big">'+live().length+'</div>'+B("Add a user","wizNewMUser",{icon:"plus",sm:1})+'</div>'+
   '<div class="tile"><h3>Licenses'+info("license")+'</h3><div class="big">'+assigned()+' / '+S.total+'</div><div class="meter"><i style="width:'+Math.round(assigned()/S.total*100)+'%"></i></div><span>'+available()+' available</span></div>'+
   '<div class="tile"><h3>Service health</h3><div class="big" style="font-size:18px">'+badge("All services healthy","ok")+'</div></div></div>'+
-  '<h2 class="sec">Admin centers</h2><div class="btnrow">'+B("Identity (Entra)","go",{d:{p:"entra",pg:"overview"},icon:"shield"})+B("Endpoint Manager (Intune)","go",{d:{p:"intune",pg:"home"},icon:"device"})+B("Exchange","go",{d:{p:"exchange",pg:"mailboxes"},icon:"mail"})+'</div>';
+  '<h2 class="sec">Admin centers</h2><div class="btnrow">'+B("Active Directory","go",{d:{p:"ad",pg:"aduc"},icon:"users"})+B("Identity (Entra)","go",{d:{p:"entra",pg:"overview"},icon:"shield"})+B("Endpoint Manager (Intune)","go",{d:{p:"intune",pg:"home"},icon:"device"})+B("Exchange","go",{d:{p:"exchange",pg:"mailboxes"},icon:"mail"})+'</div>';
 };
 
 PAGES["m365.users"]=function(){
   var rows=live().filter(function(u){return matchQ(u.name+u.upn);}).map(function(u){
-    return {id:u.id,cells:[lnk(u.name,"openMUser",u.id)+(u.blocked?" "+badge("Sign-in blocked","bad"):""),'<span class="mono">'+esc(upn(u))+'</span>',esc(licText(u))]};});
+    return {id:u.id,cells:[lnk(u.name,"openMUser",u.id)+(u.blocked?" "+badge("Sign-in blocked","bad"):""),'<span class="mono">'+esc(upn(u))+'</span>',syncedUser(u)?"Windows Server AD":"Cloud",esc(licText(u))]};});
   var c=checked1();
   return '<h1 class="ptitle">Active users</h1>'+
   bar([CB("user","Add a user","wizNewMUser"),CB("lock","Multi-factor authentication","perUserMfa",{i:"mfa"}),CB("trash","Delete a user","delUser",{d:{id:c},dis:!c}),CB("refresh","Refresh","refresh"),CB("key","Reset password","resetPw",{d:{id:c},dis:!c}),VR,CB("filter","Filter","noop")])+
-  search("Search active users list")+tbl(["Display name","Username"+info("upn"),"Licenses"+info("license")],rows,{check:true});
+  search("Search active users list")+tbl(["Display name","Username"+info("upn"),"Source","Licenses"+info("license")],rows,{check:true});
 };
 
 /* add user wizard */
@@ -35,7 +35,7 @@ A.openMUser=function(d){var u=U(d.id);S.fly={k:"muser",id:u.id,tab:"account",d:{
 FLY.muser=function(){
   var u=U(S.fly.id),t=S.fly.tab,d=S.fly.d,body="";
   if(t==="account"){
-    body='<h2 class="sec">Username</h2><p class="mono">'+esc(upn(u))+'</p>'+
+    body=(syncedUser(u)?'<div class="msg">This account is synchronized from Windows Server AD. Reset its password and edit authoritative identity fields in ADUC.</div>':'')+'<h2 class="sec">Username</h2><p class="mono">'+esc(upn(u))+'</p>'+
     '<h2 class="sec">Groups</h2><p>'+(userGroups(u.id).map(function(g){return badge(g.name);}).join(" ")||"None")+'</p>'+
     '<h2 class="sec">Roles'+info("roles")+'</h2><p>'+(u.roles.map(function(r){return badge(role(r).name,r==="ga"?"warn":"");}).join(" ")||"No administrator access")+'</p>'+
     '<h2 class="sec">Sign-in status</h2><p>'+(u.blocked?badge("Sign-in blocked","bad"):badge("Sign-in allowed","ok"))+'</p>'+

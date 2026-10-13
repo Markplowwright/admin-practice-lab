@@ -1,6 +1,8 @@
 # Admin Practice Lab
 
-Practice real Microsoft 365 admin work with nothing to break. A browser-based simulator of the Microsoft 365 admin center, Entra ID, Intune, Exchange, and a virtual Windows laptop, all linked together. No tenant, no sign-up, no install.
+Practice real Microsoft 365 and hybrid-identity admin work with nothing to break. A browser-based simulator of Windows Server Active Directory, the Microsoft 365 admin center, Entra ID, Intune, Exchange, and a virtual Windows laptop, all linked together. No tenant, no sign-up, no install.
+
+Simulates hybrid identity: Active Directory, Entra Connect sync, Group Policy, hybrid join, and real help-desk scenarios.
 
 **Try it now:** https://markplowwright.github.io/admin-practice-lab/
 
@@ -18,7 +20,7 @@ People who want to learn IT admin tasks before they have access to a real tenant
 
 ## How it works
 
-The first time you open it, a welcome page and a 3-minute tour explain the five places you'll work and how missions work (or skip straight to Level 1). You can reopen the introduction at any time with the **Introduction walk through** button in the gray bar at the top. Then you follow a four-level path in the **Lab guide**:
+The first time you open it, a welcome page and a 3-minute tour explain the six places you'll work and how missions work (or skip straight to Level 1). You can reopen the introduction at any time with the **Introduction walk through** button in the gray bar at the top. Then you follow a five-level path in the **Lab guide**:
 
 | Level | What you practice |
 |---|---|
@@ -26,8 +28,23 @@ The first time you open it, a welcome page and a 3-minute tour explain the five 
 | 2. Offboarding | Block sign-in, revoke sessions, hand off OneDrive files, reclaim the license and laptop, apply least privilege |
 | 3. Compromised accounts and MFA | Contain a compromised account (password, sessions, rogue phone number, mail forwarding), roll out MFA with Conditional Access |
 | 4. Intune and laptops | BitLocker disk encryption vs compliance, app deployment, Autopilot setup and enrollment errors, joining a laptop by hand and checking `dsregcmd /status` |
+| 5. Hybrid identity | Active Directory users and groups, OU sync scope, Entra Connect, Group Policy, domain and hybrid join, and help-desk scenarios |
 
-There are 11 missions and 43 steps. Every step names the portal and the menu path and has a **Go there** button. A step is checked off when you actually do it in the lab, and when you finish a mission the guide explains **why it works that way**.
+There are 18 guided missions with 64 guided steps, plus 10 real-world scenarios. Every guided step names the portal and menu path and has a **Go there** button. A step is checked off when you actually do it in the lab, and when you finish a mission the guide explains **why it works that way**.
+
+## Hybrid identity
+
+The Active Directory workspace includes AD Users and Computers, Group Policy Management, and a Microsoft Entra Connect Sync panel. Practice creating and disabling users in `practice.local`, managing security-group membership, moving objects between OUs, resetting computer accounts, applying GPOs, and synchronizing selected OUs to Entra.
+
+Synced users clearly show Windows Server AD as their source of authority. Licensing and cloud-session controls remain in Microsoft 365 and Entra. The virtual laptop supports local domain join, hybrid registration, `dsregcmd /status`, `gpupdate /force`, `gpresult /r`, and trust-relationship repair.
+
+Directory sync uses a deterministic lab clock. The displayed 30-minute directory cycle and roughly 2-minute password-hash cycle are common defaults, not fixed Microsoft guarantees. Soft-delete restoration and license recovery are intentionally simplified teaching approximations.
+
+## Real-world scenarios
+
+Level 5 includes ten ticket-style exercises covering lockouts, source-of-authority password resets, onboarding, urgent offboarding, missing file-share access, GPO scope, broken domain trust, excluded sync OUs, expiring contractor access, and suspicious sign-ins. Hints are optional, completion checks actual state, and each completed scenario includes a cause, user-facing response, and example ticket note.
+
+Only one scenario runs at a time in an isolated sandbox. Resetting or leaving it preserves the main lab and previously earned completion badges.
 
 ## Coming from Jamf or Google Admin?
 
@@ -70,10 +87,11 @@ Settings > Pages > Source: **Deploy from a branch** > Branch: `main`, folder `/ 
 |---|---|
 | `index.html` | Page shell. Loads the styles and scripts below. No build step. |
 | `css/app.css` | Layout and portal styles |
-| `js/state.js` | Saved tenant, ids, users, and licenses |
-| `js/rules.js` | Enrollment rules and mission checks. No page markup. |
+| `js/state.js` | Saved cloud tenant, on-premises AD, ids, users, groups, devices, and licenses |
+| `js/rules.js` | Enrollment, AD synchronization, hybrid join, Group Policy, and mission rules. No page markup. |
 | `js/ui.js` | Shared buttons, tables, wizards, and glossary |
-| `js/entra.js`, `js/m365.js`, `js/exchange.js`, `js/intune.js` | The four admin centers |
+| `js/ad.js` | AD Users and Computers, Group Policy Management, and Entra Connect Sync |
+| `js/entra.js`, `js/m365.js`, `js/exchange.js`, `js/intune.js` | The four cloud admin centers |
 | `js/vm.js` | Virtual Windows laptop |
 | `js/guide.js` | Lab guide, welcome page, and tour |
 | `js/render.js` | Drawing the page and handling clicks |

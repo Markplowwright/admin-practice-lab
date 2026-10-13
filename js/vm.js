@@ -21,6 +21,7 @@ function enrolledOk(d){return d.state==="enrolled";}
 
 function resetDevice(d){
   d.vm=null;d.join="";d.joinUser=null;d.userId=null;d.mdmWhy="";d.sync="-";
+  d.domainJoined=false;d.azureAdJoined=false;d.secureChannel=true;d.appliedGpos=[];d.gpUpdated=false;d.driveMapped=false;d.wallpaperApplied=false;
   d.state=d.autopilot?"registered":"unmanaged";
   d.name=d.spare?"DESKTOP-SP26042":"(not set up)";
   S.vmIn={};ensureVm(d);
@@ -77,8 +78,10 @@ function dlgAfterPw(d,g,u){
 function dlgFinish(d,g,u){
   var v=d.vm,mfa=mfaNeeded()?"MFA satisfied (app notification)":"Single-factor authentication",ca=mfaNeeded()?(caOnAny()?"Success":"Security defaults"):"Not applied";
   if(g.mode==="lock"){
-    if(d.join!=="joined"){g.step="err";g.err="We can't sign you in with this account because this device isn't joined to Microsoft Entra ID.";return;}
+    if(d.join!=="joined"&&!d.domainJoined){g.step="err";g.err="We can't sign you in with this account because this device isn't joined to Microsoft Entra ID or practice.local.";return;}
+    if(d.domainJoined&&d.secureChannel===false){g.step="err";g.err="The trust relationship between this workstation and the primary domain failed.";return;}
     vmLog(u,"Windows Sign In","Success",mfa,ca);
+    if(d.domainJoined){d.joinUser=u.id;if(!d.userId){d.userId=u.id;}}
     v.cur={kind:"work",uid:u.id};if(v.work.indexOf(u.id)<0){v.work.push(u.id);}v.stage="desktop";v.dlg=null;v.app=null;v.start=false;S.flags.vmWorkSignin=true;S.vmIn={};return;
   }
   if(g.mode!=="register"&&S.deviceJoin==="none"){
@@ -183,6 +186,7 @@ A.vmLockIn=function(){
   }
   var u=U(k.slice(2));
   if(!u||u.pw!==pw){v.msg="The password is incorrect. Try again.";return;}
+  if(d.domainJoined&&d.secureChannel===false){v.msg="The trust relationship between this workstation and the primary domain failed.";return;}
   if(u.blocked){v.msg="Your account has been disabled (error 50057).";return;}
   if(u.mustChange){v.msg="Your password must be updated. Use Other user to sign in and change it.";return;}
   if(mfaNeeded()){
@@ -190,6 +194,7 @@ A.vmLockIn=function(){
     v.msg="";S.vmIn={};return;
   }
   v.cur={kind:"work",uid:u.id};v.stage="desktop";v.pick="";v.msg="";v.app=null;v.start=false;S.vmIn={};S.flags.vmWorkSignin=true;
+  if(d.domainJoined){d.joinUser=u.id;if(!d.userId){d.userId=u.id;}}
   vmLog(u,"Windows Sign In","Success","Single-factor authentication");
 };
 
@@ -222,6 +227,7 @@ A.vmClose=function(){var v=curDev().vm;v.app=null;v.dlg=null;v.msg="";};
 A.vmFake=function(ds){toast("Opened "+ds.n+" (simulated).");curDev().vm.start=false;};
 A.vmSignout=function(){var v=curDev().vm;v.stage="lock";v.cur=null;v.app=null;v.start=false;v.pick="";v.dlg=null;S.vmIn={};};
 A.vmRestart=function(){var d=curDev(),v=d.vm;v.stage="lock";v.cur=null;v.app=null;v.start=false;v.pick="";v.dlg=null;S.vmIn={};
+  if(S.scenarios.active==="s7"&&d.secureChannel!==false){d.restartedAfterTrust=true;}
   if(d.join==="joined"&&d.state!=="enrolled"&&d.joinUser){var r=tryEnroll(d,U(d.joinUser));if(r.ok){toast("After restart, the laptop enrolled in Intune.");}}
 };
 
@@ -242,12 +248,12 @@ function settingsHtml(d){
     var sub=v.set2,tabs='<div class="wtabs2"><button type="button" class="'+(sub!=="work"&&sub!=="workinfo"?'on':'')+'" data-a="vmSet2" data-k="info">Your info</button><button type="button" class="'+(sub==="work"||sub==="workinfo"?'on':'')+'" data-a="vmSet2" data-k="work">Access work or school</button></div>';
     if(sub==="work"||sub==="workinfo"||!sub){
       var acct="";
-      if(d.join){acct='<div class="wacct"><b>Connected to Practice Tenant\'s Microsoft Entra ID</b><span class="mono">'+esc(u?upn(u):"")+'</span><span>'+(d.join==="joined"?"Joined":"Registered")+'</span><div class="wbtns">'+wb("Info","vmSet2",{d:{k:"workinfo"}})+(d.join==="registered"?wb("Disconnect","vmDisconnect"):"")+'</div></div>';}
+      if(d.join){var conn=d.domainJoined?(d.azureAdJoined?"Connected to practice.local and Practice Tenant":"Connected to practice.local"):"Connected to Practice Tenant's Microsoft Entra ID";acct='<div class="wacct"><b>'+esc(conn)+'</b><span class="mono">'+esc(u?upn(u):AD_DOMAIN)+'</span><span>'+(d.azureAdJoined&&d.domainJoined?"Hybrid Azure AD joined":d.domainJoined?"Domain joined":d.join==="joined"?"Joined":"Registered")+'</span><div class="wbtns">'+wb("Info","vmSet2",{d:{k:"workinfo"}})+(d.join==="registered"?wb("Disconnect","vmDisconnect"):"")+'</div></div>';}
       if(sub==="workinfo"&&d.join){
-        body='<h2>Accounts &gt; Access work or school</h2>'+tabs+'<div class="wacct"><b>Connection info</b><dl class="wdl"><dt>Join type</dt><dd>'+(d.join==="joined"?"Microsoft Entra joined":"Microsoft Entra registered")+'</dd><dt>Areas managed by Practice Tenant</dt><dd>'+(enrolledOk(d)?"Device management (Intune)":"None. This device is not managed.")+'</dd><dt>Last attempted sync</dt><dd>'+esc(d.sync||"-")+'</dd></dl>'+
+        body='<h2>Accounts &gt; Access work or school</h2>'+tabs+'<div class="wacct"><b>Connection info</b><dl class="wdl"><dt>Join type</dt><dd>'+(d.azureAdJoined&&d.domainJoined?"Hybrid Azure AD joined":d.domainJoined?"Active Directory domain joined":d.join==="joined"?"Microsoft Entra joined":"Microsoft Entra registered")+'</dd><dt>Areas managed by Practice Tenant</dt><dd>'+(enrolledOk(d)?"Device management (Intune)":"None. This device is not managed.")+'</dd><dt>Last attempted sync</dt><dd>'+esc(d.sync||"-")+'</dd></dl>'+
           (d.join==="joined"&&!enrolledOk(d)&&d.mdmWhy?'<div class="wmsg bad">'+esc(d.mdmWhy)+'</div>':"")+'<div class="wbtns">'+wb("Sync","vmSync",{pri:1})+wb("Back","vmSet2",{d:{k:"work"}})+'</div></div>';
       }else{
-        body='<h2>Accounts &gt; Access work or school</h2>'+tabs+'<p>Get access to resources like email, apps, and the network. Connecting means your work or school might control some things on this device.</p><div class="srow"><span>Add a work or school account</span>'+wb("Connect","vmConnect",{pri:1})+'</div>'+(v.msg?'<div class="wmsg bad" role="alert">'+esc(v.msg)+'</div>':"")+acct;
+        body='<h2>Accounts &gt; Access work or school</h2>'+tabs+'<p>Get access to resources like email, apps, and the network. Connecting means your work or school might control some things on this device.</p><div class="srow"><span>Add a work or school account</span>'+wb("Connect","vmConnect",{pri:1})+'</div>'+(!d.join?'<div class="srow"><span>Join an on-premises Active Directory domain</span>'+wb("Join a domain","vmDomainJoin")+'</div>':"")+(v.msg?'<div class="wmsg bad" role="alert">'+esc(v.msg)+'</div>':"")+acct;
       }
     }else{
       body='<h2>Accounts &gt; Your info</h2>'+tabs+'<dl class="wdl"><dt>Signed in as</dt><dd>'+esc(name)+'</dd><dt>Account type</dt><dd>'+(v.cur&&v.cur.kind==="work"?"Work account (Microsoft Entra ID)":isAdminSess(d)?"Local administrator":"Local standard user")+'</dd></dl>';
@@ -263,21 +269,28 @@ A.vmConnect=function(){var d=curDev(),v=d.vm;v.msg="";
   if(d.join){v.msg="This device is already "+(d.join==="joined"?"joined to Microsoft Entra ID":"registered")+". Disconnect the work account first.";return;}
   S.vmIn={};v.dlg={mode:"register",step:"email",uid:null,err:""};
 };
+A.vmDomainJoin=function(){var d=curDev(),v=d.vm;v.msg="";
+  if(!isAdminSess(d)){v.msg="You need to be signed in as a local administrator to join a domain.";return;}
+  openModal("Join a domain",mtext("Domain name","domain","practice.local")+mtext("Domain administrator","user","PRACTICE\\LabAdmin")+'<div class="fld"><div class="lb">Password</div><input type="password" name="pw" aria-label="Password" autocomplete="off"></div><p class="hint">Practice-only credentials are shown beside the virtual laptop.</p>',"Join",function(fd){
+    var r=domainJoin(d,fd.domain,fd.user,fd.pw);if(!r.ok){return {error:r.why};}
+    v.work=[];v.msg="Welcome to the practice.local domain. Restart, then sign in with a domain user.";toast("Domain join succeeded. Restart the laptop.");return null;
+  });
+};
 A.vmDisconnect=function(){var d=curDev();d.join="";d.joinUser=null;audit("Delete device registration",d.name,"Device","Core Directory");toast("Work account removed from this device.");};
 A.vmSync=function(){var d=curDev(),v=d.vm,u=d.joinUser?U(d.joinUser):null;
   if(d.state==="wiping"){resetDevice(d);toast("The wipe command arrived. The laptop restarted into setup.");return;}
-  if(d.join==="joined"&&u&&d.state!=="enrolled"){var r=tryEnroll(d,u);if(r.ok){toast("Sync succeeded. The laptop is now enrolled in Intune.");S.flags.vmSync=true;}else{d.mdmWhy=r.why;toast("Sync failed. See the message under Connection info.");}return;}
-  if(d.join==="joined"&&enrolledOk(d)){d.sync="Just now";S.flags.vmSync=true;toast("Sync completed. New policies and apps are applied.");return;}
+  if((d.join==="joined"||d.join==="hybrid")&&u&&d.state!=="enrolled"){var r=tryEnroll(d,u);if(r.ok){toast("Sync succeeded. The laptop is now enrolled in Intune.");S.flags.vmSync=true;}else{d.mdmWhy=r.why;toast("Sync failed. See the message under Connection info.");}return;}
+  if((d.join==="joined"||d.join==="hybrid")&&enrolledOk(d)){d.sync="Just now";S.flags.vmSync=true;toast("Sync completed. New policies and apps are applied.");return;}
   toast("Nothing to sync. This device isn't managed.");
 };
 
 /* ----- Command Prompt ----- */
 function dsreg(d){
-  var j=d.join==="joined",r=d.join==="registered",u=d.joinUser?U(d.joinUser):null,L=[];
+  var j=d.join==="joined"||d.join==="hybrid"||!!d.azureAdJoined,r=d.join==="registered",dom=!!d.domainJoined,u=d.joinUser?U(d.joinUser):null,L=[];
   var mdm=(j&&u&&inMdmScope(u))?"https://enrollment.manage.microsoft.com/enrollmentserver/discovery.svc":"";
   var comp=d.name==="(not set up)"?compNameFor(d):d.name;
   L.push("+----------------------------------------------------------------------+","| Device State                                                         |","+----------------------------------------------------------------------+","");
-  L.push("             AzureAdJoined : "+(j?"YES":"NO"),"          EnterpriseJoined : NO","              DomainJoined : NO","               Device Name : "+comp,"");
+  L.push("             AzureAdJoined : "+(j?"YES":"NO"),"          EnterpriseJoined : NO","              DomainJoined : "+(dom?"YES":"NO"),"               DomainName : "+(dom?"PRACTICE":""),"               Device Name : "+comp,"");
   if(j){L.push("+----------------------------------------------------------------------+","| Device Details                                                       |","+----------------------------------------------------------------------+","","                  DeviceId : "+guidFor(d),"                TpmProtected : YES","");
     L.push("+----------------------------------------------------------------------+","| Tenant Details                                                       |","+----------------------------------------------------------------------+","","                TenantName : Practice Tenant","                  TenantId : "+TENANT,"                    MdmUrl : "+mdm,"               MdmTouUrl : "+(mdm?"https://portal.manage.microsoft.com/TermsofUse.aspx":""),"");}
   L.push("+----------------------------------------------------------------------+","| User State                                                           |","+----------------------------------------------------------------------+","","                    NgcSet : NO","           WorkplaceJoined : "+(r?"YES":"NO"),"");
@@ -287,9 +300,11 @@ function dsreg(d){
 function runCmd(d,line){
   var c=line.trim().toLowerCase(),v=d.vm,out=[],nm=sessName(d),comp=d.name==="(not set up)"?compNameFor(d):d.name;
   if(!c){return out;}
-  if(c==="help"){out=["Commands in this lab:","  dsregcmd /status   Show Entra join state","  whoami             Show the signed-in user","  hostname           Show the computer name","  ipconfig [/all]    Show network and DHCP details","  cls                Clear the screen"];}
+  if(c==="help"){out=["Commands in this lab:","  dsregcmd /status   Show Entra and domain join state","  gpupdate /force    Apply Group Policy now","  gpresult /r        Show applied Group Policy Objects","  whoami             Show the signed-in user","  hostname           Show the computer name","  ipconfig [/all]    Show network and DHCP details","  cls                Clear the screen"];}
   else if(c==="dsregcmd /status"||c==="dsregcmd"){out=dsreg(d);if(d.join){S.flags.vmDsreg=true;}}
-  else if(c==="whoami"){out=[v.cur&&v.cur.kind==="work"?"azuread\\"+(U(v.cur.uid).name.replace(/\s/g,"").toLowerCase()):comp.toLowerCase()+"\\"+nm.toLowerCase()];}
+  else if(c==="gpupdate /force"||c==="gpupdate"){var gu=v.cur&&v.cur.kind==="work"?U(v.cur.uid):null,gr=applyGroupPolicy(d,gu);if(S.scenarios.active==="s6"&&!D("d3").wallpaperApplied){S.scenarios.wrong.s6=true;}out=gr.ok?["Updating policy...","","Computer Policy update has completed successfully.","User Policy update has completed successfully."]:["Updating policy...","ERROR: "+gr.why];}
+  else if(c==="gpresult /r"||c==="gpresult"){var aps=d.appliedGpos||[];out=["Microsoft (R) Windows (R) Operating System Group Policy Result tool","","COMPUTER SETTINGS","    Applied Group Policy Objects",aps.length?"        "+aps.join("\n        "):"        N/A"];}
+  else if(c==="whoami"){out=[v.cur&&v.cur.kind==="work"?(d.domainJoined?"practice\\":"azuread\\")+(U(v.cur.uid).name.replace(/\s/g,"").toLowerCase()):comp.toLowerCase()+"\\"+nm.toLowerCase()];}
   else if(c==="hostname"){out=[comp];}
   else if(c==="ipconfig"||c==="ipconfig /all"){
     out=["Windows IP Configuration","","Wireless LAN adapter Wi-Fi:","","   Connection-specific DNS Suffix  . : "+(d.join==="joined"?"practice.local":""),"   IPv4 Address. . . . . . . . . . . : "+ipFor(d),"   Subnet Mask . . . . . . . . . . . : 255.255.255.0","   Default Gateway . . . . . . . . . : 192.168.20.1"];
@@ -333,8 +348,9 @@ function vmSide(d){
   var v=d.vm,rows="";
   v.locals.forEach(function(l){rows+='<tr><td>'+esc(l.name)+'</td><td class="mono">'+esc(l.pw)+'</td></tr>';});
   live().forEach(function(u){rows+='<tr><td class="mono">'+esc(upn(u))+'</td><td class="mono">'+esc(u.pw||"-")+(u.mustChange?' <small>(must change)</small>':'')+'</td></tr>';});
-  return '<div class="tile"><h3>What to do</h3><p>'+esc(vmTip(d))+'</p></div><div class="tile" style="margin-top:12px"><h3>Practice credentials</h3><p class="psub">Normally these come from a ticket or the user. Local accounts first, then work accounts.</p><div class="tbl"><table style="min-width:0"><thead><tr><th>Account</th><th>Password</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'+
-    '<div class="tile" style="margin-top:12px"><h3>Laptop status</h3>'+grid([["Name",esc(d.name)],["Entra",d.join==="joined"?"Joined":d.join==="registered"?"Registered":"Not connected"],["Intune",d.state==="enrolled"?"Managed":"Not managed"]])+'</div>';
+  rows+='<tr><td class="mono">'+esc(S.ad.adminUser)+'</td><td class="mono">'+esc(S.ad.adminPw)+'</td></tr>';
+  return '<div class="tile"><h3>What to do</h3><p>'+esc(vmTip(d))+'</p></div><div class="tile" style="margin-top:12px"><h3>Practice credentials</h3><p class="psub">Normally these come from a ticket or the user. Every credential here is fake.</p><div class="tbl"><table style="min-width:0"><thead><tr><th>Account</th><th>Password</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'+
+    '<div class="tile" style="margin-top:12px"><h3>Laptop status</h3>'+grid([["Name",esc(d.name)],["Domain",d.domainJoined?"practice.local":"Not joined"],["Entra",d.azureAdJoined&&d.domainJoined?"Hybrid joined":d.join==="joined"?"Joined":d.join==="registered"?"Registered":"Not connected"],["Intune",d.state==="enrolled"?"Managed":"Not managed"]])+'</div>';
 }
 function vmPage(){
   var d=curDev();

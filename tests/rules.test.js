@@ -92,3 +92,84 @@ test("a Windows 10 device is not the BitLocker success case when the policy also
   lab.S.policies[0].minOS = "";
   assert.equal(lab.bitlockerStepDone(), true);
 });
+
+test("an AD-only user appears in Entra only after entering sync scope and a delta sync", function () {
+  const lab = boot();
+  const alex = lab.ADU("adu5");
+  assert.equal(alex.cloudId, null);
+  lab.runDeltaSync();
+  assert.equal(alex.cloudId, null);
+  alex.ou = "ou-staff";
+  lab.runDeltaSync();
+  assert.ok(alex.cloudId);
+  assert.equal(lab.U(alex.cloudId).source, "ad");
+  assert.equal(lab.U(alex.cloudId).deleted, false);
+});
+
+test("moving a synced AD user out of scope soft deletes and blocks the cloud copy", function () {
+  const lab = boot();
+  const dana = lab.ADU("adu1");
+  dana.ou = "ou-disabled";
+  lab.runDeltaSync();
+  assert.equal(lab.U("u1").deleted, true);
+  assert.equal(lab.U("u1").blocked, true);
+  assert.equal(lab.U("u1").direct, false);
+  dana.ou = "ou-staff";
+  lab.runDeltaSync();
+  assert.equal(lab.U("u1").deleted, false);
+  assert.equal(lab.U("u1").direct, false);
+});
+
+test("AD disable and security group membership flow to Entra after sync", function () {
+  const lab = boot();
+  const sam = lab.ADU("adu2");
+  sam.enabled = false;
+  lab.ADG("adg1").members.push(sam.id);
+  lab.runDeltaSync();
+  assert.equal(lab.U("u2").blocked, true);
+  assert.ok(lab.G("g1").members.includes("u2"));
+});
+
+test("password hash sync copies the authoritative AD password", function () {
+  const lab = boot();
+  const sam = lab.ADU("adu2");
+  lab.resetAdPassword(sam, "PracticeOnly#42", true);
+  assert.notEqual(lab.U("u2").pw, "PracticeOnly#42");
+  lab.runPasswordSync();
+  assert.equal(lab.U("u2").pw, "PracticeOnly#42");
+  assert.equal(lab.U("u2").mustChange, true);
+});
+
+test("domain join validates fake credentials and delta sync creates hybrid join", function () {
+  const lab = boot();
+  const device = lab.D("d3");
+  const bad = lab.domainJoin(device, "wrong.local", "PRACTICE\\LabAdmin", "PracticeLab#2026");
+  assert.equal(bad.ok, false);
+  const joined = lab.domainJoin(device, "practice.local", "PRACTICE\\LabAdmin", "PracticeLab#2026");
+  assert.equal(joined.ok, true);
+  assert.equal(device.domainJoined, true);
+  assert.equal(device.azureAdJoined, false);
+  lab.runDeltaSync();
+  assert.equal(device.azureAdJoined, true);
+  assert.equal(device.join, "hybrid");
+});
+
+test("resetting a computer account repairs the simulated secure channel", function () {
+  const lab = boot();
+  const device = lab.D("d3");
+  lab.domainJoin(device, "practice.local", "PRACTICE\\LabAdmin", "PracticeLab#2026");
+  const computer = lab.S.ad.computers.find(function (c) { return c.deviceId === "d3"; });
+  computer.trustOk = false;
+  device.secureChannel = false;
+  lab.resetComputerAccount(computer);
+  assert.equal(computer.trustOk, true);
+  assert.equal(device.secureChannel, true);
+});
+
+test("account expiration blocks the synced user after the simulated clock advances", function () {
+  const lab = boot();
+  const dana = lab.ADU("adu1");
+  dana.expires = lab.S.ad.nowMin + 30;
+  lab.advanceAdTime(30);
+  assert.equal(lab.U("u1").blocked, true);
+});

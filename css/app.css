@@ -34,6 +34,7 @@ button{cursor:pointer}
 .phdr{display:flex;align-items:center;gap:10px;color:#fff;height:48px;padding:0 12px}
 body[data-portal="m365"] .phdr,body[data-portal="exchange"] .phdr{background:var(--hdr-blue)}
 body[data-portal="entra"] .phdr,body[data-portal="intune"] .phdr{background:var(--hdr-dark)}
+body[data-portal="ad"] .phdr{background:#355b85}
 .phdr .waf{display:grid;place-items:center;width:32px;height:32px}
 .phdr h1{font-size:16px;font-weight:600;margin:0;white-space:nowrap}
 .phdr .search{flex:1;max-width:520px;margin:0 auto;display:flex;align-items:center;gap:8px;background:#ffffff26;border-radius:4px;padding:5px 10px;color:#ffffffd0;min-width:0}
@@ -78,6 +79,19 @@ tbody tr.on td{background:var(--sel)}
 .ck{width:36px;padding-right:0}
 .lnk{background:none;border:0;padding:0;color:var(--brand);text-align:left}
 .lnk:hover{text-decoration:underline}
+
+/* Active Directory / MMC-inspired tools */
+.admmc{display:grid;grid-template-columns:minmax(190px,240px) minmax(0,1fr);min-height:430px;border:1px solid var(--line2);background:var(--panel)}
+.adtree{border-right:1px solid var(--line2);background:var(--navbg);padding:6px;overflow:auto}
+.adtree-title{font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.adnode{display:block;width:100%;border:0;background:none;text-align:left;padding:5px 7px;border-radius:2px;color:var(--ink)}
+button.adnode:hover,button.adnode.on{background:var(--sel)}
+.adnode.child{padding-left:24px}.adnode.grand{padding-left:42px}
+.addetails{min-width:0;padding:10px}.adpath{font-size:12px;color:var(--muted);padding:0 0 8px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.smallbig{font-size:22px!important}
+.scenarios>h3{margin-top:8px}
+.scenario blockquote{margin:8px 0;padding:10px 12px;border-left:3px solid var(--brand);background:var(--infobg)}
+.scenario .badge{margin-left:5px}
 .empty{padding:20px;color:var(--muted);border:1px solid var(--line);border-radius:4px}
 
 /* buttons, badges, fields */
@@ -410,4 +424,8 @@ body[data-portal="vm"] .phdr{background:#2b2b2b}
 .cmdin{display:flex;gap:8px;align-items:center;padding:8px 10px;background:#161616;color:#ddd;font:12.5px Consolas,monospace}
 .cmdin input{flex:1;min-width:0;background:#0c0c0c;color:#eee;border:1px solid #333;border-radius:4px;height:28px;padding:0 8px;font:12.5px Consolas,monospace}
 .vmside .tile{background:var(--panel)}
+@media (max-width:700px){
+  .admmc{grid-template-columns:1fr}
+  .adtree{border-right:0;border-bottom:1px solid var(--line2);max-height:210px}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

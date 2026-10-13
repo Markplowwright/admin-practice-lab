@@ -42,17 +42,18 @@ A.saveSecdef=function(){
 PAGES["entra.users"]=function(){
   if(S.sel){return entraUser(U(S.sel));}
   var rows=live().filter(function(u){return matchQ(u.name+u.upn);}).map(function(u){
-    return {id:u.id,cells:[lnk(u.name,"sel",u.id),'<span class="mono">'+esc(upn(u))+'</span>',"Member",u.blocked?badge("No","bad"):"Yes"]};});
+    return {id:u.id,cells:[lnk(u.name,"sel",u.id),'<span class="mono">'+esc(upn(u))+'</span>',syncedUser(u)?"Windows Server AD":"Microsoft Entra ID","Member",u.blocked?badge("No","bad"):"Yes"]};});
   var c=checked1();
   return head([["Home","overview"],["Users"]],"All users","entra")+
   bar([CB("plus","New user","wizNewEUser"),CB("trash","Delete","delUser",{d:{id:c},dis:!c}),CB("refresh","Refresh","refresh"),VR,CB("lock","Per-user MFA","perUserMfa",{i:"permfa"}),CB("columns","Manage view","noop")])+
-  search("Search by name or user principal name")+tbl(["Display name","User principal name"+info("upn"),"User type","Account enabled"],rows,{check:true});
+  search("Search by name or user principal name")+tbl(["Display name","User principal name"+info("upn"),"Source","User type","Account enabled"],rows,{check:true});
 };
 function entraUser(u){
   var tabsL=[["overview","Overview"],["audit","Audit logs"],["signins","Sign-in logs"],["groups","Groups"],["licenses","Licenses"],["devices","Devices"],["auth","Authentication methods"],["roles","Assigned roles"]];
   var t=S.tab||"overview",body="";
   if(t==="overview"){
-    body=grid([["Display name",esc(u.name)],["User principal name"+info("upn"),'<span class="mono">'+esc(upn(u))+'</span>'],["Object ID",'<span class="mono">'+esc(u.id)+'-4e1b-9c20-7a31</span>'],["User type","Member"],["Account enabled"+info("block"),u.blocked?"No":"Yes"],["Usage location"+info("usage"),locName(u.loc)],["Sessions valid from"+info("revoke"),u.revoked?"Just now (sessions revoked)":"Today 08:00"],["Last password change",u.pwReset?"Just now":"60 days ago"],["Licenses",esc(licText(u))]]);
+    body=(syncedUser(u)?'<div class="msg">Source: <b>Windows Server AD</b>. Name, department, account state, and password are managed on-premises. Change them in Active Directory, then synchronize.</div>':'')+
+      grid([["Display name",esc(u.name)],["User principal name"+info("upn"),'<span class="mono">'+esc(upn(u))+'</span>'],["Source of authority"+info("authority"),syncedUser(u)?"Windows Server AD":"Microsoft Entra ID"],["Department",esc(u.department||"-")],["Object ID",'<span class="mono">'+esc(u.id)+'-4e1b-9c20-7a31</span>'],["User type","Member"],["Account enabled"+info("block"),u.blocked?"No":"Yes"],["Usage location"+info("usage"),locName(u.loc)],["Sessions valid from"+info("revoke"),u.revoked?"Just now (sessions revoked)":"Today 08:00"],["Last password change",u.pwReset?"Just now":"60 days ago"],["Licenses",esc(licText(u))]]);
   }else if(t==="signins"){
     var ls=S.logs.filter(function(l){return l.uid===u.id;});
     body='<p>Sign-ins for this user, newest first.</p>'+bar([CB("play","Simulate a sign-in as this user","simSignin",{d:{id:u.id},lab:1})])+
@@ -61,14 +62,14 @@ function entraUser(u){
     var au=S.audit.filter(function(a){return a.tgt===u.id;});
     body=tbl(["Date","Service","Category","Activity"],au.map(function(a){return {cells:[esc(a.when),esc(a.svc),esc(a.cat),esc(a.act)]};}),{empty:"No audit events for this user."});
   }else if(t==="groups"){
-    body=bar([CB("plus","Add memberships","addMembership",{d:{id:u.id}})])+tbl(["Group name","Type",""],userGroups(u.id).map(function(g){return {cells:[esc(g.name),"Security",B("Remove","rmMembership",{sm:1,d:{id:u.id,g:g.id}})]};}),{empty:"Not a member of any group."});
+    body=(syncedUser(u)?'<div class="msg">Synced group memberships are managed in Active Directory. Cloud-only memberships can still be managed here.</div>':'')+bar([CB("plus","Add memberships","addMembership",{d:{id:u.id}})])+tbl(["Group name","Type","Source",""],userGroups(u.id).map(function(g){return {cells:[esc(g.name),esc(g.type||"Security"),g.source==="ad"?"Windows Server AD":"Cloud",g.source==="ad"?"Managed on-premises":B("Remove","rmMembership",{sm:1,d:{id:u.id,g:g.id}})]};}),{empty:"Not a member of any group."});
   }else if(t==="licenses"){
     var s=licState(u);
     body='<p>Assignments'+info("license")+'</p>'+tbl(["License","Assignment paths","State"],[{cells:["Microsoft 365 Business Premium",s.k==="ok"?(u.direct?"Direct":"Inherited (group)"):"-",s.k==="ok"?badge("Active","ok"):s.k==="bad"?badge("Error","bad"):badge("Not assigned")]}])+
       '<div class="btnrow">'+B(u.direct?"Remove direct assignment":"Add direct assignment","licUser",{d:{id:u.id},primary:!u.direct})+'</div>'+(s.k==="bad"?'<div class="msg bad">The group license failed because usage location is missing. Set it with Edit properties.</div>':'');
   }else if(t==="devices"){
     var dv=S.devices.filter(function(d){return d.userId===u.id&&d.state==="enrolled";});
-    body=tbl(["Name","Join type","MDM","Compliant"],dv.map(function(d){return {cells:[esc(d.name),"Microsoft Entra joined","Microsoft Intune",d.compl&&d.compl.state==="Compliant"?"Yes":"No"]};}),{empty:"No devices."});
+    body=tbl(["Name","Join type","MDM","Compliant"],dv.map(function(d){return {cells:[esc(d.name),d.azureAdJoined&&d.domainJoined?"Hybrid Azure AD joined":"Microsoft Entra joined","Microsoft Intune",d.compl&&d.compl.state==="Compliant"?"Yes":"No"]};}),{empty:"No devices."});
   }else if(t==="auth"){
     body=bar([CB("plus","Add authentication method","addMethod",{d:{id:u.id}}),CB("restart","Require re-register multifactor authentication","rereg",{d:{id:u.id},i:"rereg"}),CB("signout","Revoke multifactor authentication sessions","revoke",{d:{id:u.id}})])+
       '<p>Authentication methods'+info("authm")+' registered by this user:</p>'+tbl(["Method","Detail",""],u.methods.map(function(m){return {cells:[esc(m.type)+(m.sus?" "+badge("Added recently","warn"):""),esc(m.detail),B("Delete","delMethod",{sm:1,danger:1,d:{id:u.id,m:m.id}})]};}),{empty:"No methods registered. With MFA enforced this user would be asked to register."});
@@ -106,7 +107,7 @@ A.wizNewEUser=function(){wizOpen("eUser");};
 
 A.delUser=function(d){var u=U(d.id);if(!u){return;}
   confirmBox("Delete "+u.name+"?","The user moves to <b>Deleted users</b> for 30 days and can be restored. Their license is released, but group memberships and any files should be handled first."+info("soft"),"Delete",function(){u.deleted=true;S.sel=null;S.checked=[];S.fly=null;audit("Delete user",u.id);toast(u.name+" was deleted. You can restore them for 30 days.");});};
-A.resetPw=function(d){var u=U(d.id),pw=randPw();u.pwReset=true;u.pw=pw;u.mustChange=true;audit("Reset password (by admin)",u.id);
+A.resetPw=function(d){var u=U(d.id);if(syncedUser(u)){toast("Managed on-premises: change this password in Active Directory Users and Computers. Password writeback is not enabled.");S.scenarios.wrong.corePw=true;if(S.scenarios.active==="s2"){S.scenarios.wrong.s2=true;}return;}var pw=randPw();u.pwReset=true;u.pw=pw;u.mustChange=true;audit("Reset password (by admin)",u.id);
   openModal("Password reset",'<p>New temporary password for <b>'+esc(u.name)+'</b>:</p><span class="pwbox">'+pw+'</span><p>They must change it at next sign-in. Resetting the password does not end sessions that are already signed in. Use <b>Revoke sessions</b> too.</p>',null,null);};
 A.revoke=function(d){var u=U(d.id);u.revoked=true;audit("Revoke user sign-in sessions",u.id);toast("Sessions revoked for "+u.name+". They must sign in again everywhere.");};
 A.licUser=function(d){var u=U(d.id);
@@ -173,7 +174,7 @@ A.licGroupToggle=function(d){var g=G(d.g),i=S.licenseGroups.indexOf(g.id);
 
 /* ----- devices & MDM ----- */
 PAGES["entra.devices"]=function(){
-  var rows=S.devices.filter(function(d){return d.join;}).map(function(d){var u=U(d.joinUser);return {cells:[esc(d.name),"Yes",esc(d.os),esc(d.osVer),d.join==="joined"?"Microsoft Entra joined"+info("entrajoin"):"Microsoft Entra registered"+info("regvsjoin"),esc(u?u.name:"-"),d.state==="enrolled"?"Microsoft Intune":"None",d.state==="enrolled"?(d.compl&&d.compl.state==="Compliant"?"Yes":"No"):"N/A",esc(d.join==="joined"?"Today":"Today")]};});
+  var rows=S.devices.filter(function(d){return d.join&&d.join!=="domain";}).map(function(d){var u=U(d.joinUser),jt=d.azureAdJoined&&d.domainJoined?"Hybrid Azure AD joined"+info("hybridjoin"):d.join==="joined"?"Microsoft Entra joined"+info("entrajoin"):"Microsoft Entra registered"+info("regvsjoin");return {cells:[esc(d.name),"Yes",esc(d.os),esc(d.osVer),jt,esc(u?u.name:"-"),d.state==="enrolled"?"Microsoft Intune":"None",d.state==="enrolled"?(d.compl&&d.compl.state==="Compliant"?"Yes":"No"):"N/A","Today"]};});
   return head([["Home","overview"],["Devices"]],"All devices","entrajoin")+bar([CB("refresh","Refresh","refresh")])+tbl(["Name","Enabled","OS","Version","Join type","Owner","MDM","Compliant","Registered"],rows,{empty:"No devices yet. Join or register a laptop in the Windows laptop tab."});
 };
 PAGES["entra.devsettings"]=function(){
