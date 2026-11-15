@@ -120,7 +120,7 @@ function missions(){
      ["Confirm his Microsoft 365 license is reclaimed",(function(){var c=cloudForAd(ADU("adu4"));return c&&!hasLicense(c);})(),["m365","licenses","Billing > Licenses > Microsoft 365 Business Premium"]]]},
    {t:"Synchronize a security group",w:"Access groups originate in AD and their membership reaches Entra on the next directory sync.",s:[
      ["Add Sam to the Finance security group",ADG("adg1").members.indexOf("adu2")>-1,["ad","aduc","Finance > Add member > Sam Ortiz"]],
-     ["Run delta sync and verify Finance in Entra",(function(){var g=G("g1");return g&&g.members.indexOf("u2")>-1;})(),["entra","groups","Groups > All groups > Finance > Members"]]]},
+     ["Run delta sync and verify Finance in Entra",(function(){var g=G("g1");return !!S.flags.financeSynced&&g&&g.members.indexOf("u2")>-1;})(),["entra","groups","Groups > All groups > Finance > Members"]]]},
    {t:"Apply Group Policy to a domain laptop",w:"The computer and user OUs decide which linked policies apply.",s:[
      ["Join the spare laptop to practice.local",!!D("d3").domainJoined,["vm","d3","Settings > Accounts > Access work or school > Join a domain"]],
      ["Run gpupdate /force",!!D("d3").gpUpdated,["vm","d3","Command Prompt > gpupdate /force"]],
@@ -132,7 +132,7 @@ function missions(){
    {t:"Fix a password at its source",w:"Password writeback is not enabled, so resetting a synchronized account in Microsoft 365 cannot update AD.",s:[
      ["Observe the managed on-premises message for Sam",!!S.scenarios.wrong.corePw,["m365","users","Active users > Sam Ortiz > Reset password"]],
      ["Reset Sam's password in ADUC",ADU("adu2").passwordChanged,["ad","aduc","Staff > Sam Ortiz > Account > Reset password"]],
-     ["Run password synchronization",(function(){var a=ADU("adu2"),c=cloudForAd(a);return c&&c.pw===a.pw;})(),["ad","sync","Microsoft Entra Connect Sync > Run delta sync"]]]}
+     ["Run password synchronization",(function(){var a=ADU("adu2"),c=cloudForAd(a);return !!S.flags.samPwSynced&&c&&c.pw===a.pw;})(),["ad","sync","Microsoft Entra Connect Sync > Run delta sync"]]]}
   ];
   list.forEach(function(m){var x=MMETA[m.t]||{};m.l=x.l||1;m.why=x.why||"";m.eq=x.eq||"";});
   return list;

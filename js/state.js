@@ -17,7 +17,7 @@ function seed(){
     secDefaults:false,deviceJoin:"all",vmIn:{},total:10,mdm:{scope:"none",group:""},
     scenarios:{active:null,completed:{},hint:{},wrong:{},base:null,setup:null},
     version:STATE_VERSION,
-    flags:{viewedLogs:false,spottedOdd:false,createdUsers:0,testedMfa:false,caReport:false,troubled:{},vmApSignin:false,vmDsreg:false,vmSync:false,vmAdmin:false,vmWorkSignin:false,vmRegistered:false},
+    flags:{viewedLogs:false,spottedOdd:false,createdUsers:0,testedMfa:false,caReport:false,troubled:{},vmApSignin:false,vmDsreg:false,vmSync:false,vmAdmin:false,vmWorkSignin:false,vmRegistered:false,financeSynced:false,samPwSynced:false},
     users:[
       {id:"u0",name:"Admin (you)",upn:"admin",loc:"US",direct:true,blocked:false,revoked:false,pwReset:false,fwd:null,deleted:false,filesLink:false,roles:["ga"],
         methods:[{id:"m0",type:"Microsoft Authenticator",detail:"Your phone",sus:false}]},
@@ -80,17 +80,38 @@ function seed(){
   s.users.forEach(function(u){u.pw="Welcome#2026";u.mustChange=false;if(!u.source){u.source="cloud";}});
   return s;
 }
-function blankFlags(){return {viewedLogs:false,spottedOdd:false,createdUsers:0,testedMfa:false,caReport:false,troubled:{},vmApSignin:false,vmDsreg:false,vmSync:false,vmAdmin:false,vmWorkSignin:false,vmRegistered:false};}
-function load(){try{var r=localStorage.getItem(KEY);if(!r){return null;}var o=JSON.parse(r);if(!o||!o.users){return null;}
-  o.flags=o.flags||{};var b=blankFlags(),k;for(k in b){if(o.flags[k]===undefined){o.flags[k]=b[k];}}if(!o.flags.troubled){o.flags.troubled={};}
-  if(!o.groups){o.groups=[];}if(!o.devices){o.devices=[];}if(!o.licenseGroups){o.licenseGroups=[];}
-  if(!o.policies){o.policies=[];}if(!o.profiles){o.profiles=[];}if(!o.apProfiles){o.apProfiles=[];}if(!o.apps){o.apps=[];}
-  if(!o.caPolicies){o.caPolicies=[];}if(!o.mailRules){o.mailRules=[];}if(!o.logs){o.logs=[];}if(!o.audit){o.audit=[];}
-  if(!o.ad){o.ad=seed().ad;}if(!o.scenarios){o.scenarios={active:null,completed:{},hint:{},wrong:{},base:null,setup:null};}
-  if(!o.mdm){o.mdm={scope:"none",group:""};}if(!o.deviceJoin){o.deviceJoin="all";}if(!o.total){o.total=10;}
-  if(o.lvlDone===undefined){o.lvlDone=[];}if(o.intro===undefined){o.intro=0;}if(o.finishSeen===undefined){o.finishSeen=false;}
-  o.version=STATE_VERSION;return o;}catch(e){return null;}}
-function save(){try{S.version=STATE_VERSION;localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function blankFlags(){return {viewedLogs:false,spottedOdd:false,createdUsers:0,testedMfa:false,caReport:false,troubled:{},vmApSignin:false,vmDsreg:false,vmSync:false,vmAdmin:false,vmWorkSignin:false,vmRegistered:false,financeSynced:false,samPwSynced:false};}
+/* Saved-state migrations. Each entry upgrades a saved lab TO that version and must be
+   idempotent. To change the shape of saved data: bump STATE_VERSION, append one entry here,
+   and add a test in tests/state.test.js. Never rename KEY: that would drop everyone's progress. */
+var MIGRATIONS=[
+  {to:5,run:function(o){
+    o.flags=o.flags||{};var b=blankFlags(),k;for(k in b){if(o.flags[k]===undefined){o.flags[k]=b[k];}}if(!o.flags.troubled){o.flags.troubled={};}
+    if(!o.groups){o.groups=[];}if(!o.devices){o.devices=[];}if(!o.licenseGroups){o.licenseGroups=[];}
+    if(!o.policies){o.policies=[];}if(!o.profiles){o.profiles=[];}if(!o.apProfiles){o.apProfiles=[];}if(!o.apps){o.apps=[];}
+    if(!o.caPolicies){o.caPolicies=[];}if(!o.mailRules){o.mailRules=[];}if(!o.logs){o.logs=[];}if(!o.audit){o.audit=[];}
+    if(!o.ad){o.ad=seed().ad;}if(!o.scenarios){o.scenarios={active:null,completed:{},hint:{},wrong:{},base:null,setup:null};}
+    if(!o.mdm){o.mdm={scope:"none",group:""};}if(!o.deviceJoin){o.deviceJoin="all";}if(!o.total){o.total=10;}
+    if(o.lvlDone===undefined){o.lvlDone=[];}if(o.intro===undefined){o.intro=0;}if(o.finishSeen===undefined){o.finishSeen=false;}
+  }}
+];
+function migrate(o){
+  if(!o||typeof o!=="object"||!o.users){return null;}
+  var from=typeof o.version==="number"?o.version:0;
+  if(from>STATE_VERSION){return o;}
+  MIGRATIONS.forEach(function(m){if(m.to>from){m.run(o);}});
+  /* flags added after a version shipped are always back-filled so older saves keep working */
+  var bf=blankFlags(),k;o.flags=o.flags||{};for(k in bf){if(o.flags[k]===undefined){o.flags[k]=bf[k];}}
+  o.version=STATE_VERSION;return o;
+}
+function load(){
+  var r=null;
+  try{r=localStorage.getItem(KEY);}catch(e){return null;}
+  if(!r){return null;}
+  try{return migrate(JSON.parse(r));}
+  catch(e){try{localStorage.setItem(KEY+".backup",r);}catch(e2){}return null;}
+}
+function save(){try{S.version=Math.max(S.version||0,STATE_VERSION);localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 var S=load()||seed();
 syncUid(S);
 
@@ -158,7 +179,7 @@ function createUser(name,p,loc,lic){
 
 (function (root) {
   var api = root.Lab || (root.Lab = {});
-  api.seed = seed; api.load = load; api.save = save; api.syncUid = syncUid; api.nid = nid;
+  api.seed = seed; api.load = load; api.migrate = migrate; api.STATE_VERSION = STATE_VERSION; api.save = save; api.syncUid = syncUid; api.nid = nid;
   api.createUser = createUser; api.groupLicenseError = groupLicenseError; api.hasLicense = hasLicense;
   api.available = available; api.U = U; api.D = D; api.G = G; api.ADU = ADU; api.ADC = ADC; api.ADG = ADG; api.OU = OU;
   api.KEY = KEY; api.DOMAIN = DOMAIN; api.AD_DOMAIN = AD_DOMAIN;
