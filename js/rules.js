@@ -120,6 +120,7 @@ function syncAdUser(au){
   return cu;
 }
 function runPasswordSync(){
+  if(ADU("adu2")&&ADU("adu2").passwordChanged){S.flags.samPwSynced=true;}
   S.ad.users.forEach(function(au){var cu=cloudForAd(au);if(cu&&adInScope(au)){cu.pw=au.pw;cu.mustChange=!!au.mustChange;}});
   S.ad.lastPasswordSyncMin=S.ad.nowMin;
 }
@@ -137,6 +138,7 @@ function runDeltaSync(){
       audit("Register hybrid joined device",d.name,"Device","Microsoft Entra Connect");
     }
   });
+  if(ADG("adg1")&&ADG("adg1").members.indexOf("adu2")>-1){S.flags.financeSynced=true;}
   runPasswordSync();
   S.ad.lastDirSyncMin=S.ad.nowMin;
   audit("Run delta synchronization",AD_DOMAIN,"Provisioning","Microsoft Entra Connect");
