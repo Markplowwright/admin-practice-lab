@@ -52,7 +52,7 @@ function completeHybridMissions(w) {
   cloud.loc = "US"; cloud.direct = true;
 
   dispatchAction(w, "adUnlock", { id: "adu1" });
-  w.resetAdPassword(w.ADU("adu1"), "DanaPractice#2", true);
+  w.resetAdPassword(w.ADU("adu1"), "Reset#Practice21", true);
 
   let marcus = w.ADU("adu4");
   marcus.enabled = false; marcus.ou = "ou-disabled";
@@ -69,7 +69,7 @@ function completeHybridMissions(w) {
   w.applyGroupPolicy(d, w.U("u2"));
 
   dispatchAction(w, "resetPw", { id: "u2" });
-  w.resetAdPassword(w.ADU("adu2"), "SamPractice#2", true);
+  w.resetAdPassword(w.ADU("adu2"), "Reset#Practice22", true);
   dispatchAction(w, "adSync");
 
   const hybrid = w.missions().filter(function (m) { return m.l === 5; });
@@ -81,10 +81,10 @@ function completeHybridMissions(w) {
 
 function completeScenario(w, id) {
   let a, c, d, u;
-  if (id === "s1") { w.resetAdPassword(w.ADU("adu1"), "DanaScenario#1", true); w.S.scenarios.phoneUpdated = true; }
-  if (id === "s2") { w.resetAdPassword(w.ADU("adu2"), "SamScenario#2", true); w.runPasswordSync(); }
+  if (id === "s1") { w.resetAdPassword(w.ADU("adu1"), "Scenario#Reset11", true); w.S.scenarios.phoneUpdated = true; }
+  if (id === "s2") { w.resetAdPassword(w.ADU("adu2"), "Scenario#Reset12", true); w.runPasswordSync(); }
   if (id === "s3") {
-    a = w.createAdUser({ name: "Priya Nair", sam: "priya.nair", department: "Finance", ou: "ou-staff", pw: "PriyaScenario#3", mustChange: true }).user;
+    a = w.createAdUser({ name: "Priya Nair", sam: "priya.nair", department: "Finance", ou: "ou-staff", pw: "Scenario#Hire13", mustChange: true }).user;
     w.ADG("adg1").members.push(a.id); w.runDeltaSync(); u = w.cloudForAd(a); u.loc = "US"; u.direct = true;
     w.domainJoin(w.D("d3"), w.AD_DOMAIN, w.S.ad.adminUser, w.S.ad.adminPw);
   }
@@ -98,11 +98,11 @@ function completeScenario(w, id) {
   if (id === "s7") { c = w.S.ad.computers.find(function (x) { return x.deviceId === "d3"; }); w.resetComputerAccount(c); w.D("d3").restartedAfterTrust = true; }
   if (id === "s8") { a = w.ADU("adu5"); a.ou = "ou-staff"; w.runDeltaSync(); }
   if (id === "s9") {
-    a = w.createAdUser({ name: "Casey Contractor", sam: "casey.contractor", department: "Contractor", ou: "ou-staff", pw: "CaseyScenario#9", mustChange: true, expires: 720 }).user;
+    a = w.createAdUser({ name: "Casey Contractor", sam: "casey.contractor", department: "Contractor", ou: "ou-staff", pw: "Scenario#Temp19", mustChange: true, expires: 720 }).user;
     w.ADG("adg1").members.push(a.id); w.runDeltaSync();
   }
   if (id === "s10") {
-    w.S.flags.spottedOdd = true; w.resetAdPassword(w.ADU("adu1"), "DanaScenario#10", true); w.runPasswordSync();
+    w.S.flags.spottedOdd = true; w.resetAdPassword(w.ADU("adu1"), "Scenario#Reset20", true); w.runPasswordSync();
     u = w.U("u1"); u.revoked = true; u.fwd = null; u.methods = [];
   }
   assert.equal(w.scenarioDone(id), true, "scenario should complete: " + id);

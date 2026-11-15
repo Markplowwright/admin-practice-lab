@@ -173,3 +173,38 @@ test("account expiration blocks the synced user after the simulated clock advanc
   lab.advanceAdTime(30);
   assert.equal(lab.U("u1").blocked, true);
 });
+
+test("AD password policy rejects short, simple and name-based passwords", function () {
+  const lab = boot();
+  assert.ok(lab.adPasswordError("", "jo.kim", "Jo Kim"), "blank is rejected");
+  assert.ok(lab.adPasswordError("Short#1", "jo.kim", "Jo Kim"), "under 12 characters is rejected");
+  assert.ok(lab.adPasswordError("alllowercaseonly", "jo.kim", "Jo Kim"), "one character type is rejected");
+  assert.ok(lab.adPasswordError("Welcome#jo.kim99", "jo.kim", "Jo Kim"), "containing the logon name is rejected");
+  assert.equal(lab.adPasswordError("Practice#2026", "jo.kim", "Jo Kim"), "");
+});
+
+test("creating an AD user requires a policy-compliant password and no longer defaults a blank one", function () {
+  const lab = boot();
+  const before = lab.S.ad.users.length;
+  const blank = lab.createAdUser({ name: "Jo Kim", sam: "jo.kim", ou: "ou-staff", pw: "", mustChange: true });
+  assert.ok(blank.error);
+  assert.equal(lab.S.ad.users.length, before, "no user is created on a rejected password");
+  const ok = lab.createAdUser({ name: "Jo Kim", sam: "jo.kim", ou: "ou-staff", pw: "Practice#2026", mustChange: true });
+  assert.ok(ok.user);
+  assert.equal(ok.user.pw, "Practice#2026");
+});
+
+test("resetting an AD password enforces the policy and leaves the account unchanged on failure", function () {
+  const lab = boot();
+  const sam = lab.ADU("adu2");
+  const res = lab.resetAdPassword(sam, "weak", true);
+  assert.ok(res.error);
+  assert.equal(sam.pw, "Welcome#2026");
+  assert.equal(sam.passwordChanged, false);
+});
+
+test("a duplicate logon name error names the container that holds the existing account", function () {
+  const lab = boot();
+  const res = lab.createAdUser({ name: "Alex Chen", sam: "alex.chen", ou: "ou-staff", pw: "Practice#2026", mustChange: true });
+  assert.match(res.error, /Servers/);
+});

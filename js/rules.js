@@ -148,16 +148,30 @@ function advanceAdTime(minutes){
   if(S.ad.nowMin-S.ad.lastDirSyncMin>=S.ad.dirInterval){runDeltaSync();}
   if(S.scenarios&&S.scenarios.active==="s1"&&!S.scenarios.phoneUpdated&&ADU("adu1").passwordChanged){ADU("adu1").locked=true;S.scenarios.wrong.s1=true;}
 }
+function adPasswordError(pw,sam,name){
+  pw=String(pw==null?"":pw);
+  var min=12,generic="The password does not meet the password policy requirements. ";
+  if(!pw){return "Enter a password. "+generic+"Minimum length is "+min+" characters.";}
+  if(pw.length<min){return generic+"The Default Domain Password Policy requires at least "+min+" characters.";}
+  var kinds=[/[a-z]/,/[A-Z]/,/[0-9]/,/[^A-Za-z0-9]/].filter(function(r){return r.test(pw);}).length;
+  if(kinds<3){return generic+"Complexity is on: use at least three of uppercase, lowercase, numbers and symbols.";}
+  var low=pw.toLowerCase(),tokens=[String(sam||"")].concat(String(name||"").split(/[\s,.\-_]+/)).concat(String(sam||"").split(/[._-]+/));
+  for(var i=0;i<tokens.length;i++){var t=tokens[i].toLowerCase();if(t.length>=3&&low.indexOf(t)>-1){return generic+"The password cannot contain the user's account name or parts of the display name.";}}
+  return "";
+}
 function createAdUser(data){
   var sam=(data.sam||"").trim().toLowerCase(),name=(data.name||"").trim();
   if(!name||!sam){return {error:"Enter a display name and user logon name."};}
   if(!/^[a-z0-9._-]+$/.test(sam)){return {error:"The user logon name contains unsupported characters."};}
-  if(S.ad.users.some(function(u){return u.sam===sam;})){return {error:"That user logon name already exists in practice.local."};}
-  var u={id:nid("adu"),cloudId:null,name:name,sam:sam,upn:sam+"@"+DOMAIN,department:(data.department||"").trim(),ou:data.ou||"ou-staff",enabled:true,locked:false,mustChange:data.mustChange!==false,pw:data.pw||"Welcome#2026",expires:data.expires===""||data.expires==null?null:parseInt(data.expires,10),passwordChanged:false,created:true};
+  var taken=S.ad.users.filter(function(u){return u.sam===sam;})[0];
+  if(taken){return {error:"The specified user logon name already exists in the forest (practice.local), in the "+((OU(taken.ou)||{}).name||"another")+" container. Choose a different logon name."};}
+  var pwErr=adPasswordError(data.pw,sam,name);if(pwErr){return {error:pwErr};}
+  var u={id:nid("adu"),cloudId:null,name:name,sam:sam,upn:sam+"@"+DOMAIN,department:(data.department||"").trim(),ou:data.ou||"ou-staff",enabled:true,locked:false,mustChange:data.mustChange!==false,pw:data.pw,expires:data.expires===""||data.expires==null?null:parseInt(data.expires,10),passwordChanged:false,created:true};
   S.ad.users.push(u);audit("Create Active Directory user",u.name,"UserManagement","Windows Server AD");return {user:u};
 }
 function resetAdPassword(au,pw,mustChange){
   if(!au){return {error:"AD user not found."};}
+  if(pw){var e=adPasswordError(pw,au.sam,au.name);if(e){return {error:e};}}
   au.pw=pw||randPw();au.mustChange=mustChange!==false;au.passwordChanged=true;au.locked=false;
   audit("Reset AD password",au.name,"UserManagement","Windows Server AD");return {pw:au.pw};
 }
@@ -194,6 +208,6 @@ function applyGroupPolicy(d,u){
   api.deviceJoinMsg = deviceJoinMsg; api.recompute = recompute; api.bitlockerStepDone = bitlockerStepDone;
   api.spotOddSignin = spotOddSignin; api.lagosStepDone = lagosStepDone; api.apAssigned = apAssigned;
   api.adInScope = adInScope; api.runDeltaSync = runDeltaSync; api.runPasswordSync = runPasswordSync;
-  api.advanceAdTime = advanceAdTime; api.createAdUser = createAdUser; api.resetAdPassword = resetAdPassword;
+  api.adPasswordError = adPasswordError; api.advanceAdTime = advanceAdTime; api.createAdUser = createAdUser; api.resetAdPassword = resetAdPassword;
   api.domainJoin = domainJoin; api.resetComputerAccount = resetComputerAccount; api.applyGroupPolicy = applyGroupPolicy;
 })(typeof window !== "undefined" ? window : globalThis);
