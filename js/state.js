@@ -17,7 +17,7 @@ function seed(){
     secDefaults:false,deviceJoin:"all",vmIn:{},total:10,mdm:{scope:"none",group:""},
     scenarios:{active:null,completed:{},hint:{},wrong:{},base:null,setup:null},
     version:STATE_VERSION,
-    flags:{viewedLogs:false,spottedOdd:false,createdUsers:0,testedMfa:false,caReport:false,troubled:{},vmApSignin:false,vmDsreg:false,vmSync:false,vmAdmin:false,vmWorkSignin:false,vmRegistered:false},
+    flags:{viewedLogs:false,spottedOdd:false,createdUsers:0,testedMfa:false,caReport:false,troubled:{},vmApSignin:false,vmDsreg:false,vmSync:false,vmAdmin:false,vmWorkSignin:false,vmRegistered:false,financeSynced:false,samPwSynced:false},
     users:[
       {id:"u0",name:"Admin (you)",upn:"admin",loc:"US",direct:true,blocked:false,revoked:false,pwReset:false,fwd:null,deleted:false,filesLink:false,roles:["ga"],
         methods:[{id:"m0",type:"Microsoft Authenticator",detail:"Your phone",sus:false}]},
@@ -80,7 +80,7 @@ function seed(){
   s.users.forEach(function(u){u.pw="Welcome#2026";u.mustChange=false;if(!u.source){u.source="cloud";}});
   return s;
 }
-function blankFlags(){return {viewedLogs:false,spottedOdd:false,createdUsers:0,testedMfa:false,caReport:false,troubled:{},vmApSignin:false,vmDsreg:false,vmSync:false,vmAdmin:false,vmWorkSignin:false,vmRegistered:false};}
+function blankFlags(){return {viewedLogs:false,spottedOdd:false,createdUsers:0,testedMfa:false,caReport:false,troubled:{},vmApSignin:false,vmDsreg:false,vmSync:false,vmAdmin:false,vmWorkSignin:false,vmRegistered:false,financeSynced:false,samPwSynced:false};}
 function load(){try{var r=localStorage.getItem(KEY);if(!r){return null;}var o=JSON.parse(r);if(!o||!o.users){return null;}
   o.flags=o.flags||{};var b=blankFlags(),k;for(k in b){if(o.flags[k]===undefined){o.flags[k]=b[k];}}if(!o.flags.troubled){o.flags.troubled={};}
   if(!o.groups){o.groups=[];}if(!o.devices){o.devices=[];}if(!o.licenseGroups){o.licenseGroups=[];}
