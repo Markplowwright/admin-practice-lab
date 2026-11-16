@@ -71,3 +71,13 @@ test("migrating twice changes nothing", function () {
   const twice = JSON.stringify(lab.migrate(JSON.parse(once)));
   assert.equal(once, twice);
 });
+
+test("saves from before the DC01 session get the window list", function () {
+  const lab = boot(memoryStorage());
+  const saved = JSON.parse(JSON.stringify(lab.seed()));
+  delete saved.rdpOpen; saved.version = 5;
+  const m = lab.migrate(saved);
+  assert.deepEqual(m.rdpOpen, ["aduc"]);
+  assert.equal(m.version, lab.STATE_VERSION);
+  assert.deepEqual(lab.migrate(JSON.parse(JSON.stringify(m))).rdpOpen, ["aduc"]);
+});

@@ -1,6 +1,6 @@
 "use strict";
 
-var DOMAIN="practicetenant.onmicrosoft.com",AD_DOMAIN="practice.local",KEY="adminPracticeLabV4",TENANT="7c1e4a52-9b3d-4f08-a1e6-5d2c8b90f3a7",STATE_VERSION=5;
+var DOMAIN="practicetenant.onmicrosoft.com",AD_DOMAIN="practice.local",KEY="adminPracticeLabV4",TENANT="7c1e4a52-9b3d-4f08-a1e6-5d2c8b90f3a7",STATE_VERSION=6;
 var uid=100,navReset=false;function nid(p){uid+=1;return p+uid;}
 function maxIdNum(id){var m=String(id==null?"":id).match(/(\d+)\s*$/);return m?parseInt(m[1],10):0;}
 function syncUid(s){var max=100;function see(id){var n=maxIdNum(id);if(n>max){max=n;}}
@@ -13,7 +13,7 @@ function syncUid(s){var max=100;function see(id){var n=maxIdNum(id);if(n>max){ma
 function seed(){
   var s={
     portal:"m365",page:"home",sel:null,tab:null,q:"",checked:[],fly:null,wiz:null,draft:null,guide:true,guideTab:"missions",tUser:"",
-    onboarded:false,intro:0,lvlDone:[],finishSeen:false,
+    onboarded:false,intro:0,lvlDone:[],finishSeen:false,rdpOpen:["aduc"],
     secDefaults:false,deviceJoin:"all",vmIn:{},total:10,mdm:{scope:"none",group:""},
     scenarios:{active:null,completed:{},hint:{},wrong:{},base:null,setup:null},
     version:STATE_VERSION,
@@ -93,7 +93,8 @@ var MIGRATIONS=[
     if(!o.ad){o.ad=seed().ad;}if(!o.scenarios){o.scenarios={active:null,completed:{},hint:{},wrong:{},base:null,setup:null};}
     if(!o.mdm){o.mdm={scope:"none",group:""};}if(!o.deviceJoin){o.deviceJoin="all";}if(!o.total){o.total=10;}
     if(o.lvlDone===undefined){o.lvlDone=[];}if(o.intro===undefined){o.intro=0;}if(o.finishSeen===undefined){o.finishSeen=false;}
-  }}
+  }},
+  {to:6,run:function(o){if(!Array.isArray(o.rdpOpen)){o.rdpOpen=["aduc"];}}}
 ];
 function migrate(o){
   if(!o||typeof o!=="object"||!o.users){return null;}
