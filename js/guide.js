@@ -1,6 +1,6 @@
 "use strict";
 /* =============== NAV + SHELL =============== */
-var TITLES={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Microsoft Entra admin center",intune:"Microsoft Intune admin center",exchange:"Exchange admin center",remote:"Remote support",procure:"Procurement",vm:"Windows laptop (virtual)",env:"Environment",tools:"Toolkit",learn:"Learn"};
+var TITLES={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Microsoft Entra admin center",intune:"Microsoft Intune admin center",exchange:"Exchange admin center",remote:"Remote support",procure:"Procurement",vm:"Windows PC (virtual)",env:"Environment",tools:"Toolkit",learn:"Learn"};
 var DEFAULT={m365:"home",ad:"aduc",entra:"overview",intune:"home",exchange:"mailboxes",remote:"console",procure:"order",vm:"d2",env:"map",tools:"links",learn:"path"};
 var NAVS={
   m365:[{pg:"home",l:"Home",i:"home"},{l:"Users",i:"user",kids:[["users","Active users"],["deleted","Deleted users"]]},{l:"Teams & groups",i:"users",kids:[["groups","Active teams & groups"]]},{l:"Billing",i:"license",kids:[["licenses","Licenses"]]},
@@ -17,7 +17,7 @@ var NAVS={
 };
 function leftNav(){
   if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"||S.portal==="remote"||S.portal==="vm"||S.portal==="procure"){return "";}
-  if(S.portal==="vm"){return '<nav class="lnav" aria-label="Laptops"><div class="grp">'+ico("device")+'Virtual laptops</div>'+vmDevices().map(function(x){return '<button type="button" class="it kid" data-a="go" data-p="vm" data-pg="'+x.id+'"'+(S.page===x.id?' aria-current="true"':'')+'>'+esc(x.spare?"Spare ThinkPad (manual join)":x.maker+" "+x.model+" (Autopilot)")+'</button>';}).join("")+'</nav>';}
+  if(S.portal==="vm"){return '<nav class="lnav" aria-label="Laptops"><div class="grp">'+ico("device")+'Virtual PCs</div>'+vmDevices().map(function(x){return '<button type="button" class="it kid" data-a="go" data-p="vm" data-pg="'+x.id+'"'+(S.page===x.id?' aria-current="true"':'')+'>'+esc(x.spare?"Spare ThinkPad (manual join)":x.maker+" "+x.model+" (Autopilot)")+'</button>';}).join("")+'</nav>';}
   var h='<nav class="lnav" aria-label="'+esc(TITLES[S.portal])+' navigation">';
   NAVS[S.portal].forEach(function(n){
     if(n.sep){h+='<div class="sepl">'+esc(n.sep)+'</div>';return;}
@@ -127,6 +127,18 @@ function missions(){
      ["Domain join the spare laptop",!!D("d3").domainJoined,["vm","d3","LocalAdmin > Settings > Accounts > Access work or school > Join a domain"]],
      ["Move its computer account into the synced Computers OU",(function(){var c=S.ad.computers.filter(function(x){return x.deviceId==="d3";})[0];return c&&c.ou==="ou-computers";})(),["ad","aduc","Active Directory Users and Computers > computer > Move > Computers"]],
      ["Run delta sync and verify Hybrid Azure AD joined",!!D("d3").azureAdJoined,["entra","devices","Devices > All devices > Join type"]]]},
+   {t:"Order and image a desktop",w:"Order a desktop with a monitor, receive it, build it from USB, and put the support agent on it.",s:[
+     ["Order a desktop with one monitor",P().devs.some(function(d){return d.type==="desktop"&&d.monitors.length>0&&d.stage!=="cancelled";}),["procure","order","Desktop > 1 monitor > Place order"]],
+     ["Receive it by typing the serial from the box label",P().devs.some(function(d){return d.stage==="received"||d.stage==="imaged";}),["procure","bench","Orders and bench > Receive"]],
+     ["Image it from USB: F12, the USB device, delete the old partitions, install",P().devs.some(function(d){return d.imgMethod==="USB";}),["procure","image","Start imaging > Power > USB installer > Power on > F12 > UEFI: USB device"]],
+     ["Install the support agent",P().devs.some(function(d){return !!d.agent;}),["procure","bench","Orders and bench > Install the support agent"]]]},
+   {t:"Boot from the BIOS boot order",w:"Change the boot sequence in BIOS so a restart starts from the USB stick.",s:[
+     ["Press F2, move UEFI: USB device to the top and Apply Changes",P().devs.some(function(d){return d.img&&d.img.bios&&d.img.bios.order[0]==="usb";}),["procure","image","Start imaging > Power > USB installer > Power on > F2 > Move UEFI: USB device up > Apply Changes"]],
+     ["Exit BIOS so the PC boots from the USB stick into Windows Setup",P().devs.some(function(d){return d.img&&d.img.viaBios;}),["procure","image","Exit"]]]},
+   {t:"Zero-touch setup with Autopilot",w:"Register a new laptop's serial in Intune, then boot it so Autopilot takes over.",s:[
+     ["Order a laptop and receive it on the bench",P().devs.some(function(d){return d.type==="laptop"&&(d.stage==="received"||d.stage==="imaged");}),["procure","order","Laptop > Place order"]],
+     ["Import its serial in Intune > Windows Autopilot devices",P().devs.some(function(d){return d.stage!=="cancelled"&&S.devices.some(function(x){return x.serial===d.serial&&x.autopilot;});}),["intune","ap","Windows Autopilot devices > Import"]],
+     ["Boot it from Windows Boot Manager so Autopilot starts",P().devs.some(function(d){return d.imgMethod==="Autopilot";}),["procure","image","Start imaging > Power > Power on > F12 > Windows Boot Manager"]]]},
    {t:"Fix a password at its source",w:"Password writeback is not enabled, so resetting a synchronized account in Microsoft 365 cannot update AD.",s:[
      ["Observe the managed on-premises message for Sam",!!S.scenarios.wrong.corePw,["m365","users","Active users > Sam Ortiz > Reset password"]],
      ["Reset Sam's password in ADUC",ADU("adu2").passwordChanged,["ad","aduc","Staff > Sam Ortiz > Account > Reset password"]],
@@ -141,9 +153,19 @@ var LEVELS=[
   {n:2,name:"Offboarding",d:"Cut access in the right order, keep the files, and shrink admin rights."},
   {n:3,name:"Compromised accounts and MFA",d:"Close every door an attacker opened, then make the next attack harder."},
   {n:4,name:"Intune and laptops",d:"Encrypt, deploy apps, and watch enrollment succeed and fail on a virtual PC."},
-  {n:5,name:"Hybrid identity",d:"Manage Active Directory, synchronize identities, apply Group Policy, hybrid join devices, and solve real help-desk tickets."}
+  {n:5,name:"Hybrid identity",d:"Manage Active Directory, synchronize identities, apply Group Policy, hybrid join devices, and solve real help-desk tickets."},
+  {n:6,name:"Procurement and imaging",d:"Order devices, receive them on the bench, and build them by USB, PXE, BIOS boot order or Autopilot."}
 ];
 var MMETA={
+"Order and image a desktop":{l:6,
+  why:"A new PC arrives with the vendor's Windows and partitions. IT checks the order, confirms the serial on the box, and rebuilds it with the company image so every machine starts the same. Desktops also need a monitor and keyboard before anyone can see a boot menu.",
+  eq:"Jamf and Apple Business Manager handle Macs the same way: register the serial, then enroll on first boot. For Windows PCs the bench steps are the same on every vendor."},
+"Boot from the BIOS boot order":{l:6,
+  why:"The one-time boot menu (F12) changes the boot device once. The BIOS boot sequence changes it for every restart, which is how technicians prepare a batch of machines. Checking the order is also the first thing to look at when a PC will not boot from its USB stick.",
+  eq:"Every PC vendor has a boot sequence screen. Dell, HP and Lenovo use different keys (F12, F9, F12 or Enter) but the idea is the same."},
+"Zero-touch setup with Autopilot":{l:6,
+  why:"Autopilot does nothing for a device Intune has never heard of. The serial number has to be registered first. Then the vendor Windows on the disk starts setup, recognises the device and asks the user for a work account instead of a local one.",
+  eq:"This is the Windows version of Apple Business Manager automated device enrollment. Both depend on registering the serial before first boot."},
 "Contain a compromised account: Dana Rivera":{l:3,
   why:"Attackers want to stay in. A password reset blocks sign-ins with the old password, but sessions that are already signed in keep working until you revoke them. A phone number the attacker added can reset the password again, and a forwarding rule keeps copying her mail without any sign-in at all. Each one is a different mechanism, so each needs its own step.",
   eq:"Google Admin: reset the password, reset sign-in cookies, remove the recovery phone, check Gmail forwarding. Jamf manages devices, so these identity steps happen in your identity provider."},
@@ -185,7 +207,7 @@ var MMETA={
 "Complete a hybrid device join":{l:5,why:"Hybrid join means the same PC is joined to practice.local and registered in Entra. The computer account must be in synchronization scope; the user's sync status alone does not create hybrid join.",eq:"Jamf enrollment plus identity-provider device registration is an approximate comparison."},
 "Fix a password at its source":{l:5,why:"The source of authority decides where a change is valid. Password hash sync copies an AD password hash to Entra; password writeback, which this lab leaves disabled, is the reverse direction.",eq:"The same principle applies to any directory synchronized from an HR or identity source."}
 };
-var PNAME={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Entra admin center",intune:"Intune admin center",exchange:"Exchange admin center",vm:"Windows laptop (virtual)"};
+var PNAME={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Entra admin center",intune:"Intune admin center",exchange:"Exchange admin center",vm:"Windows PC (virtual)",procure:"Procurement",remote:"Remote support"};
 function toolsOf(m){var seen=[];m.s.forEach(function(x){if(seen.indexOf(x[2][0])<0){seen.push(x[2][0]);}});return seen;}
 function stepHtml(x){
   var w=x[2];
@@ -204,9 +226,11 @@ var SCENARIOS=[
  {id:"s8",difficulty:"Medium",title:"New user doesn't appear in Microsoft 365",ticket:"I created Alex in AD an hour ago and he's not in the admin center.",hint:"Check Entra Connect OU filtering. Alex is in an excluded OU; move the user into Staff and run delta sync.",cause:"Entra Connect ignores objects in OUs outside its configured synchronization scope.",say:"Alex was in an OU excluded from cloud sync. I moved the account into scope and synchronized it.",note:"Confirmed Alex existed only in AD, found the OU filtering exclusion, moved the object to Staff, ran delta sync, and verified the Entra account."},
  {id:"s9",difficulty:"Easy",title:"Contractor access expires Friday",ticket:"The contractor needs access until Friday only.",hint:"ADUC > New user > Account expires, add the required security group, then synchronize.",cause:"AD account expiration blocks authentication at the set time, but data, sessions, groups, and devices still need offboarding.",say:"The contractor account is active through Friday and has only the required group access.",note:"Created the contractor in AD with a Friday expiration, assigned the required security group, and synchronized the account to Entra."},
  {id:"s10",difficulty:"Hard",title:"Suspicious sign-ins",ticket:"Dana got a phishing email yesterday and today there are sign-in alerts from another country.",hint:"Reset at the AD source, sync, revoke sessions, inspect Entra sign-ins, remove Exchange forwarding, and require MFA re-registration.",cause:"A hybrid compromise can persist through cloud sessions, MFA methods, and mail forwarding even after an on-premises password reset.",say:"I reset the authoritative password, ended sessions, removed persistence, and will help you register MFA again.",note:"Reviewed the suspicious sign-in, reset Dana in AD, synchronized, revoked sessions, removed the rogue method and forwarding, and required MFA re-registration."},
- {id:"s11",difficulty:"Medium",title:"Laptop is crawling",ticket:"Sam says his laptop has been very slow all week. He is free at 2:00 PM and can stay on a call.",hint:"Remote support > Access > search Sam's laptop > Join. Find what is using the CPU, end it, uninstall the program behind it, tell Sam in chat, then disconnect.",cause:"A leftover driver updater was running at full CPU. Ending the process alone is not enough: it restarts until the program is removed.",say:"I joined your laptop, found a driver updater using almost all of the CPU, ended it and removed it. It should feel normal again.",note:"Joined Sam's laptop with remote support, found DriverBoost.exe at 92% CPU, ended the process, uninstalled the DriverBoost Updater, confirmed with Sam in chat and disconnected after turning off input blocking."}
+ {id:"s11",difficulty:"Medium",title:"Laptop is crawling",ticket:"Sam says his laptop has been very slow all week. He is free at 2:00 PM and can stay on a call.",hint:"Remote support > Access > search Sam's laptop > Join. Find what is using the CPU, end it, uninstall the program behind it, tell Sam in chat, then disconnect.",cause:"A leftover driver updater was running at full CPU. Ending the process alone is not enough: it restarts until the program is removed.",say:"I joined your laptop, found a driver updater using almost all of the CPU, ended it and removed it. It should feel normal again.",note:"Joined Sam's laptop with remote support, found DriverBoost.exe at 92% CPU, ended the process, uninstalled the DriverBoost Updater, confirmed with Sam in chat and disconnected after turning off input blocking."},
+ {id:"s12",difficulty:"Medium",title:"Desktop for a new hire",ticket:"Marcus Lee starts Monday and needs a desktop PC with one monitor. Order it, get it on the bench, image it, and make sure IT can reach it remotely.",hint:"Procurement > New order > Desktop with 1 monitor, assigned to Marcus. Receive it with the serial on the box. Start imaging: connect power, monitor, keyboard and the USB stick, press F12, boot from USB, delete the old partitions, install. Then install the support agent.",cause:"A desktop is only usable with a monitor and keyboard, and a PC off the box still has the vendor's partitions. IT cannot support a machine that has no agent, so the agent is part of the build.",say:"Marcus's desktop and monitor are imaged and on our remote support list. It is ready to hand over.",note:"Ordered a desktop with one monitor for Marcus Lee, received it by serial, imaged it from USB after clearing the vendor partitions, installed the support agent and confirmed it appears in remote support."},
+ {id:"s13",difficulty:"Hard",title:"Replacement laptop for Sam",ticket:"Sam's laptop is failing and his manager approved a replacement. He should get a zero-touch Autopilot laptop. Order it, finish the request the order raises, and make Autopilot recognise it.",hint:"Order a laptop for Sam: the order raises a request because he already has one. Keep the order as a replacement. Receive it, import its serial in Intune > Windows Autopilot devices, then boot it from Windows Boot Manager so Autopilot picks it up. Install the support agent.",cause:"Autopilot only recognises a device whose serial number is registered in Intune before it first boots. Without that, the vendor Windows runs standard setup and nobody configures it.",say:"Sam's replacement is registered in Autopilot and on remote support. He signs in with his work account and it sets itself up.",note:"Ordered a replacement laptop for Sam Ortiz, kept the order when the duplicate-device request appeared, registered the serial in Autopilot, booted it into Autopilot setup and installed the support agent."}
 ];
-var SCENARIO_KEYS=["users","groups","licenseGroups","devices","ad","logs","mailRules","policies","profiles","apps","caPolicies","mdm","total","flags","remote"];
+var SCENARIO_KEYS=["users","groups","licenseGroups","devices","ad","logs","mailRules","policies","profiles","apps","caPolicies","mdm","total","flags","remote","procure"];
 function scenarioSnapshot(){var x={};SCENARIO_KEYS.forEach(function(k){x[k]=S[k];});return JSON.stringify(x);}
 function scenarioRestore(raw){if(!raw){return;}var x=JSON.parse(raw);SCENARIO_KEYS.forEach(function(k){if(k in x){S[k]=x[k];}});}
 function scenarioSetup(id){
@@ -220,6 +244,7 @@ function scenarioSetup(id){
   if(id==="s7"){d=D("d3");domainJoin(d,AD_DOMAIN,S.ad.adminUser,S.ad.adminPw);c=S.ad.computers.filter(function(x){return x.deviceId==="d3";})[0];c.trustOk=false;d.secureChannel=false;d.restartedAfterTrust=false;ensureVm(d);}
   if(id==="s8"){a=ADU("adu5");a.ou="ou-servers";a.cloudId=null;}
   if(id==="s9"){S.ad.users=S.ad.users.filter(function(u){return !u.created||u.department!=="Contractor";});}
+  if(id==="s12"||id==="s13"){S.procure=pBlank();}
   if(id==="s11"){S.remote=remoteBlank();S.remote.sel="dc01";rBreakLaptop();}
   if(id==="s10"){a=ADU("adu1");a.passwordChanged=false;c=U("u1");c.revoked=false;c.fwd="collect.dana@mailbox-drop.example";if(!c.methods.some(function(m){return m.sus;})){c.methods.push({id:nid("m"),type:"Phone (SMS)",detail:"+234 803 555 0142",sus:true});}S.flags.spottedOdd=false;}
 }
@@ -236,6 +261,8 @@ function scenarioDone(id){
   if(id==="s9"){a=S.ad.users.filter(function(u){return u.created&&u.department==="Contractor"&&u.expires!=null;})[0];c=cloudForAd(a);return !!(a&&S.ad.groups.some(function(x){return x.type==="Security"&&x.members.indexOf(a.id)>-1;})&&c&&!c.deleted);}
   if(id==="s10"){a=ADU("adu1");c=cloudForAd(a);return a.passwordChanged&&c&&c.pw===a.pw&&c.revoked&&!c.fwd&&!c.methods.length&&S.flags.spottedOdd;}
   if(id==="s11"){var f=R().flags;return !!(f.found&&f.joined&&f.cpu&&f.killed&&f.removed&&f.told&&f.disc);}
+  if(id==="s12"){return pS12()[0][1]&&pS12()[1][1]&&pS12()[2][1];}
+  if(id==="s13"){return pS13()[0][1]&&pS13()[1][1]&&pS13()[2][1];}
   return false;
 }
 function scenarioSteps(id){
@@ -251,6 +278,8 @@ function scenarioSteps(id){
   if(id==="s9"){a=S.ad.users.filter(function(u){return u.created&&u.department==="Contractor";})[0];c=cloudForAd(a);return [["Contractor created with expiration",!!(a&&a.expires!=null)],["Security group assigned",!!(a&&S.ad.groups.some(function(g){return g.type==="Security"&&g.members.indexOf(a.id)>-1;}))],["Synchronized to Entra",!!(c&&!c.deleted)]];}
   if(id==="s10"){a=ADU("adu1");c=cloudForAd(a);return [["Suspicious sign-in reviewed",!!S.flags.spottedOdd],["AD password reset and synchronized",!!(a.passwordChanged&&c&&c.pw===a.pw)],["Sessions revoked",!!(c&&c.revoked)],["Forwarding and rogue MFA removed",!!(c&&!c.fwd&&!c.methods.length)]];}
   if(id==="s11"){var g=R().flags;return [["Found Sam's laptop in the console",!!g.found],["Joined his session",!!g.joined],["Checked what is using the CPU",!!g.cpu],["Ended the process and removed the program",!!(g.killed&&g.removed)],["Told Sam in chat",!!g.told],["Disconnected cleanly",!!g.disc]];}
+  if(id==="s12"){return pS12();}
+  if(id==="s13"){return pS13();}
   return [];
 }
 function scenarioFeedback(s){

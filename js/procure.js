@@ -9,7 +9,7 @@ var PMODELS={
   desktop:[["Dell","OptiPlex 7010 Tower"],["Lenovo","ThinkCentre M70t"],["HP","EliteDesk 800 G9 Tower"]],
   monitor:[["Dell","P2423 24-inch"],["HP","E24 G5 24-inch"]]
 };
-function pBlank(){return {n:0,t:1051,tab:"order",form:{type:"",model:0,mon:1,monModel:0,user:""},devs:[],reqs:[]};}
+function pBlank(){return {n:0,t:1100,tab:"order",form:{type:"",model:0,mon:1,monModel:0,user:""},devs:[],reqs:[]};}
 function P(){if(!S.procure){S.procure=pBlank();}return S.procure;}
 function pDev(id){return P().devs.filter(function(d){return d.id===id;})[0];}
 function pSerial(n,pre){var x=48210+n*97;return pre+String(x).slice(-5)+String.fromCharCode(65+(n*7)%26);}
@@ -43,11 +43,11 @@ function pReqDone(r){
 /* ---------- pages ---------- */
 function pTabs(){
   var p=P(),o=pOpenReqs();p.tab=S.page;
-  function t(k,l,extra){return '<button type="button" class="'+((S.page===k||(k==="bench"&&S.page==="image"))?'on':'')+'" data-a="pTab" data-k="'+k+'">'+esc(l)+(extra||"")+'</button>';}
+  function t(k,l,extra){return '<button type="button" data-spot="'+esc(l)+'" class="'+((S.page===k||(k==="bench"&&S.page==="image"))?'on':'')+'" data-a="pTab" data-k="'+k+'">'+esc(l)+(extra||"")+'</button>';}
   return '<div class="ptop"><b>Procurement</b><span class="psub">Vendor portal (simulated)</span><nav>'+t("order","New order")+t("bench","Orders and bench",pBenchCount()?' <i>'+pBenchCount()+'</i>':"")+t("reqs","Requests",o?' <i class="hot">'+o+'</i>':"")+'</nav></div>';
 }
 function pTypeCard(k,label,sub,on,off){
-  return '<button type="button" class="ptype'+(on?' on':'')+(off?' off':'')+'" data-a="'+(off?'pSoon':'pType')+'" data-k="'+k+'"'+(on?' aria-pressed="true"':'')+'><span class="pic pic-'+k+'" aria-hidden="true"></span><b>'+esc(label)+'</b><small>'+esc(sub)+'</small>'+(off?'<em>Coming soon</em>':'')+'</button>';
+  return '<button type="button" data-spot="'+esc(label)+'" class="ptype'+(on?' on':'')+(off?' off':'')+'" data-a="'+(off?'pSoon':'pType')+'" data-k="'+k+'"'+(on?' aria-pressed="true"':'')+'><span class="pic pic-'+k+'" aria-hidden="true"></span><b>'+esc(label)+'</b><small>'+esc(sub)+'</small>'+(off?'<em>Coming soon</em>':'')+'</button>';
 }
 function pChips(list,sel,act,fmt){
   return '<div class="pchips">'+list.map(function(m,i){return '<button type="button" class="'+(sel===i?'on':'')+'" data-a="'+act+'" data-k="'+i+'">'+esc(fmt?fmt(m):m[0]+" "+m[1])+'</button>';}).join("")+'</div>';
@@ -143,10 +143,10 @@ function pImgBody(d){
   if(g.step==="cables"){
     h='<p>Place the '+(d.type==="desktop"?"tower":"laptop")+' on the bench and connect what you need. You do not need everything for every method: think about what each way of imaging uses.</p><div class="pports">'+pImgPorts(d).map(function(k){
       var on=g.cab[k],dis=(k==="mon"&&!d.monitors.length);
-      return '<button type="button" class="pport'+(on?' on':'')+'" data-a="pCable" data-k="'+k+'"'+(dis?' disabled':'')+'><b>'+esc(IMG_PORTS[k])+'</b><span>'+(dis?"No monitor on this order":on?"Connected. Click to unplug":"Not connected")+'</span></button>';}).join("")+'</div>'+m+
+      return '<button type="button" class="pport'+(on?' on':'')+'" data-a="pCable" data-k="'+k+'" data-spot="'+esc(k==="usb"?"USB installer":IMG_PORTS[k].split(" ")[0])+'"'+(dis?' disabled':'')+'><b>'+esc(IMG_PORTS[k])+'</b><span>'+(dis?"No monitor on this order":on?"Connected. Click to unplug":"Not connected")+'</span></button>';}).join("")+'</div>'+m+
       '<div class="pbtns"><button type="button" class="pbtn pri" data-a="pPower">Power on</button></div>';
   }else if(g.step==="post"){
-    h=pScr('<div class="pbig">DELL</div><p>Preparing one-time boot menu...</p><p class="dim">Press the key you need now. Do nothing and it boots from the internal disk.</p>')+'<div class="pkeys">'+pKey("F2 (BIOS setup)","pKey",' data-k="f2"')+pKey("F12 (one-time boot menu)","pKey",' data-k="f12"')+pKey("Press nothing","pKey",' data-k="none"')+'</div>'+m;
+    h=pScr('<div class="pbig">DELL</div><p>Preparing one-time boot menu...</p><p class="dim">Press the key you need now. Do nothing and it boots from the internal disk.</p>')+'<div class="pkeys">'+pKey("F2 (BIOS setup)","pKey",' data-k="f2" data-spot="F2"')+pKey("F12 (one-time boot menu)","pKey",' data-k="f12" data-spot="F12"')+pKey("Press nothing","pKey",' data-k="none"')+'</div>'+m;
   }else if(g.step==="menu"){
     var mm=[["win","Windows Boot Manager"],["usb","UEFI: USB device"],["nic4","Onboard NIC (IPV4)"],["nic6","Onboard NIC (IPV6)"]];
     h=pScr('<div class="dim">Boot mode is set to: UEFI; Secure Boot: ON; PTT is ON</div><div class="pmh">UEFI BOOT:</div>'+mm.map(function(x){return '<button type="button" class="pitem" data-a="pBoot" data-k="'+x[0]+'">'+esc(x[1])+'</button>';}).join("")+'<div class="pmh">OTHER OPTIONS:</div>'+[["bios","BIOS Setup"],["diag","Diagnostics"],["exit","Exit Boot Menu and Continue"]].map(function(x){return '<button type="button" class="pitem" data-a="pBoot" data-k="'+x[0]+'">'+esc(x[1])+'</button>';}).join(""))+m;
@@ -209,7 +209,7 @@ function pOem(dev,g){
 }
 function pNormalBoot(dev,g){
   var b=pBios(g),i,k;g.msg="";
-  for(i=0;i<b.order.length;i++){k=b.order[i];if(b.on[k]&&pTryBoot(dev,g,k)){return;}}
+  for(i=0;i<b.order.length;i++){k=b.order[i];if(b.on[k]&&pTryBoot(dev,g,k)){if(k==="usb"||k==="nic4"){g.viaBios=true;}return;}}
   g.msg="No bootable device found. Check the boot order in BIOS, or press F12 for the boot menu."+(g.msg?" ("+g.msg+")":"");g.step="cables";
 }
 A.pKey=function(d){
@@ -273,3 +273,19 @@ A.pAgent=function(d){
   rec.name=compNameFor(rec);S.devices.push(rec);
   toast(rec.name+" now reports to Remote support and can be opened as a device.");
 };
+
+/* ---------- ticket checks (used by tickets s12 and s13) ---------- */
+function pS12(){
+  var ds=P().devs.filter(function(d){return d.type==="desktop"&&d.user==="u4"&&d.stage!=="cancelled"&&d.monitors.length>0;});
+  return [["Ordered a desktop with a monitor for Marcus",ds.length>0],["Received it and imaged it",ds.some(function(d){return d.stage==="imaged";})],["Installed the support agent so IT can reach it",ds.some(function(d){return !!d.agent;})]];
+}
+function pS13(){
+  var ds=P().devs.filter(function(d){return d.type==="laptop"&&d.user==="u2"&&d.stage!=="cancelled";});
+  var req=P().reqs.filter(function(r){return r.kind==="dup";}),kept=ds.length>0&&req.every(function(r){return r.choice==="keep";});
+  return [["Ordered the laptop and kept it as a replacement when the request came up",ds.length>0&&req.length>0&&kept],["Serial registered in Autopilot and booted into Autopilot setup",ds.some(function(d){return d.imgMethod==="Autopilot";})],["Installed the support agent",ds.some(function(d){return !!d.agent;})]];
+}
+/* Open requests raised by orders, shown in the ticket dock too. */
+function pReqDock(){
+  var p=S.procure;if(!p||!pOpenReqs()){return "";}
+  return '<div class="why"><b>Requests from your orders ('+pOpenReqs()+' open)</b>'+p.reqs.filter(function(r){return !pReqDone(r);}).map(function(r){return '<p>#'+r.no+' '+esc(r.title)+'</p>';}).join("")+'<button type="button" class="btn sm" data-a="go" data-p="procure" data-pg="reqs">Open Requests</button></div>';
+}

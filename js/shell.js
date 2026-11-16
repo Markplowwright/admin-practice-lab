@@ -28,7 +28,7 @@ function taskbar(){
     tb("DC01 (Remote Desktop)","users",'data-a="go" data-p="ad" data-pg="'+(S.portal==="ad"?S.page:(S.rdpLast||"aduc"))+'"',S.portal==="ad")+
     tb("Remote support","key",'data-a="go" data-p="remote" data-pg="'+((S.remote&&S.remote.sess)?"session":(S.portal==="remote"?S.page:"console"))+'"',S.portal==="remote")+
     tb("Procurement","download",'data-a="go" data-p="procure" data-pg="'+(S.portal==="procure"?S.page:"order")+'"',S.portal==="procure")+
-    tb("Virtual laptop","device",'data-a="go" data-p="vm" data-pg="d2"',S.portal==="vm")+
+    tb("Virtual PC","device",'data-a="go" data-p="vm" data-pg="d2"',S.portal==="vm")+
     tb("Toolkit","search",'data-a="go" data-p="tools" data-pg="links"',S.portal==="tools")+
     tb("Learn "+trainProgress()[0]+" of "+trainProgress()[1],"help",'data-a="go" data-p="learn" data-pg="path"',S.portal==="learn")+
     '<span class="sp"></span>'+
@@ -37,7 +37,7 @@ function taskbar(){
 /* Which systems each ticket needs. Used to outline them on the map. */
 var NEEDS={
   s1:["dc01"],s2:["dc01","entra"],s3:["dc01","entra","m365","d3"],s4:["dc01","entra","m365","intune","d1"],s5:["dc01","files01","d3"],
-  s6:["dc01","d3"],s7:["dc01","d3"],s8:["dc01","entra"],s9:["dc01","entra"],s10:["dc01","entra","exchange"],s11:["d1"]
+  s6:["dc01","d3"],s7:["dc01","d3"],s8:["dc01","entra"],s9:["dc01","entra"],s10:["dc01","entra","exchange"],s11:["d1"],s12:["bench"],s13:["bench","intune"]
 };
 function deviceBadge(d){
   if(!d){return "";}
@@ -106,7 +106,7 @@ function pickerDock(){
 function ticketDock(){
   var id=S.scenarios.active;
   if(!id&&S.mission&&S.portal!=="start"){return missionDock();}
-  if(!id){return S.portal==="env"?pickerDock():"";}
+  if(!id){var rq=pReqDock();return S.portal==="env"?pickerDock().replace(/<\/aside>$/,rq+"</aside>"):(S.portal==="procure"&&rq?'<aside class="dock" aria-label="Requests">'+rq+'</aside>':"");}
   var s=SCENARIOS.filter(function(x){return x.id===id;})[0],steps=scenarioSteps(id),done=!!S.scenarios.completed[id];
   var open=steps.filter(function(x){return !x[1];}),h='<aside class="dock" aria-label="Ticket"><div class="dtop"><b>Ticket #'+ticketNo(id)+'</b>'+badge(s.difficulty,s.difficulty==="Hard"?"bad":s.difficulty==="Medium"?"warn":"ok")+badge(done?"Resolved":"Open",done?"ok":"info")+'</div>'+
     '<h3>'+esc(s.title)+'</h3><p class="dq">'+esc(s.ticket)+'</p><div class="dh">Done when</div><ul class="dl">'+steps.map(function(x){return '<li class="'+(x[1]?'on':'')+'"><i aria-hidden="true">'+(x[1]?"&#10003;":"")+'</i><span>'+esc(x[0])+'</span></li>';}).join("")+'</ul>';
@@ -119,7 +119,7 @@ function ticketDock(){
     '<div class="btnrow">'+B("Next ticket","nextTicket",{primary:1})+B("Practice again","startScenario",{sm:1,d:{id:id}})+'</div>';}
   else{h+='<div class="btnrow">'+B(open.length?"Resolve ticket ("+open.length+" left)":"Resolve ticket","resolveTicket",{primary:!open.length})+B(S.scenarios.hint[id]?"Hide hint":"Hint","scenarioHint",{sm:1,d:{id:id}})+'</div><div class="btnrow">'+B("Reset this ticket","resetScenario",{sm:1})+B("Leave ticket","exitScenario",{sm:1})+'</div>'+
     (id==="s1"?B("Tell Dana to update her phone password","scenarioPhone",{sm:1}):"")+'<p class="small">Completion checks the resulting state in the lab, not which buttons you clicked. A good ticket note is shown after you resolve it.</p>';}
-  return h+'</aside>';
+  return h+pReqDock()+'</aside>';
 }
 A.resolveTicket=function(){
   var id=S.scenarios.active;

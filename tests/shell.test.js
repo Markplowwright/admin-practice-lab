@@ -233,7 +233,7 @@ test("clicking map cards opens the matching tool", function () {
 test("with no ticket open the map has a ticket queue and Start opens that ticket", function () {
   const w = boot(); w.S.onboarded = true; w.S.portal = "env"; w.S.page = "map"; w.render(); const d = w.document;
   assert.match(d.querySelector(".dock").textContent, /Ticket queue/);
-  assert.equal(d.querySelectorAll(".dock .tk").length, 11);
+  assert.equal(d.querySelectorAll(".dock .tk").length, 13);
   assert.ok(d.body.classList.contains("dock-open"));
   d.querySelector('.dock [data-a="startScenario"][data-id="s3"]').click();
   assert.equal(w.S.scenarios.active, "s3");
@@ -277,12 +277,12 @@ test("Learn replaces the Missions and guide panel", function () {
   const d = w.document;
   assert.equal(d.querySelector(".guide"), null);
   assert.doesNotMatch(d.querySelector(".wsbar").textContent, /Missions and guide|Walk through/);
-  assert.match(d.querySelector(".wsbar").textContent, /Learn 0 of 64/);
+  assert.match(d.querySelector(".wsbar").textContent, /Learn 0 of 73/);
   w.A.go({ p: "learn", pg: "path" }); w.render();
   assert.match(d.querySelector("#main").textContent, /Training path/);
-  assert.match(d.querySelector("#main").textContent, /0 of 64/);
-  assert.match(d.querySelector("#main").textContent, /0 of 11/);
-  assert.equal(d.querySelectorAll(".learn .lvl").length, 5);
+  assert.match(d.querySelector("#main").textContent, /0 of 73/);
+  assert.match(d.querySelector("#main").textContent, /0 of 13/);
+  assert.equal(d.querySelectorAll(".learn .lvl").length, 6);
   assert.equal(d.querySelector(".learn [data-a=\"startMission\"]").disabled, false);
 });
 
@@ -484,4 +484,16 @@ test("Autopilot boot: only a serial registered in Intune gets zero-touch setup",
   w2.A.pPower(); w2.A.pKey({ k: "f12" }); w2.A.pBoot({ k: "win" });
   assert.equal(d2.imgMethod, "Autopilot"); assert.equal(d2.devId, "dap"); assert.equal(w2.S.devices.length, 4);
   w2.A.pAgent({ id: d2.id }); assert.equal(w2.rAll().length, 6); assert.match(w2.rAll()[5].name, /^DESKTOP-/);
+});
+test("tickets s12 and s13 exist, are isolated, and only finish when the work is done", function () {
+  const w = boot(); w.S.onboarded = true; w.A.startScenario({ id: "s12" });
+  assert.equal(w.S.procure.devs.length, 0); assert.equal(w.scenarioDone("s12"), false);
+  w.A.pType({ k: "desktop" }); w.A.pMon({ k: "0" }); w.S.procure.form.user = "u4"; w.A.pOrder();
+  assert.equal(w.scenarioDone("s12"), false, "a desktop with no monitor does not count");
+  assert.match(w.ticketDock(), /Requests from your orders/);
+});
+test("mission steps on procurement and imaging screens get a spotlight", function () {
+  const w = boot(); w.S.onboarded = true; w.A.startMission({ t: "Order and image a desktop" }); w.render();
+  assert.equal(w.S.portal, "procure"); assert.ok(w.document.querySelector(".spot"), "Desktop card is highlighted");
+  w.A.pType({ k: "desktop" }); w.render(); assert.match(w.document.querySelector(".spot").textContent, /monitor|Place order/);
 });
