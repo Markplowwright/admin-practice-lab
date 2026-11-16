@@ -1,7 +1,7 @@
 "use strict";
 /* =============== ACTIONS (shared) =============== */
 function resetNav(){S.sel=null;S.tab=null;S.q="";S.checked=[];S.fly=null;S.wiz=null;S.draft=null;}
-A.go=function(d){if(d.g&&window.innerWidth<900){S.guide=false;}if(d.p&&d.p!==S.portal){S.portal=d.p;if(!d.pg){d.pg=DEFAULT[d.p];}}S.page=d.pg||DEFAULT[S.portal];resetNav();navReset=true;};
+A.go=function(d){if(d.g&&window.innerWidth<900){S.guide=false;}if(d.p&&d.p!==S.portal){S.portal=d.p;if(!d.pg){d.pg=DEFAULT[d.p];}}S.page=d.pg||DEFAULT[S.portal];if(S.portal==="ad"){rdpEnsure(S.page);}resetNav();navReset=true;};
 A.sel=function(d){S.sel=d.id;S.tab=null;S.checked=[];};
 A.back=function(){S.sel=null;S.tab=null;};
 A.tab=function(d){S.tab=d.t;};
@@ -75,6 +75,7 @@ function render(){
   else if(PAGES[key]){content=PAGES[key]();}
   else{content='<p>Page not found.</p>';}
   if(S.portal==="start"){$("#app").innerHTML=startHtml();document.body.classList.remove("guide-open","dock-open");}
+  else if(S.portal==="ad"){S.rdpLast=S.page;$("#app").innerHTML=rdpHtml(content)+taskbar()+ticketDock()+flyHtml()+guideHtml();}
   else{$("#app").innerHTML=topBar()+portalHeader()+'<div class="shell">'+leftNav()+'<main class="content" id="main">'+content+'</main></div>'+taskbar()+ticketDock()+flyHtml()+guideHtml();}
   if(navReset){window.scrollTo(0,0);navReset=false;}else{window.scrollTo(wx,wy);}
   gb=document.querySelector(".guide .gb");if(gb){gb.scrollTop=gy;}

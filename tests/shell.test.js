@@ -117,3 +117,41 @@ test("with progress the start screen offers Continue, and an active ticket offer
   assert.match(w.document.querySelector(".sact").textContent, /Resume ticket #1042/);
   assert.equal(w.document.querySelectorAll(".dock").length, 0);
 });
+
+test("DC01 is a Remote Desktop session with the tools as separate windows", function () {
+  const w = boot(); go(w, "ad", "aduc"); const d = w.document;
+  assert.match(d.querySelector(".rname").textContent, /DC01\.practice\.local/);
+  assert.equal(d.querySelectorAll(".rwin").length, 1);
+  assert.match(d.querySelector(".rtitle").textContent, /Active Directory Users and Computers/);
+  assert.equal(d.querySelectorAll(".ricon").length, 3);
+  assert.equal(d.querySelectorAll(".edge, .phdr, .lnav").length, 0);
+});
+
+test("opening, minimizing and closing DC01 windows", function () {
+  const w = boot(); go(w, "ad", "aduc"); const d = w.document;
+  d.querySelector('.ricon[data-pg="gpmc"]').click();
+  assert.equal(w.S.page, "gpmc");
+  assert.equal(d.querySelectorAll(".rtask").length, 2);
+  d.querySelector('.rtitle [data-a="rdpMin"]').click();
+  assert.equal(w.S.page, "desktop");
+  assert.equal(d.querySelectorAll(".rwin").length, 0);
+  assert.equal(d.querySelectorAll(".rtask").length, 2);
+  d.querySelector('.rtask[data-pg="aduc"]').click();
+  assert.equal(w.S.page, "aduc");
+  d.querySelector('.rtitle [data-a="rdpClose"]').click();
+  assert.equal(d.querySelectorAll(".rtask").length, 1);
+  assert.equal(w.S.page, "gpmc");
+});
+
+test("a mission link into a closed DC01 tool opens its window", function () {
+  const w = boot(); go(w, "ad", "aduc"); w.S.rdpOpen = ["aduc"];
+  w.A.go({ p: "ad", pg: "sync" }); w.render();
+  assert.ok(w.S.rdpOpen.indexOf("sync") > -1);
+  assert.match(w.document.querySelector(".rtitle").textContent, /Entra Connect Sync/);
+});
+
+test("Disconnect returns to the environment map", function () {
+  const w = boot(); go(w, "ad", "aduc");
+  w.document.querySelector('.rdpbar [data-a="rdpDisc"]').click();
+  assert.equal(w.S.portal, "env");
+});

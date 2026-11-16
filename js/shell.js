@@ -25,7 +25,7 @@ function taskbar(){
     tb("Start","apps",'data-a="go" data-p="start" data-pg="home"',false)+
     tb("Environment","home",'data-a="go" data-p="env" data-pg="map"',S.portal==="env")+
     tb("Edge","globe",'data-a="go" data-p="'+web+'" data-pg="'+DEFAULT[web]+'"',isWeb(S.portal))+
-    tb("DC01 (Remote Desktop)","users",'data-a="go" data-p="ad" data-pg="aduc"',S.portal==="ad")+
+    tb("DC01 (Remote Desktop)","users",'data-a="go" data-p="ad" data-pg="'+(S.portal==="ad"?S.page:(S.rdpLast||"aduc"))+'"',S.portal==="ad")+
     tb("Virtual laptop","device",'data-a="go" data-p="vm" data-pg="d2"',S.portal==="vm")+
     tb("Toolkit","search",'data-a="go" data-p="tools" data-pg="links"',S.portal==="tools")+
     '<span class="sp"></span><button type="button" class="tbi guideb'+(S.guide?' on':'')+'" data-a="guide">'+ico("help")+'<span>Missions and guide '+progress()[0]+'/'+progress()[1]+'</span></button>'+
@@ -117,3 +117,31 @@ function startHtml(){
 PAGES["start.home"]=function(){return "";};
 A["guide-open"]=function(){S.portal="env";S.page="map";S.guide=true;S.guideTab="missions";resetNav();navReset=true;};
 A.startTour=function(){S.portal="env";S.page="map";resetNav();navReset=true;A.tour();};
+
+/* =============== DC01 REMOTE DESKTOP SESSION =============== */
+/* DC01 is a Windows Server reached over Remote Desktop. Each admin tool is its own window on the server desktop. */
+var RDPWIN={
+  aduc:{title:"Active Directory Users and Computers",icon:"users",menu:["File","Action","View","Help"]},
+  gpmc:{title:"Group Policy Management",icon:"gear",menu:["File","Action","View","Window","Help"]},
+  sync:{title:"Microsoft Entra Connect Sync",icon:"refresh",menu:["File","Action","Help"]}
+};
+var RDPORDER=["aduc","gpmc","sync"];
+PAGES["ad.desktop"]=function(){return "";};
+function rdpEnsure(pg){if(!Array.isArray(S.rdpOpen)){S.rdpOpen=[];}if(RDPWIN[pg]&&S.rdpOpen.indexOf(pg)<0){S.rdpOpen.push(pg);}}
+A.rdpMin=function(){S.page="desktop";resetNav();};
+A.rdpClose=function(d){S.rdpOpen=(S.rdpOpen||[]).filter(function(x){return x!==d.pg;});if(S.page===d.pg){S.page=S.rdpOpen.length?S.rdpOpen[S.rdpOpen.length-1]:"desktop";}resetNav();navReset=true;};
+A.rdpTask=function(d){if(S.page===d.pg){A.rdpMin();}else{A.go({p:"ad",pg:d.pg});}};
+A.rdpDisc=function(){S.portal="env";S.page="map";resetNav();navReset=true;};
+function rdpHtml(content){
+  var open=S.rdpOpen||[],cur=RDPWIN[S.page]?S.page:null,w=cur?RDPWIN[cur]:null,win="";
+  if(w){
+    win='<section class="rwin" role="dialog" aria-label="'+esc(w.title)+'"><div class="rtitle">'+ico(w.icon)+'<span>'+esc(w.title)+'</span><span class="sp"></span>'+
+      '<button type="button" data-a="rdpMin" aria-label="Minimize">&#8211;</button><button type="button" data-a="rdpClose" data-pg="'+cur+'" aria-label="Close">'+ico("x")+'</button></div>'+
+      '<div class="rmenu">'+w.menu.map(function(m){return '<span>'+esc(m)+'</span>';}).join("")+'</div><main class="content rbody" id="main">'+content+'</main></section>';
+  }
+  var icons=RDPORDER.map(function(k){return '<button type="button" class="ricon" data-a="go" data-p="ad" data-pg="'+k+'">'+ico(RDPWIN[k].icon)+'<span>'+esc(RDPWIN[k].title)+'</span></button>';}).join("");
+  var tasks=RDPORDER.filter(function(k){return open.indexOf(k)>-1;}).map(function(k){return '<button type="button" class="rtask'+(cur===k?' on':'')+'" data-a="rdpTask" data-pg="'+k+'">'+ico(RDPWIN[k].icon)+'<span>'+esc(RDPWIN[k].title)+'</span></button>';}).join("");
+  return '<div class="rdp"><div class="rdpbar"><button type="button" data-a="rdpDisc">Disconnect</button><span class="rname">DC01.practice.local - Remote Desktop Connection</span><span class="rhint">Simulated session</span></div>'+
+    '<div class="rdesk"><div class="ricons">'+icons+'</div>'+win+'</div>'+
+    '<div class="rtb"><span class="rstart" aria-hidden="true"><i></i><i></i><i></i><i></i></span>'+tasks+'<span class="sp"></span><span class="rclock">Server time '+esc(adClock(S.ad.nowMin))+'</span></div></div>';
+}
