@@ -22,7 +22,7 @@ function R(){if(!S.remote){S.remote=remoteBlank();}return S.remote;}
 /* Machines the learner imaged and put the support agent on show up here too. */
 function rAll(){
   var extra=(S.devices||[]).filter(function(d){return d.fromBench&&d.agent;}).map(function(d){
-    return {id:d.id,name:d.name,grp:d.kind==="desktop"?"desktops":"laptops",os:d.os,role:d.kind==="desktop"?"Desktop":"Laptop",ip:"10.10.1."+(60+(+String(d.id).replace(/\D/g,"")||0)),user:"",online:true,seen:"Now"};});
+    return {id:d.id,name:d.name==="(not set up)"?compNameFor(d):d.name,grp:d.kind==="desktop"?"desktops":"laptops",os:d.os,role:d.kind==="desktop"?"Desktop":"Laptop",ip:"10.10.1."+(60+(+String(d.id).replace(/\D/g,"")||0)),user:"",online:true,seen:"Now"};});
   return RMACH.concat(extra);
 }
 function rMach(id){return rAll().filter(function(m){return m.id===id;})[0];}
