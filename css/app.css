@@ -489,7 +489,7 @@ body[data-portal="vm"] .phdr{background:#2b2b2b}
   body[data-portal="vm"].guide-open .content{padding-right:404px}
   body[data-portal="vm"].guide-open .vmgrid{grid-template-columns:1fr}
 }
-.vm{position:relative;width:900px;height:562px;margin:0 30px;border:12px solid #151515;border-bottom-width:16px;border-radius:16px 16px 4px 4px;overflow:hidden;background:#0b1a33;color:#fff;font-family:"Segoe UI",system-ui,sans-serif;font-size:14px;line-height:20px;isolation:isolate}
+.vm{position:relative;width:960px;height:580px;margin:0;border:0;border-radius:6px;overflow:hidden;box-shadow:0 8px 24px #0006;background:#0b1a33;color:#fff;font-family:"Segoe UI",system-ui,sans-serif;font-size:14px;line-height:20px;isolation:isolate}
 .vm button,.vm input{font-family:inherit}
 .vm .wall{position:absolute;inset:0;background:radial-gradient(ellipse at 62% 54%,#53a7ee 0 8%,#1876d1 18%,#0d56b6 39%,#082b78 70%,#061b50 100%);z-index:0}
 .vm .wall::before,.vm .wall::after{content:"";position:absolute;border-radius:46% 54% 58% 42%;border:26px solid rgba(116,196,255,.34);filter:blur(1px);transform:rotate(-18deg)}
@@ -714,3 +714,18 @@ body[data-portal="vm"] .phdr{background:#2b2b2b}
 .rscr.bs{background:#060d10;padding:16px;gap:8px}.bst{color:var(--rt);margin-bottom:8px}.rscr.bs .rterm{height:calc(100% - 70px);flex:1}
 .rc th{background:transparent}.rc .rtbl.light th{background:#ececec;color:#444}.rwinx .rb{background:#e6e6e6;color:#1a1a1a;border-color:#b5b5b5}.rwinx .rb:hover{border-color:#0b6bcb}
 .rc td{color:inherit}.rwinx .rtbl td{color:#1a1a1a}
+
+/* ---------- Virtual laptop as a workstation window ---------- */
+body[data-portal="vm"],body[data-portal="vm"] .content{background:#243447}
+body[data-portal="vm"] .content{padding:12px 14px 70px}
+.vmws{position:relative}
+.vmtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#fff;margin-bottom:6px}
+.vmtop b{font-size:15px}.vmsws{display:flex;gap:6px}
+.vmsw{background:none;border:1px solid #8aa0b6;color:#e7eef5;border-radius:16px;padding:3px 12px;font-size:12px;cursor:pointer}
+.vmsw[aria-current]{background:#1b3a57;border-color:#7fb4ea;color:#fff}
+.vmstat{font-size:12px;color:#b9c8d6}.vmsp{flex:1}
+.vmb{background:#1b3a57;border:1px solid #4e6a86;color:#fff;border-radius:4px;padding:4px 12px;font-size:12px;cursor:pointer}.vmb.on{border-color:#7fb4ea}
+.vmhint{font-size:12px;color:#cdd9e5;margin-bottom:8px}
+body[data-portal="vm"] .laptop{padding-bottom:0}
+body[data-portal="vm"] .vmside{position:absolute;right:0;top:34px;width:380px;max-height:calc(100% - 40px);overflow:auto;grid-template-columns:1fr;z-index:20;background:#243447;border:1px solid #4e6a86;border-radius:6px;padding:8px;box-shadow:0 10px 30px #000a}
+body[data-portal="vm"] .vmside .tile{background:var(--panel);color:var(--ink)}

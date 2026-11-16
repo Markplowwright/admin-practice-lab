@@ -208,6 +208,7 @@ function completeScenario(w, id) {
   const css = fs.readFileSync(path.join(root, "css", "app.css"), "utf8");
   assert.match(css, /\.tag\.ad/);
   assert.match(css, /\.vmside/);
+  w.S.vmRef = true;
   const page = w.vmPage();
   assert.match(page, /Windows Terminal command guide/);
   assert.match(page, /vmcredentials/);

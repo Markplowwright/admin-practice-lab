@@ -218,12 +218,13 @@ document.addEventListener("input",function(e){
    Tickets do not get this on purpose. They keep the Hint button. */
 function spotTarget(step){
   var segs=step[2][2].split(">").map(function(x){return x.trim().toLowerCase();}).filter(Boolean);
-  var nodes=[].slice.call(document.querySelectorAll("#app button,#app a,#app [data-a],#app th,#app td,#app label")).filter(function(n){
-    return !n.closest(".dock,.wsbar,.coach,.edge");});
+  var nodes=[].slice.call(document.querySelectorAll("#app button,#app a,#app [data-a],#app [data-spot],#app th,#app td,#app label")).filter(function(n){
+    return !n.closest(".dock,.wsbar,.coach,.edge")&&!n.disabled;});
   for(var i=segs.length-1;i>=0;i--){
     for(var j=0;j<nodes.length;j++){
       var t=nodes[j].textContent.trim().toLowerCase().replace(/\s+/g," ");
-      if(t===segs[i]){return nodes[j].getAttribute("aria-current")?null:nodes[j];}
+      var sp=(nodes[j].getAttribute("data-spot")||"").toLowerCase().split("|");
+      if(t===segs[i]||sp.indexOf(segs[i])>-1||(nodes[j].getAttribute("aria-label")||"").toLowerCase()===segs[i]){return nodes[j].getAttribute("aria-current")?null:nodes[j];}
     }
   }
   return null;

@@ -154,9 +154,9 @@ A.vmDlgNext=function(){
 function ssidList(){return [["Practice-Corp","Practice-Corp","Secured, staff network"],["Practice-Guest","Practice-Guest","Secured, guest network"]];}
 function oobeHtml(d){
   var v=d.vm,s=v.oobe,h="";
-  if(s==="region"){h=oobeCard("Is this the right country or region?",'<div class="olist"><div class="oi sel">United States</div><div class="oi">Canada</div><div class="oi">United Kingdom</div></div>',[wb("Yes","vmOobeNext",{pri:1})]);}
-  else if(s==="keyboard"){h=oobeCard("Is this the right keyboard layout?",'<div class="olist"><div class="oi sel">US</div><div class="oi">Canadian French</div></div>',[wb("Yes","vmOobeNext",{pri:1})]);}
-  else if(s==="network"){h=oobeCard("Let's connect you to a network",'<div class="olist">'+ssidList().map(function(n){return '<button type="button" class="oi'+(v.ssid===n[0]?' sel':'')+'" data-a="vmSsid" data-s="'+n[0]+'">'+esc(n[1])+'<small>'+esc(n[2])+(v.ssid===n[0]?" - connected, "+ipFor(d):"")+'</small></button>';}).join("")+'</div>',[wb("Next","vmOobeNext",{pri:1,dis:!v.ssid})]);}
+  if(s==="region"){h=oobeCard("Is this the right country or region?",'<div class="olist"><div class="oi sel">United States</div><div class="oi">Canada</div><div class="oi">United Kingdom</div></div>',[wb("Yes","vmOobeNext",{pri:1,d:{spot:"Region"}})]);}
+  else if(s==="keyboard"){h=oobeCard("Is this the right keyboard layout?",'<div class="olist"><div class="oi sel">US</div><div class="oi">Canadian French</div></div>',[wb("Yes","vmOobeNext",{pri:1,d:{spot:"Keyboard"}})]);}
+  else if(s==="network"){h=oobeCard("Let's connect you to a network",'<div class="olist">'+ssidList().map(function(n){return '<button type="button" class="oi'+(v.ssid===n[0]?' sel':'')+'" data-a="vmSsid" data-s="'+n[0]+'" data-spot="Network ('+esc(n[1])+')">'+esc(n[1])+'<small>'+esc(n[2])+(v.ssid===n[0]?" - connected, "+ipFor(d):"")+'</small></button>';}).join("")+'</div>',[wb("Next","vmOobeNext",{pri:1,dis:!v.ssid})]);}
   else if(s==="apsignin"){h='<div class="oobe"><div class="ocard wide"><div class="obadge">Autopilot: this laptop was recognized by its serial number ('+esc(d.serial)+')</div>'+(v.dlg?dlgInner(d):"")+'</div></div>';}
   else if(s==="espok"){h=oobeCard("Your device is ready",'<ul class="esp"><li class="ok">Device preparation</li><li class="ok">Device setup</li><li class="ok">Account setup</li></ul><p>'+esc(d.name)+' is joined to Microsoft Entra ID and enrolled in Intune.</p>',[wb("Continue to desktop","vmEspDone",{pri:1})]);}
   else if(s==="espfail"){h=oobeCard("We ran into a problem during device setup",'<ul class="esp"><li class="ok">Device preparation</li><li class="bad">Device setup</li><li>Account setup</li></ul><div class="wmsg bad">'+esc(d.mdmWhy||"Enrollment failed.")+'</div><p>You can fix the cause in the admin centers (use the tabs at the top), then try again.</p>',[wb("Try again","vmEspRetry",{pri:1}),wb("Reset device","vmReset")]);}
@@ -195,9 +195,9 @@ A.vmReset=function(){var d=curDev();resetDevice(d);toast("The laptop was reset t
 /* ----- lock screen ----- */
 function lockHtml(d){
   var v=d.vm,tiles="";
-  v.locals.forEach(function(l){tiles+='<button type="button" class="tile'+(v.pick==="l:"+l.name?' on':'')+'" data-a="vmPick" data-k="l:'+esc(l.name)+'"><span class="av">'+esc(l.name[0])+'</span><span>'+esc(l.name)+'<small>'+(l.admin?"Local administrator":"Local account")+'</small></span></button>';});
-  v.work.forEach(function(id){var u=U(id);if(u&&!u.deleted){tiles+='<button type="button" class="tile'+(v.pick==="w:"+id?' on':'')+'" data-a="vmPick" data-k="w:'+id+'"><span class="av w">'+esc(u.name[0])+'</span><span>'+esc(u.name)+'<small>'+esc(upn(u))+'</small></span></button>';}});
-  tiles+='<button type="button" class="tile" data-a="vmDlgOpen" data-mode="lock"><span class="av">+</span><span>Other user<small>Sign in with a work account</small></span></button>';
+  v.locals.forEach(function(l){tiles+='<button type="button" class="tile'+(v.pick==="l:"+l.name?' on':'')+'" data-a="vmPick" data-k="l:'+esc(l.name)+'" data-spot="'+esc(l.name)+'"><span class="av">'+esc(l.name[0])+'</span><span>'+esc(l.name)+'<small>'+(l.admin?"Local administrator":"Local account")+'</small></span></button>';});
+  v.work.forEach(function(id){var u=U(id);if(u&&!u.deleted){tiles+='<button type="button" class="tile'+(v.pick==="w:"+id?' on':'')+'" data-a="vmPick" data-k="w:'+id+'" data-spot="'+esc(u.name)+'"><span class="av w">'+esc(u.name[0])+'</span><span>'+esc(u.name)+'<small>'+esc(upn(u))+'</small></span></button>';}});
+  tiles+='<button type="button" class="tile" data-a="vmDlgOpen" data-mode="lock" data-spot="Other user"><span class="av">+</span><span>Other user<small>Sign in with a work account</small></span></button>';
   return '<div class="wall lockwall"></div><div class="lockclock"><b>9:41</b><span>Thursday, October 8</span></div>'+
    (v.dlg?'<div class="vmdlg">'+dlgInner(d)+'</div>':'<div class="locktiles">'+tiles+(v.pick?'<div class="lockpw">'+vi("lockpw","Password","password","","vmLockIn")+wb("Sign in","vmLockIn",{pri:1})+(v.msg?'<div class="wmsg bad">'+esc(v.msg)+'</div>':'')+'</div>':'')+'</div>');
 }
@@ -242,12 +242,12 @@ function desktopHtml(d){
   if(enrolledOk(d)){apps.push(["portal","Company Portal"]);}
   var ia=installedApps(d),extra=ia.filter(function(n){return ["Microsoft Edge","Notepad","Windows Security","Company Portal"].indexOf(n)<0;});
   if(v.start){
-    start='<div class="startmenu"><div class="startsearch">Search for apps, settings, and documents</div><div class="startlabel"><b>Pinned</b><span>All apps &gt;</span></div><div class="sgrid">'+apps.map(function(a){return '<button type="button" class="sapp" data-a="vmOpen" data-app="'+a[0]+'"><span class="sic">'+(a[2]||esc(a[1][0]))+'</span>'+esc(a[1])+'</button>';}).join("")+
+    start='<div class="startmenu"><div class="startsearch">Search for apps, settings, and documents</div><div class="startlabel"><b>Pinned</b><span>All apps &gt;</span></div><div class="sgrid">'+apps.map(function(a){return '<button type="button" class="sapp" data-a="vmOpen" data-app="'+a[0]+'" data-spot="'+esc(a[0]==="terminal"?"Command Prompt|Terminal":a[1])+'"><span class="sic">'+(a[2]||esc(a[1][0]))+'</span>'+esc(a[1])+'</button>';}).join("")+
       extra.map(function(n){return '<button type="button" class="sapp" data-a="vmFake" data-n="'+esc(n)+'"><span class="sic">'+esc(n[0])+'</span>'+esc(n)+'</button>';}).join("")+'</div>'+
       '<div class="sfoot"><span><span class="av">'+esc((name||"?")[0])+'</span> '+esc(name)+'</span><span>'+wb("Sign out","vmSignout")+wb("Restart","vmRestart")+'</span></div></div>';
   }
   return '<div class="wall"></div><div class="dicons"><button type="button" class="dicon" data-a="vmOpen" data-app="explorer"><span class="sic">&#128187;</span>This PC</button><div class="dicon"><span class="sic">&#9851;</span>Recycle Bin</div>'+(enrolledOk(d)?'<button type="button" class="dicon" data-a="vmOpen" data-app="portal"><span class="sic">C</span>Company Portal</button>':'')+'</div>'+win+start+
-   '<div class="taskbar"><div class="tcenter"><button type="button" class="tbtn starticon" data-a="vmStart" aria-label="Start">&#8862;</button><button type="button" class="tsearch" data-a="vmStart">&#128269; Search</button><button type="button" class="tbtn'+(v.app==="explorer"?' on':'')+'" data-a="vmOpen" data-app="explorer" aria-label="File Explorer">&#128193;</button><button type="button" class="tbtn'+(v.app==="settings"?' on':'')+'" data-a="vmOpen" data-app="settings" aria-label="Settings">&#9881;</button><button type="button" class="tbtn'+((v.app==="terminal"||v.app==="cmd")?' on':'')+'" data-a="vmOpen" data-app="terminal" aria-label="Windows Terminal">&gt;_</button></div><div class="ttray"><span class="trayicons">&#8963; '+(v.ssid?"&#9673;":"&#8856;")+' &#128266;</span><span>'+esc(v.ssid||"No network")+'<br>9:41 AM</span></div></div>'+
+   '<div class="taskbar"><div class="tcenter"><button type="button" class="tbtn starticon" data-a="vmStart" aria-label="Start" data-spot="Start">&#8862;</button><button type="button" class="tsearch" data-a="vmStart">&#128269; Search</button><button type="button" class="tbtn'+(v.app==="explorer"?' on':'')+'" data-a="vmOpen" data-app="explorer" aria-label="File Explorer">&#128193;</button><button type="button" class="tbtn'+(v.app==="settings"?' on':'')+'" data-a="vmOpen" data-app="settings" aria-label="Settings">&#9881;</button><button type="button" class="tbtn'+((v.app==="terminal"||v.app==="cmd")?' on':'')+'" data-a="vmOpen" data-app="terminal" aria-label="Windows Terminal">&gt;_</button></div><div class="ttray"><span class="trayicons">&#8963; '+(v.ssid?"&#9673;":"&#8856;")+' &#128266;</span><span>'+esc(v.ssid||"No network")+'<br>9:41 AM</span></div></div>'+
    (v.dlg?'<div class="vmdlg">'+dlgInner(d)+'</div>':'');
 }
 A.vmStart=function(){var v=curDev().vm;v.start=!v.start;};
@@ -460,7 +460,7 @@ function runPowerShell(d,line){
 }
 function terminalHtml(d){
   var v=d.vm,shell=v.termShell||"cmd",hist=shell==="ps"?v.ps:v.cmd,prompt=shell==="ps"?psPrompt(d):cmdPrompt(d);
-  return '<div class="win cmdwin terminalwin">'+winChrome("Windows Terminal")+'<div class="termtabs"><button type="button" class="'+(shell==="cmd"?'on':'')+'" data-a="vmTermShell" data-shell="cmd">Command Prompt</button><button type="button" class="'+(shell==="ps"?'on':'')+'" data-a="vmTermShell" data-shell="ps">Windows PowerShell</button><span class="termplus">+</span></div><pre class="cmdout">'+esc(hist.join("\n"))+'</pre><div class="cmdin"><span>'+esc(prompt)+'</span><input type="text" data-vi="cmdin" data-enter="vmCmd" autocomplete="off" aria-label="'+(shell==="ps"?"PowerShell":"Command Prompt")+' command" value="'+esc(S.vmIn.cmdin||"")+'" placeholder="'+(shell==="ps"?"Try: Get-NetIPConfiguration":"Try: ping 8.8.8.8")+'"><button type="button" class="wbtn pri" data-a="vmCmd">Run</button></div></div>';
+  return '<div class="win cmdwin terminalwin">'+winChrome("Windows Terminal")+'<div class="termtabs"><button type="button" class="'+(shell==="cmd"?'on':'')+'" data-a="vmTermShell" data-shell="cmd">Command Prompt</button><button type="button" class="'+(shell==="ps"?'on':'')+'" data-a="vmTermShell" data-shell="ps">Windows PowerShell</button><span class="termplus">+</span></div><pre class="cmdout">'+esc(hist.join("\n"))+'</pre><div class="cmdin"><span>'+esc(prompt)+'</span><input type="text" data-vi="cmdin" data-enter="vmCmd" data-spot="dsregcmd /status|gpupdate /force|gpresult /r" autocomplete="off" aria-label="'+(shell==="ps"?"PowerShell":"Command Prompt")+' command" value="'+esc(S.vmIn.cmdin||"")+'" placeholder="'+(shell==="ps"?"Try: Get-NetIPConfiguration":"Try: ping 8.8.8.8")+'"><button type="button" class="wbtn pri" data-a="vmCmd">Run</button></div></div>';
 }
 function cmdHtml(d){return terminalHtml(d);}
 A.vmTermShell=function(ds){var v=curDev().vm;v.termShell=ds.shell;S.vmIn.cmdin="";};
@@ -501,17 +501,24 @@ function vmSide(d){
   v.locals.forEach(function(l){rows+='<tr><td>'+esc(l.name)+'</td><td class="mono">'+esc(l.pw)+'</td></tr>';});
   live().forEach(function(u){rows+='<tr><td class="mono">'+esc(upn(u))+'</td><td class="mono">'+esc(u.pw||"-")+(u.mustChange?' <small>(must change)</small>':'')+'</td></tr>';});
   rows+='<tr><td class="mono">'+esc(S.ad.adminUser)+'</td><td class="mono">'+esc(S.ad.adminPw)+'</td></tr>';
-  return '<div class="tile vmwhat"><h3>What to do</h3><p>'+esc(vmTip(d))+'</p></div>'+terminalGuideHtml(d)+
+  return terminalGuideHtml(d)+
     '<div class="tile vmcredentials"><h3>Practice credentials</h3><p class="psub">Normally these come from a ticket or the user. Every credential here is fake.</p><div class="tbl"><table><thead><tr><th>Account</th><th>Password</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'+
     '<div class="tile vmstatus"><h3>Laptop status</h3>'+grid([["Name",esc(d.name)],["Domain",d.domainJoined?"practice.local":"Not joined"],["Entra",d.azureAdJoined&&d.domainJoined?"Hybrid joined":d.join==="joined"?"Joined":d.join==="registered"?"Registered":"Not connected"],["Intune",d.state==="enrolled"?"Managed":"Not managed"]])+'</div>';
 }
+function vmStrip(d){
+  var sw=vmDevices().map(function(x){var lab=x.spare?"Lenovo ThinkPad E14":x.maker+" "+x.model;return '<button type="button" class="vmsw" data-a="go" data-p="vm" data-pg="'+x.id+'" data-spot="'+(x.spare?"Spare ThinkPad":"Dell Latitude")+'"'+(S.page===x.id?' aria-current="true"':'')+'>'+esc(lab)+'</button>';}).join("");
+  var ent=d.azureAdJoined&&d.domainJoined?"Hybrid joined":d.join==="joined"?"Joined":d.join==="registered"?"Registered":"Not connected";
+  return '<div class="vmtop"><span class="vmsws">'+sw+'</span><span class="vmstat">Domain: '+(d.domainJoined?"practice.local":"not joined")+' &middot; Entra: '+ent+' &middot; Intune: '+(d.state==="enrolled"?"Managed":"Not managed")+'</span><span class="vmsp"></span>'+
+    '<button type="button" class="vmb'+(S.vmRef?' on':'')+'" data-a="vmRef" aria-expanded="'+(S.vmRef?"true":"false")+'">Practice notes</button><button type="button" class="vmb" data-a="vmReset">Reset this PC</button></div>';
+}
+A.vmRef=function(){S.vmRef=!S.vmRef;};
 function vmPage(){
   var d=curDev();
   if(!d||!(d.autopilot||d.vm||d.spare)){S.page="d2";d=D("d2");}
   var v=ensureVm(d);
   if(d.state==="wiping"){resetDevice(d);v=d.vm;toast("The Intune wipe command arrived. The laptop restarted into setup.");}
   var scr=v.stage==="oobe"?oobeHtml(d):v.stage==="lock"?lockHtml(d):desktopHtml(d);
-  return '<h1 class="ptitle">Windows laptop (virtual machine)'+info("oobe")+'</h1><p class="psub">'+esc(d.maker+" "+d.model)+', serial <span class="mono">'+esc(d.serial)+'</span>. Whatever you do here is reflected in Entra and Intune.</p>'+
-    '<div class="vmbar">'+B("Reset this PC","vmReset",{sm:1})+'</div><div class="vmgrid"><div class="laptop" id="laptop"><div class="lwrap"><div class="lscale"><div class="vm" id="vmscreen">'+scr+'</div><div class="lbase" aria-hidden="true"></div></div></div></div><section class="vmside" aria-label="Virtual laptop setup and reference">'+vmSide(d)+'</section></div>';
+  return '<div class="vmws">'+vmStrip(d)+'<div class="vmhint">'+esc(vmTip(d))+'</div><div class="vmgrid"><div class="laptop" id="laptop"><div class="lwrap"><div class="lscale"><div class="vm" id="vmscreen">'+scr+'</div></div></div></div>'+
+    (S.vmRef?'<section class="vmside" aria-label="Practice notes">'+vmSide(d)+'</section>':'')+'</div></div>';
 }
 A.openVm=function(ds){var d=D(ds.id);if(!d){return;}ensureVm(d);S.portal="vm";S.page=d.id;resetNav();};

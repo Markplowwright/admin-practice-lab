@@ -384,3 +384,12 @@ test("saved lab from before the console existed loads", function () {
   const w = boot(); const o = JSON.parse(JSON.stringify(w.S)); delete o.remote; o.version = 7;
   const m = w.Lab.migrate(o); assert.equal(m.version, w.STATE_VERSION); assert.equal(m.remote, null);
 });
+test("virtual laptop fills the workspace with no portal chrome and spotlights its steps", function () {
+  const w = boot(); w.S.onboarded = true; w.A.startMission({ t: "Set up Priya's laptop on the virtual Windows PC" });
+  w.render(); const d = w.document;
+  assert.equal(d.querySelectorAll(".edge, .phdr, .lnav").length, 0);
+  assert.ok(d.querySelector(".vmtop"), "top strip");
+  assert.ok(d.querySelector(".vm"), "laptop screen");
+  assert.ok(d.querySelector(".spot"), "first laptop step is highlighted");
+  assert.equal(d.querySelector(".vmside"), null, "practice notes closed by default");
+});
