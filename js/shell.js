@@ -27,6 +27,7 @@ function taskbar(){
     tb("Edge","globe",'data-a="go" data-p="'+web+'" data-pg="'+DEFAULT[web]+'"',isWeb(S.portal))+
     tb("DC01 (Remote Desktop)","users",'data-a="go" data-p="ad" data-pg="'+(S.portal==="ad"?S.page:(S.rdpLast||"aduc"))+'"',S.portal==="ad")+
     tb("Remote support","key",'data-a="go" data-p="remote" data-pg="'+((S.remote&&S.remote.sess)?"session":(S.portal==="remote"?S.page:"console"))+'"',S.portal==="remote")+
+    tb("Procurement","download",'data-a="go" data-p="procure" data-pg="'+(S.portal==="procure"?S.page:"order")+'"',S.portal==="procure")+
     tb("Virtual laptop","device",'data-a="go" data-p="vm" data-pg="d2"',S.portal==="vm")+
     tb("Toolkit","search",'data-a="go" data-p="tools" data-pg="links"',S.portal==="tools")+
     tb("Learn "+trainProgress()[0]+" of "+trainProgress()[1],"help",'data-a="go" data-p="learn" data-pg="path"',S.portal==="learn")+
@@ -56,7 +57,7 @@ PAGES["env.map"]=function(){
   var dc='<div class="'+cls("dc01")+'" style="grid-area:dc"><div class="mh"><b>DC01 &middot; domain controller</b>'+(pend?badge(pend+(pend===1?" change":" changes")+" not synced","warn"):badge("In sync","ok"))+'</div><span>Active Directory, Group Policy, Entra Connect</span>'+
     '<div class="mbtn"><button type="button" class="pri" '+go("ad","aduc")+'>Users and Computers</button><button type="button" '+go("ad","gpmc")+'>Group Policy</button><button type="button" '+go("ad","sync")+'>Entra Connect</button></div></div>';
   var files='<div class="'+cls("files01","still")+'" style="grid-area:files"><div class="mh"><b>FILES01 &middot; file server</b></div><span>Finance share, mapped by Group Policy. Not opened in this lab: it explains why Finance group membership matters.</span></div>';
-  var laps='<div class="laps" style="grid-area:laps">'+laptop(D("d1"),"Sam's laptop, Intune")+laptop(D("d2"),"Autopilot")+laptop(D("d3"),"Spare, manual join")+'</div>';
+  var laps='<div class="laps" style="grid-area:laps">'+laptop(D("d1"),"Sam's laptop, Intune")+laptop(D("d2"),"Autopilot")+laptop(D("d3"),"Spare, manual join")+'<button type="button" class="'+cls("bench","lap")+'" '+go("procure","bench")+'><b>Staging bench</b><span>New devices to image</span>'+(pBenchCount()?badge(pBenchCount()+" waiting","warn"):badge("Empty","ok"))+'</button></div>';
   function cloud(area,key,p,pg,title,sub,badgeHtml){return '<button type="button" class="'+cls(key)+'" style="grid-area:'+area+'" '+go(p,pg)+'><b>'+esc(title)+'</b><span>'+esc(sub)+'</span>'+(badgeHtml||"")+'</button>';}
   return '<div class="envwin"><div class="envt">Practice Corp environment</div><div class="envcap">'+(tkt?'Heavy outline: needed for the open ticket. Click a system to open its tool.':'Click a system to open its tool.')+'</div>'+
     '<div class="envmap"><div class="zone zl"><span>On-premises &middot; practice.local</span></div><div class="zone zr"><span>Microsoft cloud</span></div>'+
