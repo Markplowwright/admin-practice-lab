@@ -91,9 +91,16 @@ PAGES["tools.links"]=function(){
    scenarioDone() (resulting state), now confirmed with the Resolve button, like closing a real ticket. */
 var dockMsg="";
 function ticketNo(id){return 1039+parseInt(id.slice(1),10);}
+function pickerDock(){
+  var h='<aside class="dock" aria-label="Ticket queue"><div class="dtop"><b>Ticket queue</b><span>'+SCENARIOS.filter(function(x){return S.scenarios.completed[x.id];}).length+' of '+SCENARIOS.length+' resolved</span></div>'+
+    '<p class="dq">Pick a ticket to work. Each one is isolated, so your main lab progress is never changed.</p>';
+  SCENARIOS.forEach(function(x){var done=!!S.scenarios.completed[x.id];
+    h+='<div class="tk"><div class="tkh"><b>#'+ticketNo(x.id)+' '+esc(x.title)+'</b></div><div class="tkb">'+badge(x.difficulty,x.difficulty==="Hard"?"bad":x.difficulty==="Medium"?"warn":"ok")+(done?badge("Resolved","ok"):"")+'</div><p>'+esc(x.ticket)+'</p>'+B(done?"Practice again":"Start ticket","startScenario",{sm:1,primary:!done,d:{id:x.id}})+'</div>';});
+  return h+'</aside>';
+}
 function ticketDock(){
   var id=S.scenarios.active;
-  if(!id){return "";}
+  if(!id){return S.portal==="env"?pickerDock():"";}
   var s=SCENARIOS.filter(function(x){return x.id===id;})[0],steps=scenarioSteps(id),done=!!S.scenarios.completed[id];
   var open=steps.filter(function(x){return !x[1];}),h='<aside class="dock" aria-label="Ticket"><div class="dtop"><b>Ticket #'+ticketNo(id)+'</b>'+badge(s.difficulty,s.difficulty==="Hard"?"bad":s.difficulty==="Medium"?"warn":"ok")+badge(done?"Resolved":"Open",done?"ok":"info")+'</div>'+
     '<h3>'+esc(s.title)+'</h3><p class="dq">'+esc(s.ticket)+'</p><div class="dh">Done when</div><ul class="dl">'+steps.map(function(x){return '<li class="'+(x[1]?'on':'')+'"><i aria-hidden="true">'+(x[1]?"&#10003;":"")+'</i><span>'+esc(x[0])+'</span></li>';}).join("")+'</ul>';
@@ -101,10 +108,11 @@ function ticketDock(){
   if(!done&&S.scenarios.hint[id]){h+='<div class="msg">'+esc(s.hint)+'</div>';}
   if(!done&&dockMsg){h+='<div class="msg warn">'+esc(dockMsg)+'</div>';}
   if(!done&&S.scenarios.wrong[id]){h+='<div class="msg warn">That action did not fix the authoritative cause. Read the object source and follow the ticket evidence before trying again.</div>';}
+  h+='<div class="dh">Ticket note</div><textarea class="dnote" data-note="'+id+'" rows="4" placeholder="What did you find, and what did you change?">'+esc((S.scenarios.notes||{})[id]||"")+'</textarea>';
   if(done){h+='<div class="why"><b>Why this happens</b><p>'+esc(s.cause)+'</p><p><b>What to say:</b> '+esc(s.say)+'</p><p><b>Good ticket note:</b> '+esc(s.note)+'</p></div>'+
     '<div class="btnrow">'+B("Next ticket","nextTicket",{primary:1})+B("Practice again","startScenario",{sm:1,d:{id:id}})+'</div>';}
-  else{h+='<div class="btnrow">'+B("Resolve ticket","resolveTicket",{primary:1})+B(S.scenarios.hint[id]?"Hide hint":"Hint","scenarioHint",{sm:1,d:{id:id}})+'</div><div class="btnrow">'+B("Reset this ticket","resetScenario",{sm:1})+B("Leave ticket","exitScenario",{sm:1})+'</div>'+
-    (id==="s1"?B("Tell Dana to update her phone password","scenarioPhone",{sm:1}):"")+'<p class="small">Completion checks the resulting state in the lab, not which buttons you clicked.</p>';}
+  else{h+='<div class="btnrow">'+B(open.length?"Resolve ticket ("+open.length+" left)":"Resolve ticket","resolveTicket",{primary:!open.length})+B(S.scenarios.hint[id]?"Hide hint":"Hint","scenarioHint",{sm:1,d:{id:id}})+'</div><div class="btnrow">'+B("Reset this ticket","resetScenario",{sm:1})+B("Leave ticket","exitScenario",{sm:1})+'</div>'+
+    (id==="s1"?B("Tell Dana to update her phone password","scenarioPhone",{sm:1}):"")+'<p class="small">Completion checks the resulting state in the lab, not which buttons you clicked. A good ticket note is shown after you resolve it.</p>';}
   return h+'</aside>';
 }
 A.resolveTicket=function(){
@@ -189,4 +197,9 @@ document.addEventListener("dblclick",function(e){
   var tr=e.target.closest&&e.target.closest("#main tbody tr"),l=tr&&tr.querySelector(".lnk[data-kind]");
   if(!l){return;}
   A.adOpenProps({id:l.getAttribute("data-id")});render();
+});
+
+document.addEventListener("input",function(e){
+  var t=e.target;
+  if(t.hasAttribute&&t.hasAttribute("data-note")){S.scenarios.notes=S.scenarios.notes||{};S.scenarios.notes[t.getAttribute("data-note")]=t.value;save();}
 });

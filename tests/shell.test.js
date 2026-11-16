@@ -68,7 +68,7 @@ test("the Toolkit page links to real sites in new tabs", function () {
 
 test("an active scenario opens as a ticket dock and Resolve only works when the state is fixed", function () {
   const w = boot(); w.S.onboarded = true; w.S.portal = "env"; w.S.page = "map"; w.render();
-  assert.equal(w.document.querySelectorAll(".dock").length, 0);
+  assert.doesNotMatch(w.document.querySelector(".dock").textContent, /Ticket #/);
   w.A.startScenario({ id: "s1" }); w.render();
   const d = w.document;
   assert.equal(d.querySelectorAll(".dock").length, 1);
@@ -91,7 +91,7 @@ test("Next ticket leaves the scenario and returns to the environment map", funct
   w.document.querySelector('.dock [data-a="nextTicket"]').click();
   assert.equal(w.S.scenarios.active, null);
   assert.equal(w.S.portal, "env");
-  assert.equal(w.document.querySelectorAll(".dock").length, 0);
+  assert.match(w.document.querySelector(".dock").textContent, /Ticket queue/);
 });
 
 test("the site opens on the start screen, with Start Level 1 for a new lab", function () {
@@ -228,4 +228,32 @@ test("clicking map cards opens the matching tool", function () {
   go(w, "env", "map");
   d.querySelector('button.mapc[data-p="intune"]').click();
   assert.equal(w.S.portal, "intune");
+});
+
+test("with no ticket open the map has a ticket queue and Start opens that ticket", function () {
+  const w = boot(); w.S.onboarded = true; w.S.portal = "env"; w.S.page = "map"; w.render(); const d = w.document;
+  assert.match(d.querySelector(".dock").textContent, /Ticket queue/);
+  assert.equal(d.querySelectorAll(".dock .tk").length, 10);
+  assert.ok(d.body.classList.contains("dock-open"));
+  d.querySelector('.dock [data-a="startScenario"][data-id="s3"]').click();
+  assert.equal(w.S.scenarios.active, "s3");
+  assert.match(d.querySelector(".dock").textContent, /Ticket #1042/);
+  assert.ok(d.querySelectorAll(".mapc.need").length > 0);
+});
+
+test("the queue is not shown away from the map", function () {
+  const w = boot(); go(w, "entra", "overview");
+  assert.equal(w.document.querySelectorAll(".dock").length, 0);
+});
+
+test("Resolve shows how many steps are left and the ticket note is kept", function () {
+  const w = boot(); w.S.onboarded = true; w.S.portal = "env"; w.S.page = "map"; w.A.startScenario({ id: "s3" }); w.render(); const d = w.document;
+  assert.match(d.querySelector('.dock [data-a="resolveTicket"]').textContent, /Resolve ticket \(5 left\)/);
+  const ta = d.querySelector(".dnote");
+  ta.value = "Created Priya in Staff."; ta.dispatchEvent(new w.Event("input", { bubbles: true }));
+  assert.equal(w.S.scenarios.notes.s3, "Created Priya in Staff.");
+  w.A.resetScenario(); w.render();
+  assert.equal(d.querySelector(".dnote").value, "Created Priya in Staff.");
+  w.A.exitScenario(); w.A.startScenario({ id: "s3" }); w.render();
+  assert.equal(w.document.querySelector(".dnote").value, "Created Priya in Staff.");
 });
