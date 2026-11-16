@@ -40,7 +40,7 @@ test("the taskbar is on every screen and switches systems", function () {
   const w = boot(); go(w, "env", "map");
   const d = w.document;
   assert.ok(d.querySelector(".wsbar"));
-  assert.equal(d.querySelectorAll(".envc").length, 6);
+  assert.equal(d.querySelectorAll(".envc").length, 7);
   d.querySelector('.wsbar [data-p="ad"]').click();
   assert.equal(w.S.portal, "ad");
   assert.ok(d.querySelector(".wsbar"));
@@ -50,4 +50,18 @@ test("the Edge taskbar button returns to the last portal used", function () {
   const w = boot(); go(w, "intune", "home"); go(w, "ad", "aduc");
   w.document.querySelector('.wsbar [data-a="go"][data-p="intune"]').click();
   assert.equal(w.S.portal, "intune");
+});
+
+test("the Toolkit page links to real sites in new tabs", function () {
+  const w = boot(); go(w, "tools", "links");
+  const links = Array.from(w.document.querySelectorAll("a.tkc"));
+  assert.equal(links.length, 8);
+  links.forEach(function (a) {
+    assert.match(a.getAttribute("href"), /^https:\/\//);
+    assert.equal(a.getAttribute("target"), "_blank");
+    assert.match(a.getAttribute("rel"), /noopener/);
+  });
+  const hrefs = links.map(function (a) { return a.getAttribute("href"); });
+  ["https://mxtoolbox.com", "https://ipchicken.com", "https://haveibeenpwned.com"].forEach(function (h) { assert.ok(hrefs.indexOf(h) > -1, h); });
+  assert.equal(w.document.querySelectorAll(".edge").length, 0);
 });
