@@ -63,3 +63,37 @@ PAGES["tools.links"]=function(){
    TOOLKIT.map(function(g){return '<div class="envh tkh">'+esc(g.g)+'</div><div class="tkgrid">'+g.t.map(function(x){var host=x[1].replace(/^https:\/\//,"").replace(/\/$/,"");
      return '<a class="envc tkc" href="'+esc(x[1])+'" target="_blank" rel="noopener noreferrer"><b>'+esc(x[0])+'</b><span><b>Use it when:</b> '+esc(x[2])+'</span><span><b>Look for:</b> '+esc(x[3])+'</span><span class="envw">Open '+esc(host)+' &#8599;</span></a>';}).join("")+'</div>';}).join("");
 };
+
+/* =============== TICKET DOCK =============== */
+/* The active scenario is shown as a help desk ticket on the right. Completion is still decided by
+   scenarioDone() (resulting state), now confirmed with the Resolve button, like closing a real ticket. */
+var dockMsg="";
+function ticketNo(id){return 1039+parseInt(id.slice(1),10);}
+function ticketDock(){
+  var id=S.scenarios.active;
+  if(!id){return "";}
+  var s=SCENARIOS.filter(function(x){return x.id===id;})[0],steps=scenarioSteps(id),done=!!S.scenarios.completed[id];
+  var open=steps.filter(function(x){return !x[1];}),h='<aside class="dock" aria-label="Ticket"><div class="dtop"><b>Ticket #'+ticketNo(id)+'</b>'+badge(s.difficulty,s.difficulty==="Hard"?"bad":s.difficulty==="Medium"?"warn":"ok")+badge(done?"Resolved":"Open",done?"ok":"info")+'</div>'+
+    '<h3>'+esc(s.title)+'</h3><p class="dq">'+esc(s.ticket)+'</p><div class="dh">Done when</div><ul class="dl">'+steps.map(function(x){return '<li class="'+(x[1]?'on':'')+'"><i aria-hidden="true">'+(x[1]?"&#10003;":"")+'</i><span>'+esc(x[0])+'</span></li>';}).join("")+'</ul>';
+  if(!done&&open.length){h+='<div class="dn"><b>Next up</b>'+esc(open[0][0])+'</div>';}
+  if(!done&&S.scenarios.hint[id]){h+='<div class="msg">'+esc(s.hint)+'</div>';}
+  if(!done&&dockMsg){h+='<div class="msg warn">'+esc(dockMsg)+'</div>';}
+  if(!done&&S.scenarios.wrong[id]){h+='<div class="msg warn">That action did not fix the authoritative cause. Read the object source and follow the ticket evidence before trying again.</div>';}
+  if(done){h+='<div class="why"><b>Why this happens</b><p>'+esc(s.cause)+'</p><p><b>What to say:</b> '+esc(s.say)+'</p><p><b>Good ticket note:</b> '+esc(s.note)+'</p></div>'+
+    '<div class="btnrow">'+B("Next ticket","nextTicket",{primary:1})+B("Practice again","startScenario",{sm:1,d:{id:id}})+'</div>';}
+  else{h+='<div class="btnrow">'+B("Resolve ticket","resolveTicket",{primary:1})+B(S.scenarios.hint[id]?"Hide hint":"Hint","scenarioHint",{sm:1,d:{id:id}})+'</div><div class="btnrow">'+B("Reset this ticket","resetScenario",{sm:1})+B("Leave ticket","exitScenario",{sm:1})+'</div>'+
+    (id==="s1"?B("Tell Dana to update her phone password","scenarioPhone",{sm:1}):"")+'<p class="small">Completion checks the resulting state in the lab, not which buttons you clicked.</p>';}
+  return h+'</aside>';
+}
+A.resolveTicket=function(){
+  var id=S.scenarios.active;
+  if(!id){return;}
+  if(scenarioDone(id)){S.scenarios.completed[id]=true;dockMsg="";toast("Ticket resolved.");return;}
+  var open=scenarioSteps(id).filter(function(x){return !x[1];}).map(function(x){return x[0];});
+  dockMsg="Not resolved yet. Still open: "+open.join("; ")+".";
+};
+A.nextTicket=function(){A.exitScenario();S.portal="env";S.page="map";resetNav();navReset=true;};
+(function(){var h=A.startScenario,r=A.resetScenario,x=A.exitScenario;
+  A.startScenario=function(d){dockMsg="";h(d);S.guide=false;};
+  A.resetScenario=function(){dockMsg="";r();};
+  A.exitScenario=function(){dockMsg="";x();};})();
