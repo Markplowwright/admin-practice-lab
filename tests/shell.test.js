@@ -155,3 +155,37 @@ test("Disconnect returns to the environment map", function () {
   w.document.querySelector('.rdpbar [data-a="rdpDisc"]').click();
   assert.equal(w.S.portal, "env");
 });
+
+test("Users and Computers has no portal page header and opens properties as a dialog", function () {
+  const w = boot(); go(w, "ad", "aduc"); const d = w.document;
+  assert.equal(d.querySelectorAll("#main .ptitle, #main .crumbs").length, 0);
+  assert.equal(d.querySelectorAll(".rdlg").length, 0);
+  const row = d.querySelector('#main .lnk[data-kind="user"]');
+  row.click();
+  assert.deepEqual(w.S.checked.length, 1);
+  assert.equal(d.querySelectorAll(".rdlg").length, 0);
+  d.querySelector("#main tbody tr").dispatchEvent(new w.MouseEvent("dblclick", { bubbles: true }));
+  assert.equal(d.querySelectorAll(".rdlg").length, 1);
+  assert.match(d.querySelector(".rdtitle").textContent, /Properties/);
+  d.querySelector('.rdtitle [data-a="back"]').click();
+  assert.equal(d.querySelectorAll(".rdlg").length, 0);
+});
+
+test("right-click on a user offers the real Active Directory actions", function () {
+  const w = boot(); go(w, "ad", "aduc"); const d = w.document;
+  d.querySelector('#main .lnk[data-kind="user"]').dispatchEvent(new w.MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 300, clientY: 300 }));
+  const menu = d.getElementById("ctx");
+  assert.ok(menu);
+  const labels = Array.from(menu.querySelectorAll("button")).map(function (b) { return b.textContent; });
+  ["Reset Password...", "Move...", "Add to a group...", "Properties"].forEach(function (l) { assert.ok(labels.indexOf(l) > -1, l); });
+  menu.querySelector('[data-a="adOpenProps"]').click();
+  assert.equal(d.getElementById("ctx"), null);
+  assert.equal(d.querySelectorAll(".rdlg").length, 1);
+});
+
+test("the Properties toolbar button works for the selected object", function () {
+  const w = boot(); go(w, "ad", "aduc"); const d = w.document;
+  d.querySelector('#main .lnk[data-kind="user"]').click();
+  d.querySelector('#main [data-a="adOpenProps"]').click();
+  assert.equal(d.querySelectorAll(".rdlg").length, 1);
+});

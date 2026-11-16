@@ -6,7 +6,7 @@ function adObject(id){
   return ADU(id)||ADC(id)||ADG(id);
 }
 function adTree(){
-  return '<nav class="adtree" aria-label="Active Directory tree"><div class="adtree-title">Active Directory Users and Computers</div>'+
+  return '<nav class="adtree" aria-label="Active Directory tree"><div class="adtree-title">Active Directory Users and Computers [DC01.practice.local]</div>'+
     '<button type="button" class="adnode root" data-a="adPickOu" data-id="domain">&#9662; practice.local</button>'+
     S.ad.ous.map(function(o){return '<button type="button" class="adnode child'+(S.ad.selectedOu===o.id?' on':'')+'" data-a="adPickOu" data-id="'+o.id+'">&#128193; '+esc(o.name)+(S.ad.syncScope.indexOf(o.id)>-1?' <span title="Included in sync">&#8635;</span>':'')+'</button>';}).join("")+
     '</nav>';
@@ -18,29 +18,34 @@ function adStatus(u){
 }
 function adUserRows(ou){
   return S.ad.users.filter(function(u){return (ou==="domain"||u.ou===ou)&&matchQ(u.name+u.sam+u.department);}).map(function(u){
-    return {id:u.id,cells:[lnk(u.name,"adSelect",u.id,' data-kind="user"'),"User",'<span class="mono">'+esc(u.sam)+'</span>',esc(u.department||"-"),adStatus(u),u.cloudId&&!U(u.cloudId).deleted?badge("Synced","ok"):badge("Not in Entra","warn")]};
+    return {id:u.id,cells:[lnk(u.name,"adRow",u.id,' data-kind="user"'),"User",'<span class="mono">'+esc(u.sam)+'</span>',esc(u.department||"-"),adStatus(u),u.cloudId&&!U(u.cloudId).deleted?badge("Synced","ok"):badge("Not in Entra","warn")]};
   });
 }
 function adComputerRows(ou){
   return S.ad.computers.filter(function(c){return (ou==="domain"||c.ou===ou)&&matchQ(c.name);}).map(function(c){
-    return {id:c.id,cells:[lnk(c.name,"adSelect",c.id,' data-kind="computer"'),"Computer","-",esc(adOuName(c.ou)),c.enabled?badge(c.trustOk===false?"Trust failed":"Enabled",c.trustOk===false?"bad":"ok"):badge("Disabled","bad"),c.deviceId&&D(c.deviceId)&&D(c.deviceId).azureAdJoined?badge("Hybrid joined","ok"):"-"]};
+    return {id:c.id,cells:[lnk(c.name,"adRow",c.id,' data-kind="computer"'),"Computer","-",esc(adOuName(c.ou)),c.enabled?badge(c.trustOk===false?"Trust failed":"Enabled",c.trustOk===false?"bad":"ok"):badge("Disabled","bad"),c.deviceId&&D(c.deviceId)&&D(c.deviceId).azureAdJoined?badge("Hybrid joined","ok"):"-"]};
   });
 }
 function adGroupRows(ou){
   if(ou!=="domain"&&ou!=="ou-staff"){return [];}
   return S.ad.groups.filter(function(g){return matchQ(g.name);}).map(function(g){
-    return {id:g.id,cells:[lnk(g.name,"adSelect",g.id,' data-kind="group"'),g.type+" group","-",g.members.length+" members",badge("Enabled","ok"),"-"]};
+    return {id:g.id,cells:[lnk(g.name,"adRow",g.id,' data-kind="group"'),g.type+" group","-",g.members.length+" members",badge("Enabled","ok"),"-"]};
   });
 }
 
 PAGES["ad.aduc"]=function(){
-  if(S.sel){var obj=adObject(S.sel);if(obj){return adDetails(obj);}}
-  var ou=S.ad.selectedOu||"domain",rows=adUserRows(ou).concat(adGroupRows(ou)).concat(adComputerRows(ou)),c=checked1();
-  return head([["practice.local"]],"Active Directory Users and Computers","activedirectory","Manage on-premises directory objects. Changes reach Entra only after synchronization.")+
-    bar([CB("plus","New user","wizNewAdUser"),CB("key","Reset password","adResetPw",{d:{id:c},dis:!ADU(c)}),CB("lock","Unlock account","adUnlock",{d:{id:c},dis:!ADU(c)}),CB("edit","Properties","adOpenProps",{d:{id:c},dis:!ADU(c)}),CB("trash","Delete","adDelete",{d:{id:c},dis:!ADU(c)}),CB("refresh","Refresh","refresh")])+
+  var ou=S.ad.selectedOu||"domain",rows=adUserRows(ou).concat(adGroupRows(ou)).concat(adComputerRows(ou)).map(function(r){return {id:r.id,cells:r.cells.slice(0,5)};}),c=checked1();
+  var obj=S.sel?adObject(S.sel):null;
+  return bar([CB("plus","New user","wizNewAdUser"),CB("key","Reset password","adResetPw",{d:{id:c},dis:!ADU(c)}),CB("lock","Unlock account","adUnlock",{d:{id:c},dis:!ADU(c)}),CB("edit","Properties","adOpenProps",{d:{id:c},dis:!adObject(c)}),CB("trash","Delete","adDelete",{d:{id:c},dis:!ADU(c)}),CB("refresh","Refresh","refresh")])+
     '<div class="admmc">'+adTree()+'<section class="addetails"><div class="adpath">practice.local / '+esc(adOuName(ou))+'</div>'+search("Find objects in this container")+
-    tbl(["Name","Type","Logon name","Department / location","Status","Microsoft Entra"],rows,{check:true,empty:"This container is empty."})+'</section></div>';
+    tbl(["Name","Type","Logon name","Description","Status"],rows,{check:true,empty:"This container is empty."})+'</section></div>'+
+    '<div class="rstat">'+rows.length+' object(s). Double-click an object to open its properties. Right-click it for more actions.</div>'+(obj?adDialog(obj):"");
 };
+function adDialog(obj){
+  return '<div class="rdscrim" data-a="back"></div><div class="rdlg" role="dialog" aria-label="'+esc(obj.name)+' Properties"><div class="rdtitle"><span>'+esc(obj.name)+' Properties</span><button type="button" data-a="back" aria-label="Close">'+ico("x")+'</button></div><div class="rdbody">'+adDetails(obj)+'</div></div>';
+}
+A.adRow=function(d){S.checked=[d.id];};
+A.adOpenProps=function(d){if(adObject(d.id)){A.adSelect({id:d.id,kind:ADU(d.id)?"user":ADG(d.id)?"group":"computer"});}};
 A.adPickOu=function(d){S.ad.selectedOu=d.id;S.sel=null;S.checked=[];};
 A.adSelect=function(d){S.sel=d.id;S.tab=d.kind==="user"?"general":"overview";S.checked=[];};
 function adDetails(obj){
@@ -54,19 +59,17 @@ function adUserDetails(u){
   else if(t==="account"){body=grid([["Account status",adStatus(u)],["User must change password at next logon",u.mustChange?"Yes":"No"],["Account expires"+info("expiration"),u.expires==null?"Never":"At simulated time "+adClock(u.expires)],["Source of authority"+info("authority"),"Windows Server AD"]])+
     '<div class="btnrow">'+B(u.enabled?"Disable account":"Enable account","adToggle",{d:{id:u.id}})+B("Unlock account","adUnlock",{d:{id:u.id},dis:!u.locked})+B("Reset password","adResetPw",{primary:1,d:{id:u.id}})+B("Set expiration","adExpire",{d:{id:u.id}})+'</div>';}
   else{var gs=S.ad.groups.filter(function(g){return g.members.indexOf(u.id)>-1;});body=bar([CB("plus","Add","adAddGroup",{d:{id:u.id}})])+tbl(["Group","Type",""],gs.map(function(g){return {cells:[esc(g.name),esc(g.type),B("Remove","adRemoveGroup",{sm:1,d:{id:u.id,g:g.id}})]};}),{empty:"Not a member of any AD group."});}
-  return crumbs([["Active Directory","aduc"],[adOuName(u.ou)],[u.name]])+'<h1 class="ptitle">'+esc(u.name)+' Properties</h1>'+
-    bar([CB("edit","Move","adMove",{d:{id:u.id}}),CB("trash","Delete","adDelete",{d:{id:u.id}}),CB("refresh","Refresh","refresh")])+
+  return bar([CB("edit","Move","adMove",{d:{id:u.id}}),CB("trash","Delete","adDelete",{d:{id:u.id}}),CB("refresh","Refresh","refresh")])+
     tabs([["general","General"],["account","Account"],["member","Member Of"]],t,"tab")+body;
 }
 function adGroupDetails(g){
   var members=g.members.map(ADU).filter(Boolean);
-  return crumbs([["Active Directory","aduc"],[g.name]])+'<h1 class="ptitle">'+esc(g.name)+'</h1>'+grid([["Group type",esc(g.type)+info("groupkind")],["Scope","Global"],["Members",members.length]])+
+  return grid([["Group type",esc(g.type)+info("groupkind")],["Scope","Global"],["Members",members.length]])+
     bar([CB("plus","Add member","adAddGroupMember",{d:{g:g.id}})])+tbl(["Name","User logon name",""],members.map(function(u){return {cells:[esc(u.name),'<span class="mono">'+esc(u.sam)+'</span>',B("Remove","adRemoveGroup",{sm:1,d:{id:u.id,g:g.id}})]};}),{empty:"No members."});
 }
 function adComputerDetails(c){
   var d=c.deviceId?D(c.deviceId):null;
-  return crumbs([["Active Directory","aduc"],[adOuName(c.ou)],[c.name]])+'<h1 class="ptitle">'+esc(c.name)+' Properties</h1>'+
-    grid([["Organizational unit",esc(adOuName(c.ou))],["Account enabled",c.enabled?"Yes":"No"],["Secure channel"+info("securechannel"),c.trustOk===false?badge("Trust relationship failed","bad"):badge("Healthy","ok")],["Device state",d&&d.azureAdJoined?"Hybrid Azure AD joined":d&&d.domainJoined?"Domain joined":"Not joined"]])+
+  return grid([["Organizational unit",esc(adOuName(c.ou))],["Account enabled",c.enabled?"Yes":"No"],["Secure channel"+info("securechannel"),c.trustOk===false?badge("Trust relationship failed","bad"):badge("Healthy","ok")],["Device state",d&&d.azureAdJoined?"Hybrid Azure AD joined":d&&d.domainJoined?"Domain joined":"Not joined"]])+
     '<div class="btnrow">'+B("Reset account","adResetComputer",{primary:1,d:{id:c.id}})+B("Move","adMove",{d:{id:c.id}})+'</div>';
 }
 
@@ -95,8 +98,7 @@ A.adResetComputer=function(d){var c=ADC(d.id);resetComputerAccount(c);toast("Com
 PAGES["ad.gpmc"]=function(){
   var rows=[];
   S.ad.gpos.forEach(function(g){(g.links||[]).forEach(function(l){rows.push({cells:[esc(g.name),esc(adOuName(l.target)),l.enabled?badge("Enabled","ok"):badge("Disabled","warn"),l.enforced?badge("Enforced","warn"):"No",esc(g.summary),B(l.enabled?"Disable link":"Enable link","adGpoToggle",{sm:1,d:{id:g.id,target:l.target}})+" "+B("Unlink","adGpoUnlink",{sm:1,danger:1,d:{id:g.id,target:l.target}})]});});});
-  return head([["practice.local"]],"Group Policy Management","gpo","GPO links apply settings according to domain and OU placement.")+
-    bar([CB("plus","Link an existing GPO","adGpoLink"),CB("refresh","Refresh","refresh")])+
+  return '<p class="psub">GPO links apply settings according to domain and OU placement.</p>'+bar([CB("plus","Link an existing GPO","adGpoLink"),CB("refresh","Refresh","refresh")])+
     '<div class="admmc"><nav class="adtree" aria-label="Group Policy tree"><div class="adtree-title">Forest: practice.local</div><div class="adnode root">&#9662; Domains</div><div class="adnode child">&#9662; practice.local</div>'+S.ad.ous.map(function(o){return '<div class="adnode grand">&#128193; '+esc(o.name)+'</div>';}).join("")+'</nav><section class="addetails">'+
     '<div class="msg">The Default Domain Password Policy applies at the domain. Fine-grained password policies can target users or groups, but are outside this beginner lab.</div>'+
     tbl(["GPO","Linked location","Link status","Enforced","Settings summary",""],rows)+'</section></div>';
@@ -108,7 +110,7 @@ A.adGpoLink=function(){openModal("Link an existing GPO",msel("GPO","g",S.ad.gpos
 /* Microsoft Entra Connect */
 PAGES["ad.sync"]=function(){
   var rows=S.ad.ous.map(function(o){var on=S.ad.syncScope.indexOf(o.id)>-1;return {cells:[esc(o.name),on?badge("Included","ok"):badge("Excluded","warn"),B(on?"Exclude":"Include","adScope",{sm:1,d:{id:o.id}})]};});
-  return head([["practice.local"]],"Microsoft Entra Connect Sync","connectsync","Directory changes are staged on-premises and then synchronized to Microsoft Entra ID.")+
+  return '<p class="psub">Directory changes are staged on-premises and then synchronized to Microsoft Entra ID.</p>'+
     '<div class="cards"><div class="tile"><h3>Last directory sync</h3><div class="big smallbig">'+adClock(S.ad.lastDirSyncMin)+'</div><span>Default interval: '+S.ad.dirInterval+' minutes</span></div>'+
     '<div class="tile"><h3>Last password hash sync</h3><div class="big smallbig">'+adClock(S.ad.lastPasswordSyncMin)+'</div><span>Typical default: about '+S.ad.passwordInterval+' minutes</span></div>'+
     '<div class="tile"><h3>Simulated time</h3><div class="big smallbig">'+adClock(S.ad.nowMin)+'</div><span>Deterministic lab clock</span></div></div>'+

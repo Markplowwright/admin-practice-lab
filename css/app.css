@@ -125,6 +125,16 @@ body[data-portal="start"]{padding:0;background:#f6f7f9}
 .rtask:hover{background:#ffffff1a}
 .rtask.on{background:#ffffff26;border-bottom-color:#4ea3ff}
 .rclock{color:#ffffffc0;padding-right:8px}
+.rstat{margin-top:8px;padding:4px 8px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);background:var(--navbg)}
+.rdscrim{position:fixed;inset:0;background:#00000040;z-index:45}
+.rdlg{position:fixed;left:50%;top:9%;transform:translateX(-50%);width:min(640px,80vw);max-height:78vh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);border:1px solid #1f4e79;box-shadow:0 12px 40px #000a;z-index:46}
+.rdtitle{display:flex;align-items:center;justify-content:space-between;background:#1f4e79;color:#fff;padding:0 0 0 12px;height:32px;font-size:12px;flex:none}
+.rdtitle button{background:none;border:0;color:#fff;height:32px;width:44px;display:grid;place-items:center}
+.rdtitle button:hover{background:#c42b1c}
+.rdbody{padding:14px 18px 18px;overflow:auto}
+.ctxm{position:fixed;z-index:60;min-width:190px;background:var(--panel);border:1px solid var(--line2);box-shadow:var(--shadow);padding:3px 0}
+.ctxm button{display:block;width:100%;text-align:left;background:none;border:0;padding:6px 26px;font-size:13px;color:var(--ink)}
+.ctxm button:hover{background:var(--sel)}
 .envc .envw{color:var(--brand);font-size:12px;font-weight:600}
 
 /* portal header */
