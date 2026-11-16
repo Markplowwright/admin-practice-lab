@@ -426,3 +426,36 @@ test("saved lab from before procurement loads", function () {
   const w = boot(); const o = JSON.parse(JSON.stringify(w.S)); delete o.procure; o.version = 8;
   const m = w.Lab.migrate(o); assert.equal(m.version, w.STATE_VERSION); assert.equal(m.procure, null);
 });
+function benchDev(w, type) {
+  w.S.onboarded = true; w.A.pType({ k: type }); if (type === "desktop") { w.A.pMon({ k: "1" }); } w.A.pOrder();
+  const dev = w.S.procure.devs[0]; dev.stage = "received"; w.A.pImgStart({ id: dev.id }); return dev;
+}
+test("imaging by USB: stick, delete old partitions, then install", function () {
+  const w = boot(), dev = benchDev(w, "desktop");
+  w.A.pPower(); assert.equal(w.pImg(dev).step, "cables", "no power, monitor or keyboard yet");
+  ["power", "mon", "kbd"].forEach(function (k) { w.A.pCable({ k: k }); });
+  w.A.pPower(); assert.equal(w.pImg(dev).step, "post");
+  w.A.pKey({ k: "f12" }); assert.equal(w.pImg(dev).step, "menu");
+  w.A.pBoot({ k: "usb" }); assert.equal(w.pImg(dev).step, "menu", "no stick plugged in");
+  w.pImg(dev).cab.usb = true; w.A.pBoot({ k: "usb" }); assert.equal(w.pImg(dev).step, "setup");
+  w.A.pSetupNext(); assert.equal(w.pImg(dev).step, "setup", "old partitions block install");
+  for (let i = 0; i < 3; i++) { w.A.pPart({ k: "0" }); w.A.pDelPart(); }
+  w.A.pSetupNext(); assert.equal(w.pImg(dev).step, "install");
+  for (let i = 0; i < 4; i++) { w.A.pInstall(); }
+  assert.equal(dev.stage, "imaged"); assert.equal(dev.imgMethod, "USB");
+});
+test("imaging by PXE needs the network cable and the Windows 11 task sequence", function () {
+  const w = boot(), dev = benchDev(w, "laptop"); w.A.pCable({ k: "power" }); w.A.pPower(); w.A.pKey({ k: "f12" });
+  w.A.pBoot({ k: "nic4" }); assert.equal(w.pImg(dev).step, "menu"); assert.match(w.pImg(dev).msg, /PXE-E61/);
+  w.A.pCable({ k: "net" }); w.A.pBoot({ k: "nic4" }); assert.equal(w.pImg(dev).step, "pxe");
+  w.A.pTs({ k: "win10" }); w.A.pPxeGo(); assert.equal(w.pImg(dev).step, "pxe");
+  w.A.pTs({ k: "win11" }); w.A.pPxeGo(); assert.equal(w.pImg(dev).step, "install");
+});
+test("only after the agent is installed does the device reach Remote support and the device list", function () {
+  const w = boot(), dev = benchDev(w, "laptop"); dev.stage = "imaged";
+  assert.equal(w.S.devices.length, 3); assert.equal(w.rAll().length, 5);
+  w.A.pAgent({ id: dev.id });
+  assert.equal(w.S.devices.length, 4); assert.equal(w.rAll().length, 6);
+  const m = w.rAll()[5]; assert.equal(m.online, true); assert.equal(m.grp, "laptops");
+  assert.ok(w.vmDevices().some(function (x) { return x.id === dev.id; }));
+});

@@ -506,7 +506,7 @@ function vmSide(d){
     '<div class="tile vmstatus"><h3>Laptop status</h3>'+grid([["Name",esc(d.name)],["Domain",d.domainJoined?"practice.local":"Not joined"],["Entra",d.azureAdJoined&&d.domainJoined?"Hybrid joined":d.join==="joined"?"Joined":d.join==="registered"?"Registered":"Not connected"],["Intune",d.state==="enrolled"?"Managed":"Not managed"]])+'</div>';
 }
 function vmStrip(d){
-  var sw=vmDevices().map(function(x){var lab=x.spare?"Lenovo ThinkPad E14":x.maker+" "+x.model;return '<button type="button" class="vmsw" data-a="go" data-p="vm" data-pg="'+x.id+'" data-spot="'+(x.spare?"Spare ThinkPad":"Dell Latitude")+'"'+(S.page===x.id?' aria-current="true"':'')+'>'+esc(lab)+'</button>';}).join("");
+  var sw=vmDevices().map(function(x){var lab=x.maker+" "+x.model;return '<button type="button" class="vmsw" data-a="go" data-p="vm" data-pg="'+x.id+'" data-spot="'+(x.id==="d3"?"Spare ThinkPad":x.id==="d2"?"Dell Latitude":x.maker+" "+x.model)+'"'+(S.page===x.id?' aria-current="true"':'')+'>'+esc(lab)+'</button>';}).join("");
   var ent=d.azureAdJoined&&d.domainJoined?"Hybrid joined":d.join==="joined"?"Joined":d.join==="registered"?"Registered":"Not connected";
   return '<div class="vmtop"><span class="vmsws">'+sw+'</span><span class="vmstat">Domain: '+(d.domainJoined?"practice.local":"not joined")+' &middot; Entra: '+ent+' &middot; Intune: '+(d.state==="enrolled"?"Managed":"Not managed")+'</span><span class="vmsp"></span>'+
     '<button type="button" class="vmb'+(S.vmRef?' on':'')+'" data-a="vmRef" aria-expanded="'+(S.vmRef?"true":"false")+'">Practice notes</button><button type="button" class="vmb" data-a="vmReset">Reset this PC</button></div>';
