@@ -161,6 +161,12 @@ button.mapc:hover{border-color:#0f6cbd;box-shadow:0 2px 10px #0003}
 .link{position:relative;z-index:1;align-self:center;text-align:center;border-top:3px solid #1d1b19;font-size:12px;font-weight:600;line-height:1.3}
 .link span{display:block;margin-top:8px;background:#f4f1ec}
 .link.l1{grid-area:l1}.link.l2{grid-area:l2}
+.dock .dnote{width:100%;resize:vertical;border:1px solid var(--line2);border-radius:6px;padding:8px 10px;background:var(--bg);color:var(--ink);font:inherit;margin-bottom:12px}
+.dock .dtop span{font-size:12px}
+.dock .tk{border-top:1px solid var(--line);padding:10px 0}
+.dock .tk p{margin:6px 0 8px;font-size:13px;line-height:18px;color:var(--muted)}
+.dock .tkh b{font-size:13px}
+.dock .tkb{display:flex;gap:6px;margin-top:4px}
 .envc .envw{color:var(--brand);font-size:12px;font-weight:600}
 
 /* portal header */

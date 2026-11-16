@@ -257,8 +257,8 @@ A.startScenario=function(d){
   if(S.scenarios.active&&S.scenarios.base){scenarioRestore(S.scenarios.base);}
   S.scenarios.active=d.id;S.scenarios.base=scenarioSnapshot();scenarioSetup(d.id);S.scenarios.setup=scenarioSnapshot();S.guide=true;S.guideTab="scenarios";resetNav();toast("Scenario started. Its setup is isolated from your main lab progress.");
 };
-A.resetScenario=function(){var active=S.scenarios.active,completed=S.scenarios.completed,hint=S.scenarios.hint,wrong=S.scenarios.wrong,base=S.scenarios.base;scenarioRestore(S.scenarios.setup);S.scenarios={active:active,completed:completed,hint:hint,wrong:wrong,base:base,setup:S.scenarios.setup};toast("This scenario was restored to its starting state.");};
-A.exitScenario=function(){var completed=S.scenarios.completed,hint=S.scenarios.hint,wrong=S.scenarios.wrong;if(S.scenarios.base){scenarioRestore(S.scenarios.base);}S.scenarios={active:null,completed:completed,hint:hint,wrong:wrong,base:null,setup:null};toast("Returned to your main lab. Scenario completion was saved.");};
+A.resetScenario=function(){var active=S.scenarios.active,completed=S.scenarios.completed,hint=S.scenarios.hint,wrong=S.scenarios.wrong,notes=S.scenarios.notes||{},base=S.scenarios.base;scenarioRestore(S.scenarios.setup);S.scenarios={active:active,completed:completed,hint:hint,wrong:wrong,notes:notes,base:base,setup:S.scenarios.setup};toast("This scenario was restored to its starting state.");};
+A.exitScenario=function(){var completed=S.scenarios.completed,hint=S.scenarios.hint,wrong=S.scenarios.wrong,notes=S.scenarios.notes||{};if(S.scenarios.base){scenarioRestore(S.scenarios.base);}S.scenarios={active:null,completed:completed,hint:hint,wrong:wrong,notes:notes,base:null,setup:null};toast("Returned to your main lab. Scenario completion was saved.");};
 A.scenarioHint=function(d){S.scenarios.hint[d.id]=!S.scenarios.hint[d.id];};
 A.scenarioPhone=function(){S.scenarios.phoneUpdated=true;toast("Ticket note updated: Dana will replace the saved phone password.");};
 function scenariosHtml(){

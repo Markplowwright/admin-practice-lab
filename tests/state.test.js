@@ -81,3 +81,12 @@ test("saves from before the DC01 session get the window list", function () {
   assert.equal(m.version, lab.STATE_VERSION);
   assert.deepEqual(lab.migrate(JSON.parse(JSON.stringify(m))).rdpOpen, ["aduc"]);
 });
+
+test("saves from before ticket notes get an empty notes map", function () {
+  const lab = boot(memoryStorage());
+  const saved = JSON.parse(JSON.stringify(lab.seed()));
+  delete saved.scenarios.notes; saved.version = 6;
+  const m = lab.migrate(saved);
+  assert.deepEqual(m.scenarios.notes, {});
+  assert.equal(m.version, lab.STATE_VERSION);
+});
