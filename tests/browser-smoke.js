@@ -5,7 +5,7 @@ const path = require("node:path");
 const { JSDOM, VirtualConsole } = require("jsdom");
 
 const root = path.join(__dirname, "..");
-const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "guide.js", "shell.js", "render.js"];
+const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "remote.js", "guide.js", "shell.js", "render.js"];
 
 function appHtml() {
   return "<!doctype html><html><head></head><body data-portal=\"m365\">" +
@@ -104,6 +104,12 @@ function completeScenario(w, id) {
   if (id === "s10") {
     w.S.flags.spottedOdd = true; w.resetAdPassword(w.ADU("adu1"), "Scenario#Reset20", true); w.runPasswordSync();
     u = w.U("u1"); u.revoked = true; u.fwd = null; u.methods = [];
+  }
+  if (id === "s11") {
+    w.A.rSel({ id: "d1" }); w.A.rJoin({ id: "d1" }); w.A.rTab({ t: "procs" });
+    w.rRun("d1", "taskkill /im DriverBoost.exe /f", true);
+    w.rSw("d1").splice(w.rSw("d1").findIndex(function (x) { return x.bad; }), 1); w.S.remote.flags.removed = true;
+    const i = w.document.createElement("input"); i.value = "Fixed"; w.A.rChat({}, i); w.A.rEnd();
   }
   assert.equal(w.scenarioDone(id), true, "scenario should complete: " + id);
 }

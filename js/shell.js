@@ -26,6 +26,7 @@ function taskbar(){
     tb("Environment","home",'data-a="go" data-p="env" data-pg="map"',S.portal==="env")+
     tb("Edge","globe",'data-a="go" data-p="'+web+'" data-pg="'+DEFAULT[web]+'"',isWeb(S.portal))+
     tb("DC01 (Remote Desktop)","users",'data-a="go" data-p="ad" data-pg="'+(S.portal==="ad"?S.page:(S.rdpLast||"aduc"))+'"',S.portal==="ad")+
+    tb("Remote support","key",'data-a="go" data-p="remote" data-pg="'+((S.remote&&S.remote.sess)?"session":(S.portal==="remote"?S.page:"console"))+'"',S.portal==="remote")+
     tb("Virtual laptop","device",'data-a="go" data-p="vm" data-pg="d2"',S.portal==="vm")+
     tb("Toolkit","search",'data-a="go" data-p="tools" data-pg="links"',S.portal==="tools")+
     tb("Learn "+trainProgress()[0]+" of "+trainProgress()[1],"help",'data-a="go" data-p="learn" data-pg="path"',S.portal==="learn")+
@@ -35,7 +36,7 @@ function taskbar(){
 /* Which systems each ticket needs. Used to outline them on the map. */
 var NEEDS={
   s1:["dc01"],s2:["dc01","entra"],s3:["dc01","entra","m365","d3"],s4:["dc01","entra","m365","intune","d1"],s5:["dc01","files01","d3"],
-  s6:["dc01","d3"],s7:["dc01","d3"],s8:["dc01","entra"],s9:["dc01","entra"],s10:["dc01","entra","exchange"]
+  s6:["dc01","d3"],s7:["dc01","d3"],s8:["dc01","entra"],s9:["dc01","entra"],s10:["dc01","entra","exchange"],s11:["d1"]
 };
 function deviceBadge(d){
   if(!d){return "";}
@@ -144,7 +145,7 @@ function startHtml(){
    '<div class="sbody"><h1>Learn hybrid IT administration by doing it.</h1><p class="slead">A free practice workstation with Active Directory, Microsoft 365, Entra, Intune and Exchange wired together. Work real tickets. Nothing real to break.</p>'+
    '<div class="sact">'+primary+resume+'<button type="button" class="sbtn link" data-a="startTour">Take the walk through</button></div>'+
    '<div class="scards">'+card("Levels 1 to 3","Microsoft 365 admin","Onboarding, offboarding, compromised accounts and MFA.")+card("Level 4","Intune and laptops","Autopilot, BitLocker, apps, and joining a laptop by hand.")+card("Level 5","Hybrid identity","Remote into DC01: AD, sync, Group Policy and hybrid join.")+card(SCENARIOS.length+" tickets","Help desk scenarios","Lockouts, trust failures, suspicious sign-ins. Isolated from your lab.")+'</div>'+
-   '<div class="srow2"><button type="button" class="scard link" data-a="go" data-p="tools" data-pg="links"><b>Toolkit</b><span>Links to the real tools: MXToolbox, IP lookup, message header analyzer and more.</span></button><div class="scard dashed"><b>Planned <span class="sk">(not built yet)</span></b><span>Knowledge base, remote support session, imaging walkthrough, Azure basics.</span></div></div></div>'+
+   '<div class="srow2"><button type="button" class="scard link" data-a="go" data-p="tools" data-pg="links"><b>Toolkit</b><span>Links to the real tools: MXToolbox, IP lookup, message header analyzer and more.</span></button><div class="scard dashed"><b>Planned <span class="sk">(not built yet)</span></b><span>Knowledge base, imaging walkthrough, Azure basics.</span></div></div></div>'+
    '<div class="sdisc">A learning simulator. Not affiliated with Microsoft, Jamf or Google. All users, passwords and domains are fake. Progress is saved in this browser only.</div></div>';
 }
 PAGES["start.home"]=function(){return "";};

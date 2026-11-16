@@ -6,7 +6,7 @@ const test = require("node:test");
 const { JSDOM, VirtualConsole } = require("jsdom");
 
 const root = path.join(__dirname, "..");
-const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "guide.js", "shell.js", "render.js"];
+const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "remote.js", "guide.js", "shell.js", "render.js"];
 
 function boot() {
   const html = "<!doctype html><html><head></head><body data-portal=\"m365\"><div id=\"app\"></div><div id=\"intro\"></div>" +
@@ -233,7 +233,7 @@ test("clicking map cards opens the matching tool", function () {
 test("with no ticket open the map has a ticket queue and Start opens that ticket", function () {
   const w = boot(); w.S.onboarded = true; w.S.portal = "env"; w.S.page = "map"; w.render(); const d = w.document;
   assert.match(d.querySelector(".dock").textContent, /Ticket queue/);
-  assert.equal(d.querySelectorAll(".dock .tk").length, 10);
+  assert.equal(d.querySelectorAll(".dock .tk").length, 11);
   assert.ok(d.body.classList.contains("dock-open"));
   d.querySelector('.dock [data-a="startScenario"][data-id="s3"]').click();
   assert.equal(w.S.scenarios.active, "s3");
@@ -281,7 +281,7 @@ test("Learn replaces the Missions and guide panel", function () {
   w.A.go({ p: "learn", pg: "path" }); w.render();
   assert.match(d.querySelector("#main").textContent, /Training path/);
   assert.match(d.querySelector("#main").textContent, /0 of 64/);
-  assert.match(d.querySelector("#main").textContent, /0 of 10/);
+  assert.match(d.querySelector("#main").textContent, /0 of 11/);
   assert.equal(d.querySelectorAll(".learn .lvl").length, 5);
   assert.equal(d.querySelector(".learn [data-a=\"startMission\"]").disabled, false);
 });
@@ -336,4 +336,51 @@ test("spotlight stays off for tickets and when no mission is pinned", function (
   assert.equal(w.document.querySelector(".spot"), null);
   w.A.startScenario({ id: "s1" }); w.S.mission = w.missions()[0].t; w.render();
   assert.equal(w.document.querySelector(".coach"), null);
+});
+
+test("remote console lists machines, searches, and shows detail tabs", function () {
+  const w = boot(); go(w, "remote", "console"); const d = w.document;
+  assert.equal(d.querySelectorAll(".rtbl tbody tr").length, 5);
+  assert.ok(d.querySelectorAll(".rtabs button").length >= 8);
+  const q = d.getElementById("rq"); q.value = "dc01"; q.dispatchEvent(new w.Event("input", { bubbles: true }));
+  assert.equal(w.document.querySelectorAll(".rtbl tbody tr").length, 2, "DC01 and DC01-BACKUP");
+  w.S.q = "zzz"; w.render();
+  assert.match(w.document.querySelector(".rnone").textContent, /No machines match/);
+});
+test("remote console: offline machine cannot be joined; online server joins Backstage", function () {
+  const w = boot(); go(w, "remote", "console");
+  w.A.rJoin({ id: "d3" }); assert.equal(w.S.remote && w.S.remote.sess, null);
+  w.A.rJoin({ id: "dc01" }); w.render();
+  assert.equal(w.S.remote.sess.logon, "backstage");
+  assert.equal(w.document.querySelectorAll(".rsbar").length, 1);
+  w.A.rPanel({ v: "commands" }); w.render();
+  const i = w.document.getElementById("rcmd"); i.value = "hostname";
+  w.A.rSessCmd({}, i); w.render();
+  assert.match(w.document.querySelector(".rterm").textContent, /DC01/);
+});
+test("remote console: cannot disconnect while guest input is blocked", function () {
+  const w = boot(); go(w, "remote", "console");
+  w.A.rJoin({ id: "d1" }); w.A.rAct({ v: "block" }); w.A.rEnd();
+  assert.ok(w.S.remote.sess, "still in the session");
+  w.A.rAct({ v: "block" }); w.A.rEnd(); assert.equal(w.S.remote.sess, null);
+});
+test("remote console: support code flow adds a joinable support session", function () {
+  const w = boot(); go(w, "remote", "support");
+  w.A.rSupNew(); w.A.rSupJoin(); go(w, "remote", "console"); w.A.rGrp({ id: "support" }); w.render();
+  assert.equal(w.document.querySelectorAll(".rtbl tbody tr").length, 1);
+});
+test("remote support ticket completes only after the full fix", function () {
+  const w = boot(); w.S.onboarded = true;
+  w.A.startScenario({ id: "s11" });
+  assert.equal(w.scenarioDone("s11"), false);
+  w.A.rSel({ id: "d1" }); w.A.rJoin({ id: "d1" }); w.A.rTab({ t: "procs" });
+  w.rRun("d1", "taskkill /im DriverBoost.exe /f", true);
+  assert.equal(w.scenarioDone("s11"), false, "ending the process alone is not enough");
+  w.rSw("d1").splice(w.rSw("d1").findIndex(function (x) { return x.bad; }), 1); w.S.remote.flags.removed = true;
+  const i = w.document.createElement("input"); i.value = "Fixed it"; w.A.rChat({}, i);
+  w.A.rEnd(); assert.equal(w.scenarioDone("s11"), true);
+});
+test("saved lab from before the console existed loads", function () {
+  const w = boot(); const o = JSON.parse(JSON.stringify(w.S)); delete o.remote; o.version = 7;
+  const m = w.Lab.migrate(o); assert.equal(m.version, w.STATE_VERSION); assert.equal(m.remote, null);
 });

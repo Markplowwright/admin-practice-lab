@@ -1,7 +1,7 @@
 "use strict";
 /* =============== NAV + SHELL =============== */
-var TITLES={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Microsoft Entra admin center",intune:"Microsoft Intune admin center",exchange:"Exchange admin center",vm:"Windows laptop (virtual)",env:"Environment",tools:"Toolkit",learn:"Learn"};
-var DEFAULT={m365:"home",ad:"aduc",entra:"overview",intune:"home",exchange:"mailboxes",vm:"d2",env:"map",tools:"links",learn:"path"};
+var TITLES={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Microsoft Entra admin center",intune:"Microsoft Intune admin center",exchange:"Exchange admin center",remote:"Remote support",vm:"Windows laptop (virtual)",env:"Environment",tools:"Toolkit",learn:"Learn"};
+var DEFAULT={m365:"home",ad:"aduc",entra:"overview",intune:"home",exchange:"mailboxes",remote:"console",vm:"d2",env:"map",tools:"links",learn:"path"};
 var NAVS={
   m365:[{pg:"home",l:"Home",i:"home"},{l:"Users",i:"user",kids:[["users","Active users"],["deleted","Deleted users"]]},{l:"Teams & groups",i:"users",kids:[["groups","Active teams & groups"]]},{l:"Billing",i:"license",kids:[["licenses","Licenses"]]},
     {sep:"Admin centers"},{go:["entra","overview"],l:"Identity",i:"shield"},{go:["intune","home"],l:"Endpoint Manager",i:"device"},{go:["exchange","mailboxes"],l:"Exchange",i:"mail"}],
@@ -16,7 +16,7 @@ var NAVS={
     {sep:"Related"},{go:["entra","users"],l:"Synced users (Entra)",i:"shield"},{go:["vm","d3"],l:"Windows laptop",i:"device"}]
 };
 function leftNav(){
-  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"){return "";}
+  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"||S.portal==="remote"){return "";}
   if(S.portal==="vm"){return '<nav class="lnav" aria-label="Laptops"><div class="grp">'+ico("device")+'Virtual laptops</div>'+vmDevices().map(function(x){return '<button type="button" class="it kid" data-a="go" data-p="vm" data-pg="'+x.id+'"'+(S.page===x.id?' aria-current="true"':'')+'>'+esc(x.spare?"Spare ThinkPad (manual join)":x.maker+" "+x.model+" (Autopilot)")+'</button>';}).join("")+'</nav>';}
   var h='<nav class="lnav" aria-label="'+esc(TITLES[S.portal])+' navigation">';
   NAVS[S.portal].forEach(function(n){
@@ -28,7 +28,7 @@ function leftNav(){
   return h+'</nav>';
 }
 function portalHeader(){
-  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"){return "";}
+  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"||S.portal==="remote"){return "";}
   return '<header class="phdr"><span class="waf">'+ico("apps")+'</span><h1>'+esc(TITLES[S.portal])+'</h1><div class="search">'+ico("search")+'<input id="hq" data-q="1" type="text" autocomplete="off" aria-label="Search this page" placeholder="Search this page" value="'+esc(S.q)+'"></div><span class="av" title="Admin (you)">AD</span></header>';
 }
 function flyHtml(){
@@ -203,11 +203,12 @@ var SCENARIOS=[
  {id:"s7",difficulty:"Medium",title:"Laptop says the trust relationship failed",ticket:"Dana's laptop says 'The trust relationship between this workstation and the primary domain failed.'",hint:"Sign in as LocalAdmin, reset the computer account in ADUC, restart, and test a domain sign-in.",cause:"The PC and its AD computer account disagree about the rotating machine password used for their secure channel.",say:"I repaired the computer's domain trust and confirmed domain authentication works again.",note:"Reproduced the secure-channel failure, reset the AD computer account, restarted the laptop, and verified a domain sign-in."},
  {id:"s8",difficulty:"Medium",title:"New user doesn't appear in Microsoft 365",ticket:"I created Alex in AD an hour ago and he's not in the admin center.",hint:"Check Entra Connect OU filtering. Alex is in an excluded OU; move the user into Staff and run delta sync.",cause:"Entra Connect ignores objects in OUs outside its configured synchronization scope.",say:"Alex was in an OU excluded from cloud sync. I moved the account into scope and synchronized it.",note:"Confirmed Alex existed only in AD, found the OU filtering exclusion, moved the object to Staff, ran delta sync, and verified the Entra account."},
  {id:"s9",difficulty:"Easy",title:"Contractor access expires Friday",ticket:"The contractor needs access until Friday only.",hint:"ADUC > New user > Account expires, add the required security group, then synchronize.",cause:"AD account expiration blocks authentication at the set time, but data, sessions, groups, and devices still need offboarding.",say:"The contractor account is active through Friday and has only the required group access.",note:"Created the contractor in AD with a Friday expiration, assigned the required security group, and synchronized the account to Entra."},
- {id:"s10",difficulty:"Hard",title:"Suspicious sign-ins",ticket:"Dana got a phishing email yesterday and today there are sign-in alerts from another country.",hint:"Reset at the AD source, sync, revoke sessions, inspect Entra sign-ins, remove Exchange forwarding, and require MFA re-registration.",cause:"A hybrid compromise can persist through cloud sessions, MFA methods, and mail forwarding even after an on-premises password reset.",say:"I reset the authoritative password, ended sessions, removed persistence, and will help you register MFA again.",note:"Reviewed the suspicious sign-in, reset Dana in AD, synchronized, revoked sessions, removed the rogue method and forwarding, and required MFA re-registration."}
+ {id:"s10",difficulty:"Hard",title:"Suspicious sign-ins",ticket:"Dana got a phishing email yesterday and today there are sign-in alerts from another country.",hint:"Reset at the AD source, sync, revoke sessions, inspect Entra sign-ins, remove Exchange forwarding, and require MFA re-registration.",cause:"A hybrid compromise can persist through cloud sessions, MFA methods, and mail forwarding even after an on-premises password reset.",say:"I reset the authoritative password, ended sessions, removed persistence, and will help you register MFA again.",note:"Reviewed the suspicious sign-in, reset Dana in AD, synchronized, revoked sessions, removed the rogue method and forwarding, and required MFA re-registration."},
+ {id:"s11",difficulty:"Medium",title:"Laptop is crawling",ticket:"Sam says his laptop has been very slow all week. He is free at 2:00 PM and can stay on a call.",hint:"Remote support > Access > search Sam's laptop > Join. Find what is using the CPU, end it, uninstall the program behind it, tell Sam in chat, then disconnect.",cause:"A leftover driver updater was running at full CPU. Ending the process alone is not enough: it restarts until the program is removed.",say:"I joined your laptop, found a driver updater using almost all of the CPU, ended it and removed it. It should feel normal again.",note:"Joined Sam's laptop with remote support, found DriverBoost.exe at 92% CPU, ended the process, uninstalled the DriverBoost Updater, confirmed with Sam in chat and disconnected after turning off input blocking."}
 ];
-var SCENARIO_KEYS=["users","groups","licenseGroups","devices","ad","logs","mailRules","policies","profiles","apps","caPolicies","mdm","total","flags"];
+var SCENARIO_KEYS=["users","groups","licenseGroups","devices","ad","logs","mailRules","policies","profiles","apps","caPolicies","mdm","total","flags","remote"];
 function scenarioSnapshot(){var x={};SCENARIO_KEYS.forEach(function(k){x[k]=S[k];});return JSON.stringify(x);}
-function scenarioRestore(raw){if(!raw){return;}var x=JSON.parse(raw);SCENARIO_KEYS.forEach(function(k){S[k]=x[k];});}
+function scenarioRestore(raw){if(!raw){return;}var x=JSON.parse(raw);SCENARIO_KEYS.forEach(function(k){if(k in x){S[k]=x[k];}});}
 function scenarioSetup(id){
   var a,c,d,g;
   if(id==="s1"){a=ADU("adu1");a.locked=true;a.passwordChanged=false;S.scenarios.phoneUpdated=false;}
@@ -219,6 +220,7 @@ function scenarioSetup(id){
   if(id==="s7"){d=D("d3");domainJoin(d,AD_DOMAIN,S.ad.adminUser,S.ad.adminPw);c=S.ad.computers.filter(function(x){return x.deviceId==="d3";})[0];c.trustOk=false;d.secureChannel=false;d.restartedAfterTrust=false;ensureVm(d);}
   if(id==="s8"){a=ADU("adu5");a.ou="ou-servers";a.cloudId=null;}
   if(id==="s9"){S.ad.users=S.ad.users.filter(function(u){return !u.created||u.department!=="Contractor";});}
+  if(id==="s11"){S.remote=remoteBlank();S.remote.sel="dc01";rBreakLaptop();}
   if(id==="s10"){a=ADU("adu1");a.passwordChanged=false;c=U("u1");c.revoked=false;c.fwd="collect.dana@mailbox-drop.example";if(!c.methods.some(function(m){return m.sus;})){c.methods.push({id:nid("m"),type:"Phone (SMS)",detail:"+234 803 555 0142",sus:true});}S.flags.spottedOdd=false;}
 }
 function scenarioDone(id){
@@ -233,6 +235,7 @@ function scenarioDone(id){
   if(id==="s8"){a=ADU("adu5");c=cloudForAd(a);return a.ou!=="ou-servers"&&adInScope(a)&&c&&!c.deleted;}
   if(id==="s9"){a=S.ad.users.filter(function(u){return u.created&&u.department==="Contractor"&&u.expires!=null;})[0];c=cloudForAd(a);return !!(a&&S.ad.groups.some(function(x){return x.type==="Security"&&x.members.indexOf(a.id)>-1;})&&c&&!c.deleted);}
   if(id==="s10"){a=ADU("adu1");c=cloudForAd(a);return a.passwordChanged&&c&&c.pw===a.pw&&c.revoked&&!c.fwd&&!c.methods.length&&S.flags.spottedOdd;}
+  if(id==="s11"){var f=R().flags;return !!(f.found&&f.joined&&f.cpu&&f.killed&&f.removed&&f.told&&f.disc);}
   return false;
 }
 function scenarioSteps(id){
@@ -247,6 +250,7 @@ function scenarioSteps(id){
   if(id==="s8"){a=ADU("adu5");c=cloudForAd(a);return [["User moved into sync scope",adInScope(a)],["Delta sync completed and user appears",!!(c&&!c.deleted)]];}
   if(id==="s9"){a=S.ad.users.filter(function(u){return u.created&&u.department==="Contractor";})[0];c=cloudForAd(a);return [["Contractor created with expiration",!!(a&&a.expires!=null)],["Security group assigned",!!(a&&S.ad.groups.some(function(g){return g.type==="Security"&&g.members.indexOf(a.id)>-1;}))],["Synchronized to Entra",!!(c&&!c.deleted)]];}
   if(id==="s10"){a=ADU("adu1");c=cloudForAd(a);return [["Suspicious sign-in reviewed",!!S.flags.spottedOdd],["AD password reset and synchronized",!!(a.passwordChanged&&c&&c.pw===a.pw)],["Sessions revoked",!!(c&&c.revoked)],["Forwarding and rogue MFA removed",!!(c&&!c.fwd&&!c.methods.length)]];}
+  if(id==="s11"){var g=R().flags;return [["Found Sam's laptop in the console",!!g.found],["Joined his session",!!g.joined],["Checked what is using the CPU",!!g.cpu],["Ended the process and removed the program",!!(g.killed&&g.removed)],["Told Sam in chat",!!g.told],["Disconnected cleanly",!!g.disc]];}
   return [];
 }
 function scenarioFeedback(s){
