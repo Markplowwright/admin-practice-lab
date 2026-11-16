@@ -56,6 +56,21 @@ body{padding-bottom:40px}
 .tkh{margin:18px 0 0}
 a.envc{text-decoration:none;color:var(--ink)}
 .envc span b{font-size:inherit}
+.dock{position:fixed;right:0;top:0;bottom:40px;width:320px;background:var(--panel);border-left:1px solid var(--line2);z-index:30;overflow-y:auto;padding:16px;box-shadow:-4px 0 12px #0000001a}
+.dock .dtop{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.dock .dtop b{color:var(--ink);margin-right:auto}
+.dock h3{margin:10px 0 4px;font-size:16px;line-height:22px}
+.dock .dq{margin:0 0 12px;color:var(--ink);background:var(--navbg);border-left:3px solid var(--brand);padding:8px 10px}
+.dock .dh{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:8px 0 6px}
+.dock .dl{list-style:none;margin:0 0 12px;padding:0}
+.dock .dl li{display:flex;gap:8px;align-items:flex-start;padding:4px 0}
+.dock .dl i{flex:none;width:16px;height:16px;border:1.5px solid var(--line2);border-radius:50%;font-style:normal;font-size:11px;line-height:13px;text-align:center;margin-top:2px}
+.dock .dl li.on i{background:var(--ok);border-color:var(--ok);color:#fff}
+.dock .dn{background:#fff4ce;color:#3b2f00;border:1px solid #ffb703;border-radius:6px;padding:8px 10px;margin-bottom:12px}
+.dock .dn b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.dock .btnrow{margin:8px 0}
+body.dock-open{padding-right:320px}
+body.dock-open .guide{right:320px}
 .envc .envw{color:var(--brand);font-size:12px;font-weight:600}
 
 /* portal header */

@@ -65,3 +65,31 @@ test("the Toolkit page links to real sites in new tabs", function () {
   ["https://mxtoolbox.com", "https://ipchicken.com", "https://haveibeenpwned.com"].forEach(function (h) { assert.ok(hrefs.indexOf(h) > -1, h); });
   assert.equal(w.document.querySelectorAll(".edge").length, 0);
 });
+
+test("an active scenario opens as a ticket dock and Resolve only works when the state is fixed", function () {
+  const w = boot(); w.S.onboarded = true;
+  assert.equal(w.document.querySelectorAll(".dock").length, 0);
+  w.A.startScenario({ id: "s1" }); w.render();
+  const d = w.document;
+  assert.equal(d.querySelectorAll(".dock").length, 1);
+  assert.match(d.querySelector(".dock").textContent, /Ticket #1040/);
+  assert.equal(d.querySelectorAll(".dock .dl li").length, 3);
+  assert.ok(d.body.classList.contains("dock-open"));
+  d.querySelector('.dock [data-a="resolveTicket"]').click();
+  assert.match(d.querySelector(".dock").textContent, /Not resolved yet/);
+  assert.notEqual(w.S.scenarios.completed.s1, true);
+  w.resetAdPassword(w.ADU("adu1"), "Scenario#Reset11", true); w.ADU("adu1").locked = false; w.S.scenarios.phoneUpdated = true;
+  d.querySelector('.dock [data-a="resolveTicket"]').click();
+  assert.equal(w.S.scenarios.completed.s1, true);
+  assert.match(d.querySelector(".dock").textContent, /Resolved/);
+  assert.match(d.querySelector(".dock").textContent, /Why this happens/);
+});
+
+test("Next ticket leaves the scenario and returns to the environment map", function () {
+  const w = boot(); w.S.onboarded = true;
+  w.A.startScenario({ id: "s1" }); w.S.scenarios.completed.s1 = true; w.render();
+  w.document.querySelector('.dock [data-a="nextTicket"]').click();
+  assert.equal(w.S.scenarios.active, null);
+  assert.equal(w.S.portal, "env");
+  assert.equal(w.document.querySelectorAll(".dock").length, 0);
+});

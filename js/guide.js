@@ -264,11 +264,9 @@ A.scenarioPhone=function(){S.scenarios.phoneUpdated=true;toast("Ticket note upda
 function scenariosHtml(){
   var active=S.scenarios.active;
   return '<div class="scenarios"><h3>Real-world scenarios</h3><p>Start these in any order. One isolated ticket is active at a time, so resetting or leaving it does not erase the main lab.</p>'+
-    SCENARIOS.map(function(s){var done=!!S.scenarios.completed[s.id];if(active===s.id&&scenarioDone(s.id)){done=true;S.scenarios.completed[s.id]=true;}
+    SCENARIOS.map(function(s){var done=!!S.scenarios.completed[s.id];
       var h='<article class="mis scenario'+(done?' done':'')+'"><h3>'+esc(s.title)+' '+badge(s.difficulty,s.difficulty==="Hard"?"bad":s.difficulty==="Medium"?"warn":"ok")+(done?' '+badge("Complete","ok"):"")+'</h3><blockquote>'+esc(s.ticket)+'</blockquote>';
-      if(active===s.id){h+='<div class="btnrow">'+B("Hint","scenarioHint",{sm:1,d:{id:s.id}})+B("Reset this scenario","resetScenario",{sm:1})+B("Leave scenario","exitScenario",{sm:1})+'</div>'+(S.scenarios.hint[s.id]?'<div class="msg">'+esc(s.hint)+'</div>':'')+(s.id==="s1"?B("Tell Dana to update her phone password","scenarioPhone",{sm:1}):"")+
-        '<ul>'+scenarioSteps(s.id).map(function(x){return '<li class="'+(x[1]?'on':'')+'"><i aria-hidden="true">'+(x[1]?"&#10003;":"")+'</i><div><span class="st">'+esc(x[0])+'</span></div></li>';}).join("")+'</ul>';
-        h+=done?'<div class="why"><b>Why this happens</b><p>'+esc(s.cause)+'</p><p><b>What to say:</b> '+esc(s.say)+'</p><p><b>Good ticket note:</b> '+esc(s.note)+'</p></div>':scenarioFeedback(s);
+      if(active===s.id){h+='<p class="small">This ticket is open in the dock on the right. Work in the lab, then press Resolve ticket.</p>'+(done?'<div class="btnrow">'+B("Leave ticket","exitScenario",{sm:1})+'</div>':'');
       }else{h+=B(done?"Practice again":"Start scenario","startScenario",{primary:!done,d:{id:s.id}});}
       return h+'</article>';
     }).join("")+'</div>';

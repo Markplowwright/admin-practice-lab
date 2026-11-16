@@ -74,10 +74,10 @@ function render(){
   else if(S.wiz){content=wizHtml();}
   else if(PAGES[key]){content=PAGES[key]();}
   else{content='<p>Page not found.</p>';}
-  $("#app").innerHTML=topBar()+portalHeader()+'<div class="shell">'+leftNav()+'<main class="content" id="main">'+content+'</main></div>'+taskbar()+flyHtml()+guideHtml();
+  $("#app").innerHTML=topBar()+portalHeader()+'<div class="shell">'+leftNav()+'<main class="content" id="main">'+content+'</main></div>'+taskbar()+ticketDock()+flyHtml()+guideHtml();
   if(navReset){window.scrollTo(0,0);navReset=false;}else{window.scrollTo(wx,wy);}
   gb=document.querySelector(".guide .gb");if(gb){gb.scrollTop=gy;}
-  document.body.classList.toggle("guide-open",!!S.guide);
+  document.body.classList.toggle("guide-open",!!S.guide);document.body.classList.toggle("dock-open",!!S.scenarios.active);
   fitLaptop();
   /* level completion toast, then the tour or the finish screen */
   var lv=levelsView(),fresh=null;
