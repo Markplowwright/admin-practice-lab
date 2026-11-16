@@ -208,3 +208,47 @@ document.addEventListener("input",function(e){
   var t=e.target;
   if(t.hasAttribute&&t.hasAttribute("data-note")){S.scenarios.notes=S.scenarios.notes||{};S.scenarios.notes[t.getAttribute("data-note")]=t.value;save();}
 });
+
+/* =============== SPOTLIGHT =============== */
+/* While a mission is pinned, the next step is marked on the page: an amber outline on the control to
+   use next, and a small coach note beside it. The control is found by matching the step's location
+   path ("Users > All users > Dana Rivera > Revoke sessions") against what is on screen, last part
+   first, so it shows the action when it is visible and the next place to click when it is not.
+   Tickets do not get this on purpose. They keep the Hint button. */
+function spotTarget(step){
+  var segs=step[2][2].split(">").map(function(x){return x.trim().toLowerCase();}).filter(Boolean);
+  var nodes=[].slice.call(document.querySelectorAll("#app button,#app a,#app [data-a],#app th,#app td,#app label")).filter(function(n){
+    return !n.closest(".dock,.wsbar,.coach,.edge");});
+  for(var i=segs.length-1;i>=0;i--){
+    for(var j=0;j<nodes.length;j++){
+      var t=nodes[j].textContent.trim().toLowerCase().replace(/\s+/g," ");
+      if(t===segs[i]){return nodes[j].getAttribute("aria-current")?null:nodes[j];}
+    }
+  }
+  return null;
+}
+function placeCoach(){
+  var c=document.querySelector(".coach"),t=document.querySelector(".spot");
+  if(!c||!t){return;}
+  var r=t.getBoundingClientRect(),w=c.offsetWidth||260,h=c.offsetHeight||60;
+  var left=Math.max(8,Math.min(r.left,window.innerWidth-w-340)),top=r.bottom+10;
+  if(top+h>window.innerHeight-56){top=Math.max(8,r.top-h-10);}
+  c.style.left=left+"px";c.style.top=top+"px";
+}
+function spotlight(){
+  [].forEach.call(document.querySelectorAll(".spot"),function(n){n.classList.remove("spot");});
+  [].forEach.call(document.querySelectorAll(".coach"),function(n){n.remove();});
+  if(!S.mission||S.spot===false||S.portal==="start"||S.portal==="learn"||S.portal==="env"||S.portal==="tools"||S.scenarios.active){return;}
+  var m=findMission(S.mission);if(!m||m.s.every(function(x){return x[1];})){return;}
+  var step=firstOpenStep(m),t=spotTarget(step);if(!t){return;}
+  t.classList.add("spot");
+  var idx=m.s.indexOf(step)+1,c=document.createElement("div");
+  c.className="coach";c.setAttribute("role","note");
+  c.innerHTML='<b>Step '+idx+' of '+m.s.length+'</b>'+esc(step[0])+'<small>'+esc(step[2][2])+'</small>';
+  document.getElementById("app").appendChild(c);
+  var r=t.getBoundingClientRect();if(r.bottom>window.innerHeight-60||r.top<0){try{t.scrollIntoView({block:"center"});}catch(e){}}
+  placeCoach();
+}
+A.toggleSpot=function(){S.spot=S.spot===false;};
+window.addEventListener("resize",placeCoach);
+document.addEventListener("scroll",placeCoach,true);

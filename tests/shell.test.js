@@ -315,3 +315,25 @@ test("Toolkit has Glossary and Jamf / Google tabs", function () {
   w.A.ttab({ t: "equiv" }); w.render();
   assert.match(d.querySelector("#main").textContent, /Jamf/);
 });
+
+test("spotlight marks the next control for a pinned mission and can be turned off", function () {
+  const w = boot(); w.S.onboarded = true; w.S.portal = "learn"; w.S.page = "path"; w.render();
+  const d = w.document, title = "Get Intune ready for new Windows laptops";
+  w.A.startMission({ t: title }); w.render();
+  assert.equal(w.S.portal, "entra");
+  const spot = d.querySelector(".spot");
+  assert.ok(spot, "a control is highlighted");
+  assert.match(spot.textContent, /Save/);
+  assert.match(d.querySelector(".coach").textContent, /Step 1 of 2/);
+  w.A.toggleSpot(); w.render();
+  assert.equal(d.querySelector(".spot"), null);
+  assert.equal(d.querySelector(".coach"), null);
+  assert.match(d.querySelector(".dock").textContent, /Spotlight: Off/);
+});
+
+test("spotlight stays off for tickets and when no mission is pinned", function () {
+  const w = boot(); w.S.onboarded = true; w.S.portal = "entra"; w.S.page = "signins"; w.render();
+  assert.equal(w.document.querySelector(".spot"), null);
+  w.A.startScenario({ id: "s1" }); w.S.mission = w.missions()[0].t; w.render();
+  assert.equal(w.document.querySelector(".coach"), null);
+});
