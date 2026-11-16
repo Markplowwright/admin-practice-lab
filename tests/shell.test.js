@@ -271,3 +271,47 @@ test("the start screen Toolkit card is not styled as a map connector", function 
   assert.doesNotMatch(css, /^\.link\{/m);
   assert.match(css, /\.maplink\{/);
 });
+
+test("Learn replaces the Missions and guide panel", function () {
+  const w = boot(); w.S.onboarded = true; w.S.portal = "env"; w.S.page = "map"; w.render();
+  const d = w.document;
+  assert.equal(d.querySelector(".guide"), null);
+  assert.doesNotMatch(d.querySelector(".wsbar").textContent, /Missions and guide|Walk through/);
+  assert.match(d.querySelector(".wsbar").textContent, /Learn 0 of 64/);
+  w.A.go({ p: "learn", pg: "path" }); w.render();
+  assert.match(d.querySelector("#main").textContent, /Training path/);
+  assert.match(d.querySelector("#main").textContent, /0 of 64/);
+  assert.match(d.querySelector("#main").textContent, /0 of 10/);
+  assert.equal(d.querySelectorAll(".learn .lvl").length, 5);
+  assert.equal(d.querySelector(".learn [data-a=\"startMission\"]").disabled, false);
+});
+
+test("starting a mission pins its steps in the dock and Leave mission clears it", function () {
+  const w = boot(); w.S.onboarded = true; w.S.portal = "learn"; w.S.page = "path"; w.render();
+  const d = w.document, title = w.missions()[0].t;
+  w.A.startMission({ t: title }); w.render();
+  assert.equal(w.S.mission, title);
+  assert.notEqual(w.S.portal, "learn");
+  assert.match(d.querySelector(".dock").textContent, new RegExp("Mission"));
+  assert.equal(d.querySelectorAll(".dock .dl li").length, w.missions()[0].s.length);
+  w.A.closeMission(); w.render();
+  assert.equal(d.querySelector(".dock"), null);
+});
+
+test("a mission cannot start while a ticket is open", function () {
+  const w = boot(); w.S.onboarded = true; w.S.portal = "env"; w.S.page = "map"; w.A.startScenario({ id: "s1" });
+  w.A.go({ p: "learn", pg: "path" }); w.render();
+  assert.equal(w.document.querySelector(".learn [data-a=\"startMission\"]").disabled, true);
+  w.A.startMission({ t: w.missions()[0].t });
+  assert.equal(w.S.mission, null);
+});
+
+test("Toolkit has Glossary and Jamf / Google tabs", function () {
+  const w = boot(); w.S.onboarded = true; w.S.portal = "tools"; w.S.page = "links"; w.render();
+  const d = w.document;
+  assert.match(d.querySelector("#main").textContent, /MXToolbox/);
+  w.A.ttab({ t: "glossary" }); w.render();
+  assert.ok(d.querySelector("#main .gl dt"));
+  w.A.ttab({ t: "equiv" }); w.render();
+  assert.match(d.querySelector("#main").textContent, /Jamf/);
+});

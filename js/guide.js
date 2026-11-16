@@ -1,7 +1,7 @@
 "use strict";
 /* =============== NAV + SHELL =============== */
-var TITLES={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Microsoft Entra admin center",intune:"Microsoft Intune admin center",exchange:"Exchange admin center",vm:"Windows laptop (virtual)",env:"Environment",tools:"Toolkit"};
-var DEFAULT={m365:"home",ad:"aduc",entra:"overview",intune:"home",exchange:"mailboxes",vm:"d2",env:"map",tools:"links"};
+var TITLES={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Microsoft Entra admin center",intune:"Microsoft Intune admin center",exchange:"Exchange admin center",vm:"Windows laptop (virtual)",env:"Environment",tools:"Toolkit",learn:"Learn"};
+var DEFAULT={m365:"home",ad:"aduc",entra:"overview",intune:"home",exchange:"mailboxes",vm:"d2",env:"map",tools:"links",learn:"path"};
 var NAVS={
   m365:[{pg:"home",l:"Home",i:"home"},{l:"Users",i:"user",kids:[["users","Active users"],["deleted","Deleted users"]]},{l:"Teams & groups",i:"users",kids:[["groups","Active teams & groups"]]},{l:"Billing",i:"license",kids:[["licenses","Licenses"]]},
     {sep:"Admin centers"},{go:["entra","overview"],l:"Identity",i:"shield"},{go:["intune","home"],l:"Endpoint Manager",i:"device"},{go:["exchange","mailboxes"],l:"Exchange",i:"mail"}],
@@ -16,7 +16,7 @@ var NAVS={
     {sep:"Related"},{go:["entra","users"],l:"Synced users (Entra)",i:"shield"},{go:["vm","d3"],l:"Windows laptop",i:"device"}]
 };
 function leftNav(){
-  if(S.portal==="env"||S.portal==="tools"){return "";}
+  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"){return "";}
   if(S.portal==="vm"){return '<nav class="lnav" aria-label="Laptops"><div class="grp">'+ico("device")+'Virtual laptops</div>'+vmDevices().map(function(x){return '<button type="button" class="it kid" data-a="go" data-p="vm" data-pg="'+x.id+'"'+(S.page===x.id?' aria-current="true"':'')+'>'+esc(x.spare?"Spare ThinkPad (manual join)":x.maker+" "+x.model+" (Autopilot)")+'</button>';}).join("")+'</nav>';}
   var h='<nav class="lnav" aria-label="'+esc(TITLES[S.portal])+' navigation">';
   NAVS[S.portal].forEach(function(n){
@@ -28,7 +28,7 @@ function leftNav(){
   return h+'</nav>';
 }
 function portalHeader(){
-  if(S.portal==="env"||S.portal==="tools"){return "";}
+  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"){return "";}
   return '<header class="phdr"><span class="waf">'+ico("apps")+'</span><h1>'+esc(TITLES[S.portal])+'</h1><div class="search">'+ico("search")+'<input id="hq" data-q="1" type="text" autocomplete="off" aria-label="Search this page" placeholder="Search this page" value="'+esc(S.q)+'"></div><span class="av" title="Admin (you)">AD</span></header>';
 }
 function flyHtml(){
@@ -255,7 +255,7 @@ function scenarioFeedback(s){
 }
 A.startScenario=function(d){
   if(S.scenarios.active&&S.scenarios.base){scenarioRestore(S.scenarios.base);}
-  S.scenarios.active=d.id;S.scenarios.base=scenarioSnapshot();scenarioSetup(d.id);S.scenarios.setup=scenarioSnapshot();S.guide=true;S.guideTab="scenarios";resetNav();toast("Scenario started. Its setup is isolated from your main lab progress.");
+  S.scenarios.active=d.id;S.scenarios.base=scenarioSnapshot();scenarioSetup(d.id);S.scenarios.setup=scenarioSnapshot();resetNav();toast("Scenario started. Its setup is isolated from your main lab progress.");
 };
 A.resetScenario=function(){var active=S.scenarios.active,completed=S.scenarios.completed,hint=S.scenarios.hint,wrong=S.scenarios.wrong,notes=S.scenarios.notes||{},base=S.scenarios.base;scenarioRestore(S.scenarios.setup);S.scenarios={active:active,completed:completed,hint:hint,wrong:wrong,notes:notes,base:base,setup:S.scenarios.setup};toast("This scenario was restored to its starting state.");};
 A.exitScenario=function(){var completed=S.scenarios.completed,hint=S.scenarios.hint,wrong=S.scenarios.wrong,notes=S.scenarios.notes||{};if(S.scenarios.base){scenarioRestore(S.scenarios.base);}S.scenarios={active:null,completed:completed,hint:hint,wrong:wrong,notes:notes,base:null,setup:null};toast("Returned to your main lab. Scenario completion was saved.");};
@@ -322,27 +322,67 @@ var EQ=[
 function equivHtml(){
   return '<p>Rough translations of the ideas in this lab. They are not one-to-one, because each product splits the work differently, and menus change, so confirm in each vendor\'s current docs.</p><dl class="eql">'+EQ.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd><b>Jamf:</b> '+esc(r[1])+(r[2]?'<br><b>Google Admin:</b> '+esc(r[2]):'')+'</dd>';}).join("")+'</dl>';
 }
-function guideHtml(){
-  var pr=progress(),pct=Math.round(pr[0]/pr[1]*100);
-  if(!S.guide){return "";}
-  var body="";
-  if(S.guideTab==="missions"){
-    var lv=levelsView(),next=nextMission(lv),alldone=lv.every(function(L){return L.complete;});
-    body='<p>Work through the levels in order, or jump around. The portals share the same users, groups, licenses and devices, like a real tenant. Click the <b>i</b> icons for definitions.</p>'+
-    (alldone?'<div class="fin"><b>All '+lv.length+' levels complete.</b>You finished every mission and scenario. <button type="button" class="lnk" data-a="finish">View your summary</button></div>':'')+
-    '<div class="meter" role="progressbar" aria-label="Overall progress" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div><div class="eqn">'+pr[0]+' of '+pr[1]+' steps done</div>'+
-    '<div class="map"><b>Which tool for what</b><br>Active Directory: on-premises users, groups, computers, OUs, Group Policy, and directory sync.<br>Microsoft 365 admin center: people, licenses, mail forwarding and files.<br>Entra admin center: synced identity, sign-in security, MFA, roles, groups, and the MDM setting.<br>Intune admin center: laptops, policies, apps, Autopilot.<br>Exchange admin center: mailboxes and mail flow.<br>Windows laptop (virtual): setup, domain or Entra join, Command Prompt, Group Policy, and troubleshooting.</div>'+
-    lv.map(function(L){var lp=L.tot?Math.round(L.done/L.tot*100):0;return '<section class="lvl'+(L.complete?' done':'')+'" aria-label="Level '+L.n+'"><h3>Level '+L.n+': '+esc(L.name)+'<span class="ct">'+(L.complete?'Complete':L.done+'/'+L.tot)+'</span></h3><p>'+esc(L.d)+'</p><div class="meter" role="progressbar" aria-label="Level '+L.n+' progress" aria-valuenow="'+lp+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+lp+'%"></i></div>'+L.ms.map(function(m){return missionHtml(m,next);}).join("")+(L.n===5?'<div class="btnrow">'+B("Open real-world scenarios","gtab",{primary:1,d:{t:"scenarios"}})+'</div>':"")+'</section>';}).join("")+
-    '<div class="btnrow">'+B("Introduction walk through","tour",{sm:1})+B("Reset lab","resetLab",{sm:1})+'</div>';
-  }else if(S.guideTab==="scenarios"){
-    body=scenariosHtml();
-  }else if(S.guideTab==="equiv"){
-    body='<h3 style="margin:8px 0 0">Coming from Jamf or Google Admin?</h3>'+equivHtml();
-  }else{
-    body='<dl class="gl">'+Object.keys(GL).sort(function(a,b){return GL[a][0].localeCompare(GL[b][0]);}).map(function(k){return '<dt>'+esc(GL[k][0])+'</dt><dd>'+esc(GL[k][1])+(GL[k][2]?' <i>'+esc(GL[k][2])+'</i>':'')+'</dd>';}).join("")+'</dl>';
-  }
-  return '<aside class="guide" aria-label="Lab guide"><header><h2>Lab guide ('+pr[0]+'/'+pr[1]+')</h2><button type="button" class="x" data-a="guide" aria-label="Close guide">'+ico("x")+'</button></header>'+tabs([["missions","Missions"],["scenarios","Scenarios"],["glossary","Glossary"],["equiv","Jamf / Google"]],S.guideTab,"gtab")+'<div class="gb">'+body+'</div></aside>';
+/* The old side panel is gone. Missions live in the Learn window, glossary and Jamf / Google
+   tables live in the Toolkit, and tickets live in the Environment queue. */
+function guideHtml(){return "";}
+function glossaryHtml(){
+  return '<dl class="gl">'+Object.keys(GL).sort(function(a,b){return GL[a][0].localeCompare(GL[b][0]);}).map(function(k){return '<dt>'+esc(GL[k][0])+'</dt><dd>'+esc(GL[k][1])+(GL[k][2]?' <i>'+esc(GL[k][2])+'</i>':'')+'</dd>';}).join("")+'</dl>';
 }
+/* Training progress counts mission steps only. Tickets are counted separately. */
+function trainProgress(){
+  var d=0,t=0;missions().forEach(function(m){m.s.forEach(function(x){t+=1;if(x[1]){d+=1;}});});
+  return [d,t];
+}
+function ticketProgress(){return [SCENARIOS.filter(function(s){return S.scenarios.completed[s.id];}).length,SCENARIOS.length];}
+function learnLevels(){
+  var ms=missions();
+  return LEVELS.map(function(L){
+    var list=ms.filter(function(m){return m.l===L.n;}),tot=0,done=0;
+    list.forEach(function(m){m.s.forEach(function(x){tot+=1;if(x[1]){done+=1;}});});
+    return {n:L.n,name:L.name,d:L.d,ms:list,tot:tot,done:done,complete:tot>0&&done===tot};
+  });
+}
+function findMission(t){return missions().filter(function(m){return m.t===t;})[0]||null;}
+function learnMissionHtml(m,next){
+  var all=m.s.every(function(x){return x[1];}),n=m.s.filter(function(x){return x[1];}).length,lock=!!S.scenarios.active;
+  return '<div class="mis'+(all?' done':'')+'"><h3>'+esc(m.t)+(next&&next.t===m.t?'<span class="next">Next up</span>':'')+'<span class="ct">'+n+'/'+m.s.length+'</span></h3><p>'+esc(m.w)+'</p>'+
+    '<div class="tools">Tools: '+toolsOf(m).map(function(p){return '<b class="tag '+p+'">'+esc(PNAME[p])+'</b>';}).join(" ")+'</div>'+
+    '<div class="btnrow">'+B(all?"Review mission":(n?"Continue mission":"Start mission"),"startMission",{sm:1,primary:next&&next.t===m.t?1:0,dis:lock,d:{t:m.t}})+'</div></div>';
+}
+PAGES["learn.path"]=function(){
+  var tp=trainProgress(),kp=ticketProgress(),lv=learnLevels(),next=nextMission(levelsView()),tab=S.learnTab||"path",body;
+  if(tab==="tour"){
+    body='<div class="card"><h3>Introduction walk through</h3><p>A short tour of the workstation: the taskbar, the environment map, tickets and the toolkit.</p><div class="btnrow">'+B("Start the walk through","startTour",{primary:1})+B("Reset lab","resetLab",{sm:1})+'</div></div>';
+  }else{
+    var alldone=levelsView().every(function(L){return L.complete;});
+    body=(S.scenarios.active?'<div class="callout">A ticket is open. Resolve it or leave it from the panel on the right before starting a mission.</div>':"")+
+      (alldone?'<div class="fin"><b>All levels complete.</b>You finished every mission and ticket. <button type="button" class="lnk" data-a="finish">View your summary</button></div>':"")+
+      '<div class="map"><b>Which tool for what</b><br>Active Directory: on-premises users, groups, computers, OUs, Group Policy, and directory sync.<br>Microsoft 365 admin center: people, licenses, mail forwarding and files.<br>Entra admin center: synced identity, sign-in security, MFA, roles, groups, and the MDM setting.<br>Intune admin center: laptops, policies, apps, Autopilot.<br>Exchange admin center: mailboxes and mail flow.<br>Windows laptop (virtual): setup, domain or Entra join, Command Prompt, Group Policy, and troubleshooting.</div>'+
+      lv.map(function(L){var lp=L.tot?Math.round(L.done/L.tot*100):0;
+        return '<section class="lvl card'+(L.complete?' done':'')+'" aria-label="Level '+L.n+'"><h3>Level '+L.n+': '+esc(L.name)+'<span class="ct">'+(L.complete?'Complete':L.done+' of '+L.tot+' steps')+'</span></h3><p>'+esc(L.d)+'</p><div class="meter" role="progressbar" aria-label="Level '+L.n+' progress" aria-valuenow="'+lp+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+lp+'%"></i></div>'+
+          L.ms.map(function(m){return learnMissionHtml(m,next);}).join("")+
+          (L.n===5?'<div class="callout"><b>Real-world tickets live in the ticket queue.</b> '+B("Go to ticket queue","go",{sm:1,primary:1,d:{p:"env",pg:"map"}})+'</div>':"")+'</section>';}).join("");
+  }
+  return '<div class="learn"><div class="lhead"><div><h2 class="ptitle">Learn: Training path</h2><p class="psub">Guided missions that teach one tool at a time. Starting a mission opens the right place and pins its steps on the right.</p></div>'+
+    '<div class="lstats"><div class="stat"><span>Training</span><b>'+tp[0]+' of '+tp[1]+'</b><i>mission steps</i></div><div class="stat"><span>Tickets</span><b>'+kp[0]+' of '+kp[1]+'</b><button type="button" class="lnk" data-a="go" data-p="env" data-pg="map">Open ticket queue</button></div></div></div>'+
+    tabs([["path","Training path"],["tour","Introduction walk through"]],tab,"ltab")+body+'</div>';
+};
+/* Pinned mission steps, shown in the same right-hand dock as tickets. */
+function missionDock(){
+  var m=S.mission?findMission(S.mission):null;if(!m){return "";}
+  var all=m.s.every(function(x){return x[1];}),nx=all?null:firstOpenStep(m);
+  var h='<aside class="dock" aria-label="Mission"><div class="dtop"><b>Mission</b>'+badge(all?"Complete":"In progress",all?"ok":"info")+'</div><h3>'+esc(m.t)+'</h3><p class="dq">'+esc(m.w)+'</p><div class="dh">Steps</div><ul class="dl">'+
+    m.s.map(function(x){return '<li class="'+(x[1]?'on':'')+'"><i aria-hidden="true">'+(x[1]?"&#10003;":"")+'</i><span>'+esc(x[0])+'</span></li>';}).join("")+'</ul>';
+  if(nx){h+='<div class="dn"><b>Next up</b>'+esc(nx[0])+'<br><small>'+esc(PNAME[nx[2][0]])+': '+esc(nx[2][2])+'</small></div><div class="btnrow">'+B("Go there","go",{sm:1,primary:1,d:{p:nx[2][0],pg:nx[2][1]}})+'</div>';}
+  else{h+=whyHtml(m);}
+  return h+'<div class="btnrow dbtns">'+B("Back to Learn","go",{sm:1,d:{p:"learn",pg:"path"}})+B(all?"Close mission":"Leave mission","closeMission",{sm:1})+'</div></aside>';
+}
+A.ltab=function(d){S.learnTab=d.t;};
+A.startMission=function(d){
+  var m=findMission(d.t);if(!m||S.scenarios.active){return;}
+  S.mission=m.t;var st=firstOpenStep(m),w=st[2];S.portal=w[0];S.page=w[1];resetNav();navReset=true;
+};
+A.closeMission=function(){S.mission=null;};
 
 /* =============== FIRST-OPEN TOUR AND FINISH SCREEN =============== */
 var INTRO_STEPS=4;/* step 0 is the full-page welcome, steps 1 to 3 are the short tour */

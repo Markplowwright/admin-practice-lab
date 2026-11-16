@@ -28,8 +28,8 @@ function taskbar(){
     tb("DC01 (Remote Desktop)","users",'data-a="go" data-p="ad" data-pg="'+(S.portal==="ad"?S.page:(S.rdpLast||"aduc"))+'"',S.portal==="ad")+
     tb("Virtual laptop","device",'data-a="go" data-p="vm" data-pg="d2"',S.portal==="vm")+
     tb("Toolkit","search",'data-a="go" data-p="tools" data-pg="links"',S.portal==="tools")+
-    '<span class="sp"></span><button type="button" class="tbi guideb'+(S.guide?' on':'')+'" data-a="guide">'+ico("help")+'<span>Missions and guide '+progress()[0]+'/'+progress()[1]+'</span></button>'+
-    '<button type="button" class="tbi" data-a="tour"><span>Walk through</span></button>'+
+    tb("Learn "+trainProgress()[0]+" of "+trainProgress()[1],"help",'data-a="go" data-p="learn" data-pg="path"',S.portal==="learn")+
+    '<span class="sp"></span>'+
     '<span class="tbnote">Simulated. Not the real portals.</span></div>';
 }
 /* Which systems each ticket needs. Used to outline them on the map. */
@@ -81,7 +81,10 @@ var TOOLKIT=[
   ["VirusTotal","https://www.virustotal.com","a link, file hash or domain looks suspicious","how many engines flag it. Never upload anything confidential."]]}
 ];
 PAGES["tools.links"]=function(){
-  return '<h2 class="ptitle">Toolkit</h2><p class="psub">Real tools help desk techs use. Each card opens the real site in a new tab. They are not part of the simulation, so inside the lab scenarios you get simulated results to keep the exercises consistent. Use the real ones with your own domains, IPs and test data.</p>'+
+  var tab=S.toolTab||"tools";
+  if(tab==="glossary"){return '<h2 class="ptitle">Toolkit and reference</h2>'+tabs([["tools","Real tools"],["glossary","Glossary"],["equiv","Jamf and Google equivalents"]],tab,"ttab")+glossaryHtml();}
+  if(tab==="equiv"){return '<h2 class="ptitle">Toolkit and reference</h2>'+tabs([["tools","Real tools"],["glossary","Glossary"],["equiv","Jamf and Google equivalents"]],tab,"ttab")+equivHtml();}
+  return '<h2 class="ptitle">Toolkit and reference</h2>'+tabs([["tools","Real tools"],["glossary","Glossary"],["equiv","Jamf and Google equivalents"]],tab,"ttab")+'<p class="psub">Real tools help desk techs use. Each card opens the real site in a new tab. They are not part of the simulation, so inside the lab scenarios you get simulated results to keep the exercises consistent. Use the real ones with your own domains, IPs and test data.</p>'+
    TOOLKIT.map(function(g){return '<div class="envh tkh">'+esc(g.g)+'</div><div class="tkgrid">'+g.t.map(function(x){var host=x[1].replace(/^https:\/\//,"").replace(/\/$/,"");
      return '<a class="envc tkc" href="'+esc(x[1])+'" target="_blank" rel="noopener noreferrer"><b>'+esc(x[0])+'</b><span><b>Use it when:</b> '+esc(x[2])+'</span><span><b>Look for:</b> '+esc(x[3])+'</span><span class="envw">Open '+esc(host)+' &#8599;</span></a>';}).join("")+'</div>';}).join("");
 };
@@ -100,6 +103,7 @@ function pickerDock(){
 }
 function ticketDock(){
   var id=S.scenarios.active;
+  if(!id&&S.mission&&S.portal!=="start"){return missionDock();}
   if(!id){return S.portal==="env"?pickerDock():"";}
   var s=SCENARIOS.filter(function(x){return x.id===id;})[0],steps=scenarioSteps(id),done=!!S.scenarios.completed[id];
   var open=steps.filter(function(x){return !x[1];}),h='<aside class="dock" aria-label="Ticket"><div class="dtop"><b>Ticket #'+ticketNo(id)+'</b>'+badge(s.difficulty,s.difficulty==="Hard"?"bad":s.difficulty==="Medium"?"warn":"ok")+badge(done?"Resolved":"Open",done?"ok":"info")+'</div>'+
@@ -136,7 +140,7 @@ function startHtml(){
   var primary=pr[0]>0&&m?'<button type="button" class="sbtn primary" data-a="introStart">Continue: '+esc(m.t)+'</button>':'<button type="button" class="sbtn primary" data-a="introStart">Start Level 1</button>';
   var resume=sc?'<button type="button" class="sbtn" data-a="go" data-p="env" data-pg="map">Resume ticket #'+ticketNo(sc.id)+': '+esc(sc.title)+'</button>':'<button type="button" class="sbtn" data-a="go" data-p="env" data-pg="map">Open the environment</button>';
   function card(k,t,x){return '<div class="scard"><div class="sk">'+esc(k)+'</div><b>'+esc(t)+'</b><span>'+esc(x)+'</span></div>';}
-  return '<div class="start"><div class="sbar"><b>Admin Practice Lab</b><nav><button type="button" data-a="go" data-p="env" data-pg="map">Environment</button><button type="button" data-a="guide-open">Missions</button><button type="button" data-a="go" data-p="env" data-pg="map">Scenarios</button><button type="button" data-a="go" data-p="tools" data-pg="links">Toolkit</button></nav></div>'+
+  return '<div class="start"><div class="sbar"><b>Admin Practice Lab</b><nav><button type="button" data-a="go" data-p="env" data-pg="map">Environment</button><button type="button" data-a="guide-open">Learn</button><button type="button" data-a="go" data-p="env" data-pg="map">Scenarios</button><button type="button" data-a="go" data-p="tools" data-pg="links">Toolkit</button></nav></div>'+
    '<div class="sbody"><h1>Learn hybrid IT administration by doing it.</h1><p class="slead">A free practice workstation with Active Directory, Microsoft 365, Entra, Intune and Exchange wired together. Work real tickets. Nothing real to break.</p>'+
    '<div class="sact">'+primary+resume+'<button type="button" class="sbtn link" data-a="startTour">Take the walk through</button></div>'+
    '<div class="scards">'+card("Levels 1 to 3","Microsoft 365 admin","Onboarding, offboarding, compromised accounts and MFA.")+card("Level 4","Intune and laptops","Autopilot, BitLocker, apps, and joining a laptop by hand.")+card("Level 5","Hybrid identity","Remote into DC01: AD, sync, Group Policy and hybrid join.")+card(SCENARIOS.length+" tickets","Help desk scenarios","Lockouts, trust failures, suspicious sign-ins. Isolated from your lab.")+'</div>'+
@@ -144,7 +148,8 @@ function startHtml(){
    '<div class="sdisc">A learning simulator. Not affiliated with Microsoft, Jamf or Google. All users, passwords and domains are fake. Progress is saved in this browser only.</div></div>';
 }
 PAGES["start.home"]=function(){return "";};
-A["guide-open"]=function(){S.portal="env";S.page="map";S.guide=true;S.guideTab="missions";resetNav();navReset=true;};
+A.ttab=function(d){S.toolTab=d.t;};
+A["guide-open"]=function(){S.portal="learn";S.page="path";S.learnTab="path";resetNav();navReset=true;};
 A.startTour=function(){S.portal="env";S.page="map";resetNav();navReset=true;A.tour();};
 
 /* =============== DC01 REMOTE DESKTOP SESSION =============== */

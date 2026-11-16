@@ -12,7 +12,7 @@ function syncUid(s){var max=100;function see(id){var n=maxIdNum(id);if(n>max){ma
 /* ---------- state ---------- */
 function seed(){
   var s={
-    portal:"m365",page:"home",sel:null,tab:null,q:"",checked:[],fly:null,wiz:null,draft:null,guide:true,guideTab:"missions",tUser:"",
+    portal:"m365",page:"home",sel:null,tab:null,q:"",checked:[],fly:null,wiz:null,draft:null,guide:false,guideTab:"missions",mission:null,learnTab:"path",toolTab:"tools",tUser:"",
     onboarded:false,intro:0,lvlDone:[],finishSeen:false,rdpOpen:["aduc"],
     secDefaults:false,deviceJoin:"all",vmIn:{},total:10,mdm:{scope:"none",group:""},
     scenarios:{active:null,completed:{},hint:{},wrong:{},notes:{},base:null,setup:null},

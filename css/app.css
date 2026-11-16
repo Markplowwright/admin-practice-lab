@@ -641,3 +641,18 @@ body[data-portal="vm"] .phdr{background:#2b2b2b}
   .adtree{border-right:0;border-bottom:1px solid var(--line2);max-height:210px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Learn window and mission dock */
+.learn{max-width:880px}
+.lhead{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;flex-wrap:wrap}
+.lstats{display:flex;gap:12px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:140px}
+.stat span{display:block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.stat b{display:block;font-size:20px;margin-top:2px}
+.stat i{font-style:normal;font-size:12px;color:var(--muted)}
+.learn .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:14px 0}
+.learn .lvl.card>h3 .ct,.learn .mis h3 .ct{margin-left:auto;font-size:12px;font-weight:400;color:var(--muted)}
+.learn .mis h3{display:flex;align-items:baseline;gap:8px}
+.callout{background:#eaf3fb;border:1px solid #b9d6ef;border-radius:8px;padding:10px 14px;margin:12px 0;font-size:13px;color:#1b3a57;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.dock .dn small{display:block;margin-top:4px;color:var(--muted)}
+.dock .dbtns{margin-top:12px}
