@@ -68,13 +68,13 @@ function render(){
   if(gb){gy=gb.scrollTop;}
   var wx=window.scrollX,wy=window.scrollY,ae=document.activeElement,fkey=focusKey(ae),pos=ae&&typeof ae.selectionStart==="number"?ae.selectionStart:null,infoOpen=fkey.indexOf("i:")===0;
   hidePop();recompute();
-  document.body.dataset.portal=S.portal;
+  document.body.dataset.portal=S.portal;if(isWeb(S.portal)){S.web=S.portal;}
   var key=S.portal+"."+S.page,content;
   if(S.portal==="vm"){content=vmPage();}
   else if(S.wiz){content=wizHtml();}
   else if(PAGES[key]){content=PAGES[key]();}
   else{content='<p>Page not found.</p>';}
-  $("#app").innerHTML=labBar()+portalHeader()+'<div class="shell">'+leftNav()+'<main class="content" id="main">'+content+'</main></div>'+flyHtml()+guideHtml();
+  $("#app").innerHTML=topBar()+portalHeader()+'<div class="shell">'+leftNav()+'<main class="content" id="main">'+content+'</main></div>'+taskbar()+flyHtml()+guideHtml();
   if(navReset){window.scrollTo(0,0);navReset=false;}else{window.scrollTo(wx,wy);}
   gb=document.querySelector(".guide .gb");if(gb){gb.scrollTop=gy;}
   document.body.classList.toggle("guide-open",!!S.guide);
