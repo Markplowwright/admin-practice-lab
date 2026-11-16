@@ -64,7 +64,7 @@ PAGES["env.map"]=function(){
     cloud("m365","m365","m365","home","Microsoft 365 admin center","Licenses and mailboxes",'<span class="mfact">Licenses: '+assigned()+' of '+S.total+' used</span>')+
     cloud("intune","intune","intune","home","Microsoft Intune","Enrollment, policies, apps",'<span class="mfact">'+managed+(managed===1?" device":" devices")+' managed</span>')+
     cloud("exch","exchange","exchange","mailboxes","Exchange admin center","Mailboxes and mail flow","")+
-    '<div class="link l1"><span>Directory sync<br>every '+S.ad.dirInterval+' min</span></div><div class="link l2"><span>Enrollment<br>and device join</span></div></div></div>';
+    '<div class="maplink l1"><span>Directory sync<br>every '+S.ad.dirInterval+' min</span></div><div class="maplink l2"><span>Enrollment<br>and device join</span></div></div></div>';
 };
 var TOOLKIT=[
  {g:"Suspicious sign-in",t:[
@@ -106,7 +106,7 @@ function ticketDock(){
     '<h3>'+esc(s.title)+'</h3><p class="dq">'+esc(s.ticket)+'</p><div class="dh">Done when</div><ul class="dl">'+steps.map(function(x){return '<li class="'+(x[1]?'on':'')+'"><i aria-hidden="true">'+(x[1]?"&#10003;":"")+'</i><span>'+esc(x[0])+'</span></li>';}).join("")+'</ul>';
   if(!done&&open.length){h+='<div class="dn"><b>Next up</b>'+esc(open[0][0])+'</div>';}
   if(!done&&S.scenarios.hint[id]){h+='<div class="msg">'+esc(s.hint)+'</div>';}
-  if(!done&&dockMsg){h+='<div class="msg warn">'+esc(dockMsg)+'</div>';}
+  if(!done&&dockMsg&&open.length){h+='<div class="msg warn">'+esc(dockMsg)+'</div>';}
   if(!done&&S.scenarios.wrong[id]){h+='<div class="msg warn">That action did not fix the authoritative cause. Read the object source and follow the ticket evidence before trying again.</div>';}
   h+='<div class="dh">Ticket note</div><textarea class="dnote" data-note="'+id+'" rows="4" placeholder="What did you find, and what did you change?">'+esc((S.scenarios.notes||{})[id]||"")+'</textarea>';
   if(done){h+='<div class="why"><b>Why this happens</b><p>'+esc(s.cause)+'</p><p><b>What to say:</b> '+esc(s.say)+'</p><p><b>Good ticket note:</b> '+esc(s.note)+'</p></div>'+

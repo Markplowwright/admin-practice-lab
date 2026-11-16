@@ -140,7 +140,7 @@ body[data-portal="env"] .content{padding:14px}
 .envwin{max-width:1180px;background:#f4f1ec;color:#1d1b19;border-radius:10px 10px 0 0;box-shadow:0 10px 30px #0006;overflow:hidden}
 .envt{height:34px;background:#1d1b19;color:#f4f1ec;font-size:12px;font-weight:600;display:flex;align-items:center;padding:0 14px}
 .envcap{padding:12px 24px 0;font-size:13px;color:#4a453f}
-.envmap{display:grid;grid-template-columns:1fr 150px 1fr;grid-template-rows:34px auto auto auto auto;grid-template-areas:"zt1 . zt2" "dc l1 entra" "files . m365" "laps l2 intune" ". . exch";gap:18px 0;padding:14px 24px 24px;position:relative}
+.envmap{display:grid;grid-template-columns:minmax(0,1fr) 150px minmax(0,1fr);grid-template-rows:34px auto auto auto auto;grid-template-areas:"zt1 . zt2" "dc l1 entra" "files . m365" "laps l2 intune" ". . exch";gap:18px 0;padding:14px 24px 24px;position:relative}
 .zone{border-radius:14px;margin:-2px 0 0;grid-row:1/6;display:flex;align-items:flex-start;padding:14px 20px;box-sizing:border-box}
 .zone span{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
 .zl{grid-column:1;background:#e6e2da;color:#4a453f}
@@ -158,15 +158,28 @@ button.mapc:hover{border-color:#0f6cbd;box-shadow:0 2px 10px #0003}
 .mbtn button:hover{box-shadow:0 0 0 2px #0f6cbd66}
 .laps{position:relative;z-index:1;margin:0 18px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .laps .mapc{margin:0}
-.link{position:relative;z-index:1;align-self:center;text-align:center;border-top:3px solid #1d1b19;font-size:12px;font-weight:600;line-height:1.3}
-.link span{display:block;margin-top:8px;background:#f4f1ec}
-.link.l1{grid-area:l1}.link.l2{grid-area:l2}
+.maplink{position:relative;z-index:1;align-self:center;text-align:center;border-top:3px solid #1d1b19;font-size:12px;font-weight:600;line-height:1.3}
+.maplink span{display:block;margin-top:8px;background:#f4f1ec}
+.maplink.l1{grid-area:l1}.maplink.l2{grid-area:l2}
 .dock .dnote{width:100%;resize:vertical;border:1px solid var(--line2);border-radius:6px;padding:8px 10px;background:var(--bg);color:var(--ink);font:inherit;margin-bottom:12px}
 .dock .dtop span{font-size:12px}
 .dock .tk{border-top:1px solid var(--line);padding:10px 0}
 .dock .tk p{margin:6px 0 8px;font-size:13px;line-height:18px;color:var(--muted)}
 .dock .tkh b{font-size:13px}
 .dock .tkb{display:flex;gap:6px;margin-top:4px}
+@media (max-width:1500px){
+  .envmap{grid-template-columns:minmax(0,1fr) 96px minmax(0,1fr);padding:12px 14px 20px}
+  .mapc{margin:0 12px;padding:12px}
+  .mapc.need{padding:10px}
+  .laps{margin:0 12px;grid-template-columns:1fr}
+  .mapc b{font-size:14px}
+  .mbtn button{padding:5px 8px}
+}
+@media (max-width:1100px){
+  .envmap{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-template-areas:"dc" "files" "laps" "l1" "entra" "m365" "l2" "intune" "exch"}
+  .zone{display:none}
+  .maplink{align-self:stretch}
+}
 .envc .envw{color:var(--brand);font-size:12px;font-weight:600}
 
 /* portal header */

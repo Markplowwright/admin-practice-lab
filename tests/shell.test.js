@@ -257,3 +257,17 @@ test("Resolve shows how many steps are left and the ticket note is kept", functi
   w.A.exitScenario(); w.A.startScenario({ id: "s3" }); w.render();
   assert.equal(w.document.querySelector(".dnote").value, "Created Priya in Staff.");
 });
+
+test("the not-resolved message disappears once nothing is left open", function () {
+  const w = boot(); w.S.onboarded = true; w.S.portal = "env"; w.S.page = "map"; w.A.startScenario({ id: "s1" }); w.render();
+  w.document.querySelector('.dock [data-a="resolveTicket"]').click();
+  assert.match(w.document.querySelector(".dock").textContent, /Not resolved yet/);
+  w.ADU("adu1").locked = false; w.ADU("adu1").passwordChanged = true; w.S.scenarios.phoneUpdated = true; w.render();
+  assert.doesNotMatch(w.document.querySelector(".dock").textContent, /Not resolved yet/);
+});
+
+test("the start screen Toolkit card is not styled as a map connector", function () {
+  const css = fs.readFileSync(path.join(root, "css", "app.css"), "utf8");
+  assert.doesNotMatch(css, /^\.link\{/m);
+  assert.match(css, /\.maplink\{/);
+});
