@@ -144,6 +144,25 @@ function runDeltaSync(){
   audit("Run delta synchronization",AD_DOMAIN,"Provisioning","Microsoft Entra Connect");
   return {ok:true};
 }
+/* How many directory changes a delta sync would still make. Mirrors runDeltaSync without changing anything. */
+function adPendingChanges(){
+  var n=0;
+  S.ad.users.forEach(function(au){
+    var cu=cloudForAd(au)||S.users.filter(function(u){return upn(u).toLowerCase()===au.upn.toLowerCase();})[0]||null;
+    if(!adInScope(au)){if(cu&&!cu.deleted){n+=1;}return;}
+    if(!cu||cu.deleted){n+=1;return;}
+    if(cu.name!==au.name||(cu.department||"")!==(au.department||"")||!!cu.blocked!==(!au.enabled||adExpired(au))){n+=1;}
+  });
+  S.ad.groups.forEach(function(ag){
+    var cg=S.groups.filter(function(x){return x.adId===ag.id;})[0]||S.groups.filter(function(x){return x.name===ag.name;})[0];
+    var want=[];ag.members.forEach(function(aid){var cu=cloudForAd(ADU(aid));if(cu&&!cu.deleted&&want.indexOf(cu.id)<0){want.push(cu.id);}});
+    var have=cg?(cg.members||[]).filter(function(id){var u=U(id);return u&&syncedUser(u);}):[];
+    if(!cg){if(want.length){n+=1;}return;}
+    var same=want.length===have.length&&want.every(function(id){return have.indexOf(id)>-1;});
+    if(!same){n+=1;}
+  });
+  return n;
+}
 function advanceAdTime(minutes){
   S.ad.nowMin+=minutes;
   if(S.ad.nowMin-S.ad.lastPasswordSyncMin>=S.ad.passwordInterval){runPasswordSync();}
@@ -210,6 +229,6 @@ function applyGroupPolicy(d,u){
   api.deviceJoinMsg = deviceJoinMsg; api.recompute = recompute; api.bitlockerStepDone = bitlockerStepDone;
   api.spotOddSignin = spotOddSignin; api.lagosStepDone = lagosStepDone; api.apAssigned = apAssigned;
   api.adInScope = adInScope; api.runDeltaSync = runDeltaSync; api.runPasswordSync = runPasswordSync;
-  api.adPasswordError = adPasswordError; api.advanceAdTime = advanceAdTime; api.createAdUser = createAdUser; api.resetAdPassword = resetAdPassword;
+  api.adPendingChanges = adPendingChanges; api.adPasswordError = adPasswordError; api.advanceAdTime = advanceAdTime; api.createAdUser = createAdUser; api.resetAdPassword = resetAdPassword;
   api.domainJoin = domainJoin; api.resetComputerAccount = resetComputerAccount; api.applyGroupPolicy = applyGroupPolicy;
 })(typeof window !== "undefined" ? window : globalThis);

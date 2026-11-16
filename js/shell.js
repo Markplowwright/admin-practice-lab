@@ -32,18 +32,39 @@ function taskbar(){
     '<button type="button" class="tbi" data-a="tour"><span>Walk through</span></button>'+
     '<span class="tbnote">Simulated. Not the real portals.</span></div>';
 }
+/* Which systems each ticket needs. Used to outline them on the map. */
+var NEEDS={
+  s1:["dc01"],s2:["dc01","entra"],s3:["dc01","entra","m365","d3"],s4:["dc01","entra","m365","intune","d1"],s5:["dc01","files01","d3"],
+  s6:["dc01","d3"],s7:["dc01","d3"],s8:["dc01","entra"],s9:["dc01","entra"],s10:["dc01","entra","exchange"]
+};
+function deviceBadge(d){
+  if(!d){return "";}
+  if(d.join==="hybrid"){return badge("Hybrid joined","ok");}
+  if(d.domainJoined){return badge("Domain joined","ok");}
+  if(d.state==="enrolled"){return badge("Enrolled in Intune","ok");}
+  if(d.state==="registered"){return badge("Not set up","warn");}
+  return badge("Not joined","warn");
+}
+function mapNeed(key){var a=S.scenarios.active;return !!(a&&NEEDS[a]&&NEEDS[a].indexOf(key)>-1);}
 PAGES["env.map"]=function(){
-  function card(title,where,text,p,pg){return '<button type="button" class="envc" data-a="go" data-p="'+p+'" data-pg="'+pg+'"><span class="envw">'+esc(where)+'</span><b>'+esc(title)+'</b><span>'+esc(text)+'</span></button>';}
-  return '<h2 class="ptitle">Environment</h2><p class="psub">A small hybrid company. Staff accounts live in on-premises Active Directory (practice.local) and sync to Microsoft Entra. Open a system to work in it. Everything here is simulated with fake data.</p>'+
-   '<div class="envgrid">'+
-   '<div class="envh">On premises</div>'+
-   card("DC01","Remote Desktop","Active Directory Users and Computers, Group Policy Management and Entra Connect Sync.","ad","aduc")+
-   card("Virtual laptop","Windows 11 device","Join the domain, run gpupdate and gpresult, check Autopilot enrollment.","vm","d2")+
-   '<div class="envh">Cloud, in the browser</div>'+
-   WEB.map(function(p){return card(TITLES[p],WEBINFO[p].url,{m365:"Users, licenses, groups and billing.",entra:"Identity, sign-in logs, Conditional Access and devices.",intune:"Enrollment, compliance, configuration and apps.",exchange:"Mailboxes and mail flow rules."}[p],p,DEFAULT[p]);}).join("")+
-   '<div class="envh">Reference</div>'+
-   card("Toolkit","Real sites","Links to the real tools help desk techs use: IP lookup, MXToolbox, header analyzer and more.","tools","links")+
-   '</div>';
+  function go(p,pg){return 'data-a="go" data-p="'+p+'" data-pg="'+pg+'"';}
+  function cls(key,extra){return 'mapc'+(mapNeed(key)?' need':'')+(extra?' '+extra:'');}
+  var pend=adPendingChanges(),live=S.users.filter(function(u){return !u.deleted;}),fromAd=live.filter(syncedUser).length,managed=S.devices.filter(function(d){return d.state==="enrolled";}).length;
+  var tkt=S.scenarios.active;
+  function laptop(d,sub){return '<button type="button" class="'+cls(d.id,'lap')+'" '+go("vm",d.id)+'><b>'+esc(d.maker+" "+d.model)+'</b><span>'+esc(sub)+'</span>'+deviceBadge(d)+'</button>';}
+  var dc='<div class="'+cls("dc01")+'" style="grid-area:dc"><div class="mh"><b>DC01 &middot; domain controller</b>'+(pend?badge(pend+(pend===1?" change":" changes")+" not synced","warn"):badge("In sync","ok"))+'</div><span>Active Directory, Group Policy, Entra Connect</span>'+
+    '<div class="mbtn"><button type="button" class="pri" '+go("ad","aduc")+'>Users and Computers</button><button type="button" '+go("ad","gpmc")+'>Group Policy</button><button type="button" '+go("ad","sync")+'>Entra Connect</button></div></div>';
+  var files='<div class="'+cls("files01","still")+'" style="grid-area:files"><div class="mh"><b>FILES01 &middot; file server</b></div><span>Finance share, mapped by Group Policy. Not opened in this lab: it explains why Finance group membership matters.</span></div>';
+  var laps='<div class="laps" style="grid-area:laps">'+laptop(D("d1"),"Sam's laptop, Intune")+laptop(D("d2"),"Autopilot")+laptop(D("d3"),"Spare, manual join")+'</div>';
+  function cloud(area,key,p,pg,title,sub,badgeHtml){return '<button type="button" class="'+cls(key)+'" style="grid-area:'+area+'" '+go(p,pg)+'><b>'+esc(title)+'</b><span>'+esc(sub)+'</span>'+(badgeHtml||"")+'</button>';}
+  return '<div class="envwin"><div class="envt">Practice Corp environment</div><div class="envcap">'+(tkt?'Heavy outline: needed for the open ticket. Click a system to open its tool.':'Click a system to open its tool.')+'</div>'+
+    '<div class="envmap"><div class="zone zl"><span>On-premises &middot; practice.local</span></div><div class="zone zr"><span>Microsoft cloud</span></div>'+
+    dc+files+laps+
+    cloud("entra","entra","entra","overview","Microsoft Entra ID","Users, groups, sign-in",'<span class="mfact">'+live.length+' users, '+fromAd+' from Windows Server AD</span>')+
+    cloud("m365","m365","m365","home","Microsoft 365 admin center","Licenses and mailboxes",'<span class="mfact">Licenses: '+assigned()+' of '+S.total+' used</span>')+
+    cloud("intune","intune","intune","home","Microsoft Intune","Enrollment, policies, apps",'<span class="mfact">'+managed+(managed===1?" device":" devices")+' managed</span>')+
+    cloud("exch","exchange","exchange","mailboxes","Exchange admin center","Mailboxes and mail flow","")+
+    '<div class="link l1"><span>Directory sync<br>every '+S.ad.dirInterval+' min</span></div><div class="link l2"><span>Enrollment<br>and device join</span></div></div></div>';
 };
 var TOOLKIT=[
  {g:"Suspicious sign-in",t:[
