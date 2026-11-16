@@ -139,6 +139,8 @@ document.addEventListener("change",function(e){
     S.fly.d[t.getAttribute("data-fd")]=t.type==="checkbox"?t.checked:t.value;rr=t.hasAttribute("data-rr");
   }else if(t.hasAttribute("data-dr")&&S.draft){
     S.draft[t.getAttribute("data-dr")]=t.value;rr=t.hasAttribute("data-rr");
+  }else if(t.hasAttribute("data-ch")){
+    var cf=A[t.getAttribute("data-ch")];if(cf){cf(t.dataset,t);}rr=true;
   }else if(t.hasAttribute("data-sv")){
     S[t.getAttribute("data-sv")]=t.value;
   }

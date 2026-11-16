@@ -6,7 +6,7 @@ const test = require("node:test");
 const { JSDOM, VirtualConsole } = require("jsdom");
 
 const root = path.join(__dirname, "..");
-const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "remote.js", "guide.js", "shell.js", "render.js"];
+const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "remote.js", "procure.js", "guide.js", "shell.js", "render.js"];
 
 function boot() {
   const html = "<!doctype html><html><head></head><body data-portal=\"m365\"><div id=\"app\"></div><div id=\"intro\"></div>" +
@@ -40,7 +40,7 @@ test("the taskbar is on every screen and switches systems", function () {
   const w = boot(); go(w, "env", "map");
   const d = w.document;
   assert.ok(d.querySelector(".wsbar"));
-  assert.equal(d.querySelectorAll(".mapc").length, 9);
+  assert.equal(d.querySelectorAll(".mapc").length, 10);
   d.querySelector('.wsbar [data-p="ad"]').click();
   assert.equal(w.S.portal, "ad");
   assert.ok(d.querySelector(".wsbar"));
@@ -392,4 +392,37 @@ test("virtual laptop fills the workspace with no portal chrome and spotlights it
   assert.ok(d.querySelector(".vm"), "laptop screen");
   assert.ok(d.querySelector(".spot"), "first laptop step is highlighted");
   assert.equal(d.querySelector(".vmside"), null, "practice notes closed by default");
+});
+test("procurement: type picker offers laptop, desktop and a disabled phone", function () {
+  const w = boot(); w.S.onboarded = true; go(w, "procure", "order"); const d = w.document;
+  assert.equal(d.querySelectorAll(".ptype").length, 3);
+  assert.match(d.querySelector(".ptype.off").textContent, /Coming soon/);
+  assert.equal(d.querySelectorAll(".edge, .phdr, .lnav").length, 0);
+  w.A.pSoon(); assert.equal(w.S.procure.devs.length, 0);
+});
+test("procurement: ordering a desktop with no monitor raises a request that adding a monitor clears", function () {
+  const w = boot(); w.S.onboarded = true; go(w, "procure", "order");
+  w.A.pType({ k: "desktop" }); w.A.pMon({ k: "0" }); w.A.pOrder();
+  const p = w.S.procure; assert.equal(p.devs.length, 1); assert.equal(p.devs[0].stage, "ordered");
+  assert.equal(p.reqs.length, 1); assert.equal(w.pOpenReqs(), 1);
+  w.A.pAddMon({ id: p.devs[0].id }); assert.equal(w.pOpenReqs(), 0);
+  assert.equal(w.S.devices.length, 3, "ordered devices stay out of the Intune/Entra device list");
+});
+test("procurement: receive needs the exact serial from the box label", function () {
+  const w = boot(); w.S.onboarded = true; go(w, "procure", "order");
+  w.A.pType({ k: "laptop" }); w.A.pOrder(); go(w, "procure", "bench");
+  const dev = w.S.procure.devs[0], inp = w.document.getElementById("ps-" + dev.id);
+  inp.value = "WRONG"; w.A.pReceive({ id: dev.id }); assert.equal(dev.stage, "ordered");
+  inp.value = dev.serial.toLowerCase(); w.A.pReceive({ id: dev.id }); assert.equal(dev.stage, "received");
+  assert.equal(w.pBenchCount(), 1);
+});
+test("procurement: a second laptop for a user who already has one raises a duplicate request", function () {
+  const w = boot(); w.S.onboarded = true;
+  w.A.pType({ k: "laptop" }); w.S.procure.form.user = "u2"; w.A.pOrder();
+  const r = w.S.procure.reqs[0]; assert.equal(r.kind, "dup"); assert.equal(w.pOpenReqs(), 1);
+  w.A.pDup({ id: r.id, k: "cancel" }); assert.equal(w.pOpenReqs(), 0); assert.equal(w.S.procure.devs[0].stage, "cancelled");
+});
+test("saved lab from before procurement loads", function () {
+  const w = boot(); const o = JSON.parse(JSON.stringify(w.S)); delete o.procure; o.version = 8;
+  const m = w.Lab.migrate(o); assert.equal(m.version, w.STATE_VERSION); assert.equal(m.procure, null);
 });
