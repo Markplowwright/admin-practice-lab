@@ -40,7 +40,7 @@ test("the taskbar is on every screen and switches systems", function () {
   const w = boot(); go(w, "env", "map");
   const d = w.document;
   assert.ok(d.querySelector(".wsbar"));
-  assert.equal(d.querySelectorAll(".envc").length, 7);
+  assert.equal(d.querySelectorAll(".mapc").length, 9);
   d.querySelector('.wsbar [data-p="ad"]').click();
   assert.equal(w.S.portal, "ad");
   assert.ok(d.querySelector(".wsbar"));
@@ -188,4 +188,44 @@ test("the Properties toolbar button works for the selected object", function () 
   d.querySelector('#main .lnk[data-kind="user"]').click();
   d.querySelector('#main [data-a="adOpenProps"]').click();
   assert.equal(d.querySelectorAll(".rdlg").length, 1);
+});
+
+test("the map shows live status from the lab", function () {
+  const w = boot(); go(w, "env", "map"); const d = w.document;
+  const text = function () { return d.querySelector(".envmap").textContent; };
+  assert.match(text(), /Licenses: \d+ of 10 used/);
+  assert.match(text(), /1 device managed/);
+  assert.match(text(), /Not set up/);
+  assert.match(text(), /Directory sync\s*every 30 min/);
+  w.D("d3").domainJoined = true; w.D("d3").join = "domain"; w.render();
+  assert.match(text(), /Domain joined/);
+  w.D("d2").state = "enrolled"; w.render();
+  assert.equal((text().match(/Not set up/g) || []).length, 0);
+});
+
+test("DC01 shows changes not synced until a delta sync runs", function () {
+  const w = boot(); go(w, "env", "map"); const d = w.document;
+  w.createAdUser({ name: "Alex Doe", sam: "alex.doe", department: "Finance", ou: "ou-staff", pw: "Scenario#Hire13x", mustChange: true }); w.render();
+  assert.ok(w.adPendingChanges() > 0);
+  assert.match(d.querySelector(".mapc .mh").textContent, /not synced/);
+  w.runDeltaSync(); w.render();
+  assert.equal(w.adPendingChanges(), 0);
+  assert.match(d.querySelector(".mapc .mh").textContent, /In sync/);
+});
+
+test("the open ticket outlines the systems it needs", function () {
+  const w = boot(); w.S.onboarded = true; w.S.portal = "env"; w.S.page = "map";
+  w.A.startScenario({ id: "s3" }); w.render();
+  const need = Array.from(w.document.querySelectorAll(".mapc.need")).map(function (n) { return n.querySelector("b").textContent; }).join("|");
+  assert.match(need, /DC01/); assert.match(need, /Entra/); assert.match(need, /Microsoft 365/); assert.match(need, /ThinkPad/);
+  assert.doesNotMatch(need, /Exchange/);
+});
+
+test("clicking map cards opens the matching tool", function () {
+  const w = boot(); go(w, "env", "map"); const d = w.document;
+  d.querySelector('.mbtn [data-pg="gpmc"]').click();
+  assert.equal(w.S.portal, "ad"); assert.equal(w.S.page, "gpmc");
+  go(w, "env", "map");
+  d.querySelector('button.mapc[data-p="intune"]').click();
+  assert.equal(w.S.portal, "intune");
 });
