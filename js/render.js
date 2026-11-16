@@ -12,8 +12,6 @@ A.chk=function(d){S.checked=S.checked[0]===d.id?[]:[d.id];};
 A.refresh=function(){toast("Refreshed.");};
 A.noop=function(){toast("Not needed for this lab.");};
 A.perUserMfa=function(){openModal("Per-user MFA","<p>Per-user MFA is the older way to enforce MFA one person at a time. Use security defaults or Conditional Access instead (Entra > Protection or Properties).</p>",null,null);};
-A.guide=function(){S.guide=!S.guide;};
-A.gtab=function(d){S.guideTab=d.t;};
 A.info=function(d,el){hidePop();showPop(el);};
 A.wizGo=function(d){var n=parseInt(d.n,10);if(n>S.wiz.step){var err=wizStepError();if(err){S.wiz.err=err;return;}}S.wiz.step=n;S.wiz.err="";};
 A.wizBack=function(){S.wiz.step=Math.max(0,S.wiz.step-1);S.wiz.err="";};
@@ -24,11 +22,11 @@ A.resetLab=function(){openModal("Reset the lab?","<p>This restores every user, g
 A.tour=function(){S.onboarded=false;S.intro=0;};
 A.introNext=function(){S.intro=Math.min(INTRO_STEPS-1,(S.intro||0)+1);};
 A.introBack=function(){S.intro=Math.max(0,(S.intro||0)-1);};
-A.introSkip=function(){S.onboarded=true;if(progress()[0]===0){S.guide=true;S.guideTab="missions";}};
+A.introSkip=function(){S.onboarded=true;};
 A.introStart=function(){
   var m=nextMission(levelsView());
-  S.onboarded=true;S.guide=true;S.guideTab="missions";
-  if(m){var st=firstOpenStep(m),w=st[2];S.portal=w[0];S.page=w[1];resetNav();navReset=true;}
+  S.onboarded=true;
+  if(m){S.mission=m.t;var st=firstOpenStep(m),w=st[2];S.portal=w[0];S.page=w[1];resetNav();navReset=true;}
 };
 A.finish=function(){S.finishSeen=false;};
 A.finishClose=function(){S.finishSeen=true;};
@@ -75,11 +73,10 @@ function render(){
   else if(PAGES[key]){content=PAGES[key]();}
   else{content='<p>Page not found.</p>';}
   if(S.portal==="start"){$("#app").innerHTML=startHtml();document.body.classList.remove("guide-open","dock-open");}
-  else if(S.portal==="ad"){S.rdpLast=S.page;$("#app").innerHTML=rdpHtml(content)+taskbar()+ticketDock()+flyHtml()+guideHtml();}
-  else{$("#app").innerHTML=topBar()+portalHeader()+'<div class="shell">'+leftNav()+'<main class="content" id="main">'+content+'</main></div>'+taskbar()+ticketDock()+flyHtml()+guideHtml();}
+  else if(S.portal==="ad"){S.rdpLast=S.page;$("#app").innerHTML=rdpHtml(content)+taskbar()+ticketDock()+flyHtml();}
+  else{$("#app").innerHTML=topBar()+portalHeader()+'<div class="shell">'+leftNav()+'<main class="content" id="main">'+content+'</main></div>'+taskbar()+ticketDock()+flyHtml();}
   if(navReset){window.scrollTo(0,0);navReset=false;}else{window.scrollTo(wx,wy);}
-  gb=document.querySelector(".guide .gb");if(gb){gb.scrollTop=gy;}
-  if(S.portal!=="start"){document.body.classList.toggle("guide-open",!!S.guide);document.body.classList.toggle("dock-open",!!S.scenarios.active||S.portal==="env");}
+    if(S.portal!=="start"){document.body.classList.remove("guide-open");document.body.classList.toggle("dock-open",!!S.scenarios.active||!!S.mission||S.portal==="env");}
   fitLaptop();
   /* level completion toast, then the tour or the finish screen */
   var lv=levelsView(),fresh=null;
@@ -101,7 +98,7 @@ function render(){
 /* =============== EVENTS =============== */
 document.addEventListener("click",function(e){
   var cm=document.getElementById("ctx");if(cm){cm.remove();}
-  var collapse=!!(S.guide&&e.target.closest&&e.target.closest("#app")&&!e.target.closest(".guide"));
+  var collapse=false;
   var t=e.target.closest("[data-a]");
   if(!t){if(!e.target.closest("#pop")){hidePop();}if(collapse){S.guide=false;render();}return;}
   if(collapse&&t.dataset.a!=="guide"){S.guide=false;}
