@@ -133,7 +133,7 @@ function pImg(d){if(!d.img){d.img={step:"cables",cab:{},msg:"",parts:null,sel:0,
 function pImgPorts(d){return d.type==="desktop"?["power","net","mon","kbd","usb"]:["power","net","usb"];}
 function pImgDev(){var id=P().imgId;return id?pDev(id):null;}
 function pStepper(d){
-  var st={cables:1,post:2,menu:3,pxe:3,setup:4,install:4,done:5}[pImg(d).step]||1;
+  var st={cables:1,post:2,menu:3,pxe:3,bios:3,setup:4,install:4,done:5}[pImg(d).step]||1;
   return '<ol class="pstep">'+["Connect","Power on","Boot menu","Install","Done"].map(function(l,i){return '<li class="'+(i+1===st?'on':i+1<st?'ok':'')+'">'+l+'</li>';}).join("")+'</ol>';
 }
 function pScr(inner){return '<div class="pscr">'+inner+'</div>';}
@@ -150,6 +150,10 @@ function pImgBody(d){
   }else if(g.step==="menu"){
     var mm=[["win","Windows Boot Manager"],["usb","UEFI: USB device"],["nic4","Onboard NIC (IPV4)"],["nic6","Onboard NIC (IPV6)"]];
     h=pScr('<div class="dim">Boot mode is set to: UEFI; Secure Boot: ON; PTT is ON</div><div class="pmh">UEFI BOOT:</div>'+mm.map(function(x){return '<button type="button" class="pitem" data-a="pBoot" data-k="'+x[0]+'">'+esc(x[1])+'</button>';}).join("")+'<div class="pmh">OTHER OPTIONS:</div>'+[["bios","BIOS Setup"],["diag","Diagnostics"],["exit","Exit Boot Menu and Continue"]].map(function(x){return '<button type="button" class="pitem" data-a="pBoot" data-k="'+x[0]+'">'+esc(x[1])+'</button>';}).join(""))+m;
+  }else if(g.step==="bios"){
+    var dr=g.draft;
+    h=pScr('<div class="pmh">BIOS Setup &gt; General &gt; Boot Sequence</div><div class="dim">Boot mode: UEFI. Secure Boot: On. Check the devices to boot from, and put them in order.</div><table class="ptab"><tr><th>Order</th><th>On</th><th>Boot option</th><th></th></tr>'+dr.order.map(function(k,i){return '<tr><td>'+(i+1)+'</td><td><label><input type="checkbox" data-a="pBiosTog" data-k="'+k+'"'+(dr.on[k]?' checked':'')+' aria-label="'+esc(BIOS_ITEMS[k])+'"></label></td><td>'+esc(BIOS_ITEMS[k])+'</td><td><button type="button" class="pkey" data-a="pBiosMove" data-k="'+k+'" data-dir="-1" aria-label="Move '+esc(BIOS_ITEMS[k])+' up">Up</button> <button type="button" class="pkey" data-a="pBiosMove" data-k="'+k+'" data-dir="1" aria-label="Move '+esc(BIOS_ITEMS[k])+' down">Down</button></td></tr>';}).join("")+'</table>'+(g.applied?'<p class="dim">Changes applied.</p>':""))+m+
+      '<div class="pbtns"><button type="button" class="pbtn pri" data-a="pBiosApply">Apply Changes</button><button type="button" class="pbtn" data-a="pBiosExit">Exit</button></div>';
   }else if(g.step==="pxe"){
     h=pScr('<div class="pmh">Network boot: Task sequence selection</div><div class="dim">Pick the image for this device.</div>'+IMG_TS.map(function(x){return '<button type="button" class="pitem'+(g.ts===x[0]?' on':'')+'" data-a="pTs" data-k="'+x[0]+'">'+esc(x[1])+'</button>';}).join(""))+m+'<div class="pbtns"><button type="button" class="pbtn pri" data-a="pPxeGo">Deploy</button></div>';
   }else if(g.step==="setup"){
@@ -159,7 +163,8 @@ function pImgBody(d){
   }else if(g.step==="install"){
     h=pScr('<div class="pmh">Installing Windows 11 Pro</div><div class="pbar"><i style="width:'+g.prog+'%"></i></div><p class="dim">'+esc(["Copying files","Installing features","Installing updates","Finishing up"][Math.min(3,Math.floor(g.prog/26))])+' ('+g.prog+'%)</p>')+'<div class="pbtns"><button type="button" class="pbtn pri" data-a="pInstall">'+(g.prog<100?"Let it run":"Restart")+'</button></div>';
   }else if(g.step==="done"){
-    h='<div class="pmsg ok">Windows is installed on '+esc(d.tag)+'. It is not joined, not managed, and nothing can see it yet.</div><p>Next: install the support agent so the device can be reached remotely.</p><div class="pbtns"><button type="button" class="pbtn pri" data-a="pBackBench">Back to the bench</button></div>';
+    var oem=g.method==="Autopilot"?"The disk still held the vendor's Windows, so it booted to setup. This serial is registered in Autopilot, so setup will ask for a work account. Open the device to go through it.":g.method==="OEM"?"The disk still held the vendor's Windows, so it booted to the standard setup. This serial is not registered in Autopilot, so nothing will configure it automatically. Register it in Intune first for zero-touch, or image it by USB or PXE.":"Windows is installed on "+esc(d.tag)+". It is not joined, not managed, and nothing can see it yet.";
+    h='<div class="pmsg ok">'+esc(oem)+'</div><p>Next: install the support agent so the device can be reached remotely.</p><div class="pbtns"><button type="button" class="pbtn pri" data-a="pBackBench">Back to the bench</button></div>';
   }
   return h;
 }
@@ -179,25 +184,58 @@ A.pPower=function(){
   if(miss.length){g.msg="Nothing happens or you cannot see it. Still to connect: "+miss.map(function(k){return IMG_PORTS[k];}).join(", ")+".";return;}
   g.msg="";g.step="post";
 };
+var BIOS_ITEMS={win:"Windows Boot Manager",usb:"UEFI: USB device",nic4:"Onboard NIC (IPV4)",nic6:"Onboard NIC (IPV6)"};
+function pBios(g){if(!g.bios){g.bios={order:["win","usb","nic4","nic6"],on:{win:true,usb:true,nic4:true,nic6:true}};}return g.bios;}
+/* Try to boot one device. Returns true when it started something; otherwise sets g.msg. */
+function pTryBoot(dev,g,k){
+  if(k==="win"){return pOem(dev,g);}
+  if(k==="usb"){
+    if(!g.cab.usb){g.msg="No USB boot device found. Is the installer stick plugged in?";return false;}
+    g.parts=[{n:"Drive 0 Partition 1: Recovery",s:"1.0 GB",t:"Recovery"},{n:"Drive 0 Partition 2: System",s:"100.0 MB",t:"System"},{n:"Drive 0 Partition 3: Primary",s:"475.8 GB",t:"Primary"}];g.sel=0;g.step="setup";g.msg="";return true;
+  }
+  if(k==="nic4"){
+    if(!g.cab.net){g.msg="PXE-E61: Media test failure, check cable. Connect the network cable and try again.";return false;}
+    g.ts="";g.step="pxe";g.msg="";return true;
+  }
+  g.msg="PXE over IPv6 is not served on this network. Use the IPv4 entry.";return false;
+}
+/* The disk still holds the vendor's Windows. Booting it starts out-of-box setup (OOBE). */
+function pOem(dev,g){
+  var reg=S.devices.filter(function(x){return x.serial===dev.serial&&x.autopilot;})[0];
+  g.msg="";g.step="done";dev.stage="imaged";
+  if(reg){g.method="Autopilot";dev.imgMethod="Autopilot";dev.devId=reg.id;reg.fromBench=true;reg.kind=dev.type;reg.maker=dev.maker;reg.model=dev.model;}
+  else{g.method="OEM";dev.imgMethod="OEM Windows";}
+  dev.os="Windows 11 Pro";return true;
+}
+function pNormalBoot(dev,g){
+  var b=pBios(g),i,k;g.msg="";
+  for(i=0;i<b.order.length;i++){k=b.order[i];if(b.on[k]&&pTryBoot(dev,g,k)){return;}}
+  g.msg="No bootable device found. Check the boot order in BIOS, or press F12 for the boot menu."+(g.msg?" ("+g.msg+")":"");g.step="cables";
+}
 A.pKey=function(d){
-  var g=pImg(pImgDev());g.msg="";
+  var dev=pImgDev(),g=pImg(dev);g.msg="";
   if(d.k==="f12"){g.step="menu";}
-  else if(d.k==="f2"){g.msg="BIOS setup is not simulated yet. Use F12 for the one-time boot menu instead.";}
-  else{g.msg="No bootable device found. The internal disk is blank, so the machine powered off. Power on again and press F12 at the Dell logo.";g.step="cables";}
+  else if(d.k==="f2"){pBios(g);g.draft={order:g.bios.order.slice(),on:JSON.parse(JSON.stringify(g.bios.on))};g.step="bios";}
+  else{pNormalBoot(dev,g);}
 };
 A.pBoot=function(d){
   var dev=pImgDev(),g=pImg(dev);g.msg="";
-  if(d.k==="win"){g.msg="No operating system found on the internal disk. It is blank. Pick another way to boot.";}
-  else if(d.k==="usb"){
-    if(!g.cab.usb){g.msg="No USB boot device found. Is the installer stick plugged in? Go back and connect it.";return;}
-    g.parts=[{n:"Drive 0 Partition 1: Recovery",s:"1.0 GB",t:"Recovery"},{n:"Drive 0 Partition 2: System",s:"100.0 MB",t:"System"},{n:"Drive 0 Partition 3: Primary",s:"475.8 GB",t:"Primary"}];g.sel=0;g.step="setup";
-  }else if(d.k==="nic4"){
-    if(!g.cab.net){g.msg="PXE-E61: Media test failure, check cable. Connect the network cable and try again.";return;}
-    g.ts="";g.step="pxe";
-  }else if(d.k==="nic6"){g.msg="PXE over IPv6 is not served on this network. Use the IPv4 entry.";}
-  else if(d.k==="bios"){g.msg="BIOS setup is not simulated yet. Pick a boot device from this menu.";}
+  if(d.k==="win"||d.k==="usb"||d.k==="nic4"||d.k==="nic6"){pTryBoot(dev,g,d.k);}
+  else if(d.k==="bios"){pBios(g);g.draft={order:g.bios.order.slice(),on:JSON.parse(JSON.stringify(g.bios.on))};g.step="bios";}
   else if(d.k==="diag"){g.msg="Hardware diagnostics passed. Nothing is installed yet.";}
-  else{g.msg="Booting from the internal disk: no operating system found.";}
+  else{pNormalBoot(dev,g);}
+};
+A.pBiosTog=function(d){var g=pImg(pImgDev());g.draft.on[d.k]=!g.draft.on[d.k];g.msg="";};
+A.pBiosMove=function(d){
+  var g=pImg(pImgDev()),o=g.draft.order,i=o.indexOf(d.k),j=i+(+d.dir);g.msg="";
+  if(i<0||j<0||j>=o.length){return;}
+  var t=o[i];o[i]=o[j];o[j]=t;
+};
+A.pBiosApply=function(){var g=pImg(pImgDev());g.bios={order:g.draft.order.slice(),on:JSON.parse(JSON.stringify(g.draft.on))};g.msg="";g.applied=true;};
+A.pBiosExit=function(){
+  var dev=pImgDev(),g=pImg(dev),b=pBios(g),dirty=JSON.stringify(b.order)!==JSON.stringify(g.draft.order)||JSON.stringify(b.on)!==JSON.stringify(g.draft.on);
+  if(dirty){g.msg="You changed settings but did not choose Apply Changes. Apply them first, or exit and lose them.";g.confirmExit=true;if(g.exitTwice){g.exitTwice=false;g.confirmExit=false;g.msg="";g.draft=null;pNormalBoot(dev,g);}else{g.exitTwice=true;}return;}
+  g.exitTwice=false;g.draft=null;pNormalBoot(dev,g);
 };
 A.pTs=function(d){pImg(pImgDev()).ts=d.k;};
 A.pPxeGo=function(){
@@ -229,6 +267,8 @@ A.pInstall=function(){
 A.pAgent=function(d){
   var dev=pDev(d.id);if(!dev||dev.stage!=="imaged"||dev.agent){return;}
   dev.agent=true;
+  var link=dev.devId?D(dev.devId):null;
+  if(link){link.agent=true;toast((link.name==="(not set up)"?compNameFor(link):link.name)+" now reports to Remote support.");return;}
   var rec={id:dev.id,serial:dev.serial,name:"",model:dev.model,maker:dev.maker,os:"Windows 11 Pro",osVer:"10.0.22631",userId:null,state:"unmanaged",baseBitlocker:false,autopilot:false,spare:true,sync:"-",join:"",joinUser:null,fromBench:true,agent:true,kind:dev.type};
   rec.name=compNameFor(rec);S.devices.push(rec);
   toast(rec.name+" now reports to Remote support and can be opened as a device.");

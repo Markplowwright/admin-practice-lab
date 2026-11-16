@@ -459,3 +459,29 @@ test("only after the agent is installed does the device reach Remote support and
   const m = w.rAll()[5]; assert.equal(m.online, true); assert.equal(m.grp, "laptops");
   assert.ok(w.vmDevices().some(function (x) { return x.id === dev.id; }));
 });
+function readyDev(w, type) {
+  const dev = benchDev(w, type); w.A.pCable({ k: "power" }); if (type === "desktop") { w.A.pCable({ k: "mon" }); w.A.pCable({ k: "kbd" }); } return dev;
+}
+test("BIOS boot order: moving USB first makes the normal boot start Windows Setup", function () {
+  const w = boot(), dev = readyDev(w, "laptop"); w.A.pCable({ k: "usb" }); w.A.pPower();
+  w.A.pKey({ k: "none" }); assert.equal(w.pImg(dev).step, "done", "default order boots the vendor Windows first");
+  const w2 = boot(), d2 = readyDev(w2, "laptop"); w2.A.pCable({ k: "usb" }); w2.A.pPower(); w2.A.pKey({ k: "f2" });
+  assert.equal(w2.pImg(d2).step, "bios");
+  w2.A.pBiosMove({ k: "usb", dir: "-1" }); w2.A.pBiosMove({ k: "usb", dir: "-1" });
+  w2.A.pBiosExit(); assert.equal(w2.pImg(d2).step, "bios", "unapplied changes are not silently kept");
+  w2.A.pBiosApply(); w2.A.pBiosExit(); assert.equal(w2.pImg(d2).step, "setup");
+});
+test("BIOS: a disabled device is skipped; with nothing bootable the machine says so", function () {
+  const w = boot(), dev = readyDev(w, "laptop"); w.A.pPower(); w.A.pKey({ k: "f2" });
+  ["win", "usb", "nic4", "nic6"].forEach(function (k) { w.A.pBiosTog({ k: k }); });
+  w.A.pBiosApply(); w.A.pBiosExit(); assert.match(w.pImg(dev).msg, /No bootable device/);
+});
+test("Autopilot boot: only a serial registered in Intune gets zero-touch setup", function () {
+  const w = boot(), dev = readyDev(w, "laptop"); w.A.pPower(); w.A.pKey({ k: "f12" }); w.A.pBoot({ k: "win" });
+  assert.equal(dev.imgMethod, "OEM Windows"); assert.equal(w.S.devices.length, 3);
+  const w2 = boot(), d2 = readyDev(w2, "laptop");
+  w2.S.devices.push({ id: "dap", serial: d2.serial, name: "(not set up)", model: "x", maker: "Dell", os: "Windows 11 Pro", osVer: "10.0.22631", userId: null, state: "registered", baseBitlocker: false, autopilot: true, sync: "-" });
+  w2.A.pPower(); w2.A.pKey({ k: "f12" }); w2.A.pBoot({ k: "win" });
+  assert.equal(d2.imgMethod, "Autopilot"); assert.equal(d2.devId, "dap"); assert.equal(w2.S.devices.length, 4);
+  w2.A.pAgent({ id: d2.id }); assert.equal(w2.rAll().length, 6); assert.match(w2.rAll()[5].name, /^DESKTOP-/);
+});

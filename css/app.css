@@ -770,3 +770,7 @@ body[data-portal="vm"] .vmside .tile{background:var(--panel);color:var(--ink)}
 .pbtns{display:flex;gap:8px;margin:12px 0}
 .ptab{width:100%;border-collapse:collapse;font-family:inherit}.ptab th{text-align:left;color:#9aa5b1;font-weight:400;border-bottom:1px solid #3b434d;padding:4px 8px}.ptab td{padding:5px 8px;cursor:pointer}.ptab tr.sel td{background:#3a6fb0}
 .pbar{height:14px;background:#2a313a;border-radius:7px;overflow:hidden;margin:12px 0}.pbar i{display:block;height:100%;background:#4aa3ff}
+.pscr .ptab,.pscr .ptab tr,.pscr .ptab th,.pscr .ptab td,.pscr .ptab tbody tr:nth-child(even),.pscr .ptab tr:hover{background:transparent!important;color:inherit}
+.pscr .ptab th{color:#9aa5b1;border-bottom:1px solid #3b434d}
+.pscr .ptab tr:hover td{background:#1c2a3a!important}.pscr .ptab tr.sel td{background:#3a6fb0!important}
+.pscr .ptab label{display:inline}
