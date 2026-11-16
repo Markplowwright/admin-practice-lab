@@ -10,7 +10,7 @@ var RMACH=[
   {id:"d1",name:"LAPTOP-SO-01",grp:"laptops",os:"Windows 10 Pro",role:"Laptop",ip:"10.10.1.41",user:"Sam Ortiz",sam:"sam.ortiz",online:true,seen:"Now"},
   {id:"d3",name:"DESKTOP-SP26042",grp:"laptops",os:"Windows 11 Pro",role:"Spare laptop",ip:"-",user:"",online:false,seen:"3 days ago"}
 ];
-var RGROUPS=[["all","All Machines"],["servers","Servers"],["laptops","Laptops"],["support","Support sessions"]];
+var RGROUPS=[["all","All Machines"],["servers","Servers"],["laptops","Laptops"],["desktops","Desktops"],["support","Support sessions"]];
 var RSVC=["Windows Update","DNS Client","Print Spooler"];
 var RTPL={
   server:{procs:[["System",0.3,60],["lsass.exe",1.2,95],["svchost.exe",0.8,110],["dns.exe",0.6,70],["services.exe",0.1,12],["ConnectAgent.exe",0.4,38]],sw:[["Support Agent","23.4.0","Practice IT"],["Windows Defender","4.18","Microsoft"]]},
@@ -19,8 +19,14 @@ var RTPL={
 var RBADP={n:"DriverBoost.exe",cpu:92,mem:812,bad:true},RBADS=["DriverBoost Updater","3.1","Unknown publisher",true];
 function remoteBlank(){return {sel:"dc01",grp:"all",tab:"start",sess:null,support:null,audit:[],procs:{},sw:{},notes:{},hist:{},chat:{},flags:{}};}
 function R(){if(!S.remote){S.remote=remoteBlank();}return S.remote;}
-function rMach(id){return RMACH.filter(function(m){return m.id===id;})[0];}
-function rLap(m){return m&&m.grp==="laptops";}
+/* Machines the learner imaged and put the support agent on show up here too. */
+function rAll(){
+  var extra=(S.devices||[]).filter(function(d){return d.fromBench&&d.agent;}).map(function(d){
+    return {id:d.id,name:d.name,grp:d.kind==="desktop"?"desktops":"laptops",os:d.os,role:d.kind==="desktop"?"Desktop":"Laptop",ip:"10.10.1."+(60+(+String(d.id).replace(/\D/g,"")||0)),user:"",online:true,seen:"Now"};});
+  return RMACH.concat(extra);
+}
+function rMach(id){return rAll().filter(function(m){return m.id===id;})[0];}
+function rLap(m){return m&&(m.grp==="laptops"||m.grp==="desktops");}
 function rProcs(id){var r=R(),m=rMach(id);if(!r.procs[id]){r.procs[id]=RTPL[rLap(m)?"laptop":"server"].procs.map(function(p){return {n:p[0],cpu:p[1],mem:p[2]};});}return r.procs[id];}
 function rSw(id){var r=R(),m=rMach(id);if(!r.sw[id]){r.sw[id]=RTPL[rLap(m)?"laptop":"server"].sw.map(function(p){return {n:p[0],v:p[1],p:p[2]};});}return r.sw[id];}
 function rAudit(mid,what){var r=R();r.audit.unshift({m:mid,w:what,n:r.audit.length+1});if(r.audit.length>80){r.audit.pop();}}
@@ -46,12 +52,12 @@ function rRun(mid,line,asUser){var r=R(),out=rExec(mid,line,asUser),h=r.hist[mid
 function rDot(on){return '<span class="rdot'+(on?' on':'')+'" title="'+(on?'Online':'Offline')+'"></span>';}
 function rRows(){
   var r=R(),q=(S.q||"").toLowerCase(),g=r.grp,list;
-  list=RMACH.filter(function(m){return g==="all"||m.grp===g;}).map(function(m){return {m:m,guest:false};});
+  list=rAll().filter(function(m){return g==="all"||m.grp===g;}).map(function(m){return {m:m,guest:false};});
   if((g==="all"||g==="support")&&r.support&&r.support.state==="joined"){list.push({m:rMach("d1"),guest:true});}
   if(g==="support"){list=list.filter(function(x){return x.guest;});}
   return list.filter(function(x){var m=x.m;return !q||(m.name+" "+m.user+" "+m.os+" "+m.role+" "+m.ip).toLowerCase().indexOf(q)>-1;});
 }
-function rCount(g){return g==="all"?RMACH.length:g==="support"?((R().support&&R().support.state==="joined")?1:0):RMACH.filter(function(m){return m.grp===g;}).length;}
+function rCount(g){return g==="all"?rAll().length:g==="support"?((R().support&&R().support.state==="joined")?1:0):rAll().filter(function(m){return m.grp===g;}).length;}
 function rRail(act){return '<nav class="rrail" aria-label="Remote support"><b>Remote</b>'+[["support","Support"],["console","Access"]].map(function(x){return '<button type="button" data-a="go" data-p="remote" data-pg="'+x[0]+'"'+(act===x[0]?' aria-current="true"':'')+'>'+esc(x[1])+'</button>';}).join("")+'<span class="rsp"></span><small>Generic remote support console. Fake machines and users.</small></nav>';}
 function rGroups(){var r=R();return '<div class="rgrp"><div class="rh">Session groups</div>'+RGROUPS.map(function(g){return '<button type="button" data-a="rGrp" data-id="'+g[0]+'"'+(r.grp===g[0]?' aria-current="true"':'')+'><span>'+esc(g[1])+'</span><em>'+rCount(g[0])+'</em></button>';}).join("")+'</div>';}
 function rList(){

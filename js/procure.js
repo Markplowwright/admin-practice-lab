@@ -43,7 +43,7 @@ function pReqDone(r){
 /* ---------- pages ---------- */
 function pTabs(){
   var p=P(),o=pOpenReqs();p.tab=S.page;
-  function t(k,l,extra){return '<button type="button" class="'+(S.page===k?'on':'')+'" data-a="pTab" data-k="'+k+'">'+esc(l)+(extra||"")+'</button>';}
+  function t(k,l,extra){return '<button type="button" class="'+((S.page===k||(k==="bench"&&S.page==="image"))?'on':'')+'" data-a="pTab" data-k="'+k+'">'+esc(l)+(extra||"")+'</button>';}
   return '<div class="ptop"><b>Procurement</b><span class="psub">Vendor portal (simulated)</span><nav>'+t("order","New order")+t("bench","Orders and bench",pBenchCount()?' <i>'+pBenchCount()+'</i>':"")+t("reqs","Requests",o?' <i class="hot">'+o+'</i>':"")+'</nav></div>';
 }
 function pTypeCard(k,label,sub,on,off){
@@ -70,10 +70,12 @@ PAGES["procure.order"]=function(){
   return '<div class="pc">'+pTabs()+'<div class="pbody"><h2>New device order</h2><div class="ptypes">'+pTypeCard("laptop","Laptop","Windows laptop for a person",f.type==="laptop")+pTypeCard("desktop","Desktop","Tower plus monitors",f.type==="desktop")+pTypeCard("phone","Phone","Mobile device",false,true)+'</div><div class="porder">'+pOrderForm()+'</div></div></div>';
 };
 function pRow(d){
-  var st=d.stage==="ordered"?'<span class="pst warn">Shipped. Receive it</span>':d.stage==="received"?'<span class="pst ok">On the staging bench</span>':'<span class="pst">Cancelled</span>';
+  var st=d.stage==="ordered"?'<span class="pst warn">Shipped. Receive it</span>':d.stage==="received"?'<span class="pst ok">On the staging bench</span>':d.stage==="imaged"?'<span class="pst ok">'+(d.agent?"Imaged, agent installed":"Imaged")+'</span>':'<span class="pst">Cancelled</span>';
   var act="";
   if(d.stage==="ordered"){act='<span class="pbox">Box label: <code>'+esc(d.serial)+'</code></span><input type="text" id="ps-'+d.id+'" data-enter="pReceive" data-id="'+d.id+'" placeholder="Type the serial" aria-label="Serial for '+esc(d.tag)+'" autocomplete="off"><button type="button" class="pbtn" data-a="pReceive" data-id="'+d.id+'">Receive</button>';}
-  else if(d.stage==="received"){act='<span class="pnote">Waiting for imaging. Imaging is the next update.</span>';}
+  else if(d.stage==="received"){act='<button type="button" class="pbtn pri" data-a="pImgStart" data-id="'+d.id+'">'+(d.img&&d.img.step!=="cables"?"Continue imaging":"Start imaging")+'</button>';}
+  else if(d.stage==="imaged"&&!d.agent){act='<button type="button" class="pbtn pri" data-a="pAgent" data-id="'+d.id+'">Install the support agent</button><span class="pnote">Windows is installed. Nothing sees this device yet.</span>';}
+  else if(d.stage==="imaged"){act='<button type="button" class="pbtn" data-a="go" data-p="remote" data-pg="console">Open Remote support</button><button type="button" class="pbtn" data-a="go" data-p="vm" data-pg="'+d.id+'">Open the device</button>';}
   var mons=d.monitors.length?'<div class="pmons">'+d.monitors.map(function(m){return '<span>Monitor: '+esc(m.maker+" "+m.model)+' <code>'+esc(m.serial)+'</code></span>';}).join("")+'</div>':(d.type==="desktop"&&d.stage!=="cancelled"?'<div class="pmons bad">No monitor on this order</div>':'');
   return '<div class="prow"><div class="pmain"><b>'+esc(d.tag)+'</b> '+esc(pLabel(d))+' <span class="ptag">'+(d.type==="laptop"?"Laptop":"Desktop")+'</span><div class="psmall">For '+esc(pUserName(d.user))+(d.stage!=="ordered"?' &middot; serial <code>'+esc(d.serial)+'</code>':'')+'</div>'+mons+'</div><div class="pstat">'+st+'</div><div class="pact">'+act+'</div></div>';
 }
@@ -120,4 +122,114 @@ A.pAddMon=function(d){var dev=pDev(d.id);if(!dev){return;}dev.monitors.push(pMon
 A.pDup=function(d){
   var r=P().reqs.filter(function(x){return x.id===d.id;})[0];if(!r){return;}
   r.choice=d.k;if(d.k==="cancel"){var dev=pDev(r.dev);if(dev){dev.stage="cancelled";}}
+};
+
+/* =============== IMAGING ===============
+   Connect cables, power on, press F12 for the one-time boot menu, pick a method,
+   then finish the install. Wrong choices fail the way a real bench does. */
+var IMG_PORTS={power:"Power",net:"Network cable (Ethernet)",mon:"Monitor (DisplayPort)",kbd:"Keyboard and mouse (USB)",usb:"USB installer stick"};
+var IMG_TS=[["win11","Win11 Pro Practice (corporate image)",true],["win10","Win10 Legacy Image",false],["pe","WinPE Diagnostics",false]];
+function pImg(d){if(!d.img){d.img={step:"cables",cab:{},msg:"",parts:null,sel:0,ts:""};}return d.img;}
+function pImgPorts(d){return d.type==="desktop"?["power","net","mon","kbd","usb"]:["power","net","usb"];}
+function pImgDev(){var id=P().imgId;return id?pDev(id):null;}
+function pStepper(d){
+  var st={cables:1,post:2,menu:3,pxe:3,setup:4,install:4,done:5}[pImg(d).step]||1;
+  return '<ol class="pstep">'+["Connect","Power on","Boot menu","Install","Done"].map(function(l,i){return '<li class="'+(i+1===st?'on':i+1<st?'ok':'')+'">'+l+'</li>';}).join("")+'</ol>';
+}
+function pScr(inner){return '<div class="pscr">'+inner+'</div>';}
+function pKey(label,a,extra){return '<button type="button" class="pkey" data-a="'+a+'"'+(extra||"")+'>'+esc(label)+'</button>';}
+function pImgBody(d){
+  var g=pImg(d),h="",m=g.msg?'<div class="pmsg" role="alert">'+esc(g.msg)+'</div>':"";
+  if(g.step==="cables"){
+    h='<p>Place the '+(d.type==="desktop"?"tower":"laptop")+' on the bench and connect what you need. You do not need everything for every method: think about what each way of imaging uses.</p><div class="pports">'+pImgPorts(d).map(function(k){
+      var on=g.cab[k],dis=(k==="mon"&&!d.monitors.length);
+      return '<button type="button" class="pport'+(on?' on':'')+'" data-a="pCable" data-k="'+k+'"'+(dis?' disabled':'')+'><b>'+esc(IMG_PORTS[k])+'</b><span>'+(dis?"No monitor on this order":on?"Connected. Click to unplug":"Not connected")+'</span></button>';}).join("")+'</div>'+m+
+      '<div class="pbtns"><button type="button" class="pbtn pri" data-a="pPower">Power on</button></div>';
+  }else if(g.step==="post"){
+    h=pScr('<div class="pbig">DELL</div><p>Preparing one-time boot menu...</p><p class="dim">Press the key you need now. Do nothing and it boots from the internal disk.</p>')+'<div class="pkeys">'+pKey("F2 (BIOS setup)","pKey",' data-k="f2"')+pKey("F12 (one-time boot menu)","pKey",' data-k="f12"')+pKey("Press nothing","pKey",' data-k="none"')+'</div>'+m;
+  }else if(g.step==="menu"){
+    var mm=[["win","Windows Boot Manager"],["usb","UEFI: USB device"],["nic4","Onboard NIC (IPV4)"],["nic6","Onboard NIC (IPV6)"]];
+    h=pScr('<div class="dim">Boot mode is set to: UEFI; Secure Boot: ON; PTT is ON</div><div class="pmh">UEFI BOOT:</div>'+mm.map(function(x){return '<button type="button" class="pitem" data-a="pBoot" data-k="'+x[0]+'">'+esc(x[1])+'</button>';}).join("")+'<div class="pmh">OTHER OPTIONS:</div>'+[["bios","BIOS Setup"],["diag","Diagnostics"],["exit","Exit Boot Menu and Continue"]].map(function(x){return '<button type="button" class="pitem" data-a="pBoot" data-k="'+x[0]+'">'+esc(x[1])+'</button>';}).join(""))+m;
+  }else if(g.step==="pxe"){
+    h=pScr('<div class="pmh">Network boot: Task sequence selection</div><div class="dim">Pick the image for this device.</div>'+IMG_TS.map(function(x){return '<button type="button" class="pitem'+(g.ts===x[0]?' on':'')+'" data-a="pTs" data-k="'+x[0]+'">'+esc(x[1])+'</button>';}).join(""))+m+'<div class="pbtns"><button type="button" class="pbtn pri" data-a="pPxeGo">Deploy</button></div>';
+  }else if(g.step==="setup"){
+    var ps=g.parts;
+    h=pScr('<div class="pmh">Windows Setup: Where do you want to install Windows?</div><table class="ptab"><tr><th>Name</th><th>Total size</th><th>Type</th></tr>'+ps.map(function(x,i){return '<tr class="'+(g.sel===i?'sel':'')+'" data-a="pPart" data-k="'+i+'"><td>'+esc(x.n)+'</td><td>'+esc(x.s)+'</td><td>'+esc(x.t)+'</td></tr>';}).join("")+'</table>')+
+      '<div class="pbtns"><button type="button" class="pbtn" data-a="pDelPart">Delete</button><button type="button" class="pbtn pri" data-a="pSetupNext">Next</button></div>'+m;
+  }else if(g.step==="install"){
+    h=pScr('<div class="pmh">Installing Windows 11 Pro</div><div class="pbar"><i style="width:'+g.prog+'%"></i></div><p class="dim">'+esc(["Copying files","Installing features","Installing updates","Finishing up"][Math.min(3,Math.floor(g.prog/26))])+' ('+g.prog+'%)</p>')+'<div class="pbtns"><button type="button" class="pbtn pri" data-a="pInstall">'+(g.prog<100?"Let it run":"Restart")+'</button></div>';
+  }else if(g.step==="done"){
+    h='<div class="pmsg ok">Windows is installed on '+esc(d.tag)+'. It is not joined, not managed, and nothing can see it yet.</div><p>Next: install the support agent so the device can be reached remotely.</p><div class="pbtns"><button type="button" class="pbtn pri" data-a="pBackBench">Back to the bench</button></div>';
+  }
+  return h;
+}
+PAGES["procure.image"]=function(){
+  var d=pImgDev();
+  if(!d){S.page="bench";return PAGES["procure.bench"]();}
+  var g=pImg(d);
+  return '<div class="pc">'+pTabs()+'<div class="pbody"><h2>Imaging '+esc(d.tag)+' <small>'+esc(pLabel(d))+' ('+(d.type==="desktop"?"desktop":"laptop")+')</small></h2>'+pStepper(d)+'<div class="pimg">'+pImgBody(d)+'</div>'+(g.step!=="done"?'<div class="pbtns"><button type="button" class="pbtn" data-a="pBackBench">Back to the bench</button></div>':'')+'</div></div>';
+};
+function pFail(g,msg,step){g.msg=msg;if(step){g.step=step;}}
+A.pImgStart=function(d){var dev=pDev(d.id);if(!dev){return;}P().imgId=dev.id;pImg(dev);S.page="image";};
+A.pBackBench=function(){S.page="bench";};
+A.pCable=function(d){var dev=pImgDev();if(!dev){return;}var g=pImg(dev);g.cab[d.k]=!g.cab[d.k];g.msg="";};
+A.pPower=function(){
+  var dev=pImgDev(),g=pImg(dev),need=dev.type==="desktop"?["power","mon","kbd"]:["power"];
+  var miss=need.filter(function(k){return !g.cab[k];});
+  if(miss.length){g.msg="Nothing happens or you cannot see it. Still to connect: "+miss.map(function(k){return IMG_PORTS[k];}).join(", ")+".";return;}
+  g.msg="";g.step="post";
+};
+A.pKey=function(d){
+  var g=pImg(pImgDev());g.msg="";
+  if(d.k==="f12"){g.step="menu";}
+  else if(d.k==="f2"){g.msg="BIOS setup is not simulated yet. Use F12 for the one-time boot menu instead.";}
+  else{g.msg="No bootable device found. The internal disk is blank, so the machine powered off. Power on again and press F12 at the Dell logo.";g.step="cables";}
+};
+A.pBoot=function(d){
+  var dev=pImgDev(),g=pImg(dev);g.msg="";
+  if(d.k==="win"){g.msg="No operating system found on the internal disk. It is blank. Pick another way to boot.";}
+  else if(d.k==="usb"){
+    if(!g.cab.usb){g.msg="No USB boot device found. Is the installer stick plugged in? Go back and connect it.";return;}
+    g.parts=[{n:"Drive 0 Partition 1: Recovery",s:"1.0 GB",t:"Recovery"},{n:"Drive 0 Partition 2: System",s:"100.0 MB",t:"System"},{n:"Drive 0 Partition 3: Primary",s:"475.8 GB",t:"Primary"}];g.sel=0;g.step="setup";
+  }else if(d.k==="nic4"){
+    if(!g.cab.net){g.msg="PXE-E61: Media test failure, check cable. Connect the network cable and try again.";return;}
+    g.ts="";g.step="pxe";
+  }else if(d.k==="nic6"){g.msg="PXE over IPv6 is not served on this network. Use the IPv4 entry.";}
+  else if(d.k==="bios"){g.msg="BIOS setup is not simulated yet. Pick a boot device from this menu.";}
+  else if(d.k==="diag"){g.msg="Hardware diagnostics passed. Nothing is installed yet.";}
+  else{g.msg="Booting from the internal disk: no operating system found.";}
+};
+A.pTs=function(d){pImg(pImgDev()).ts=d.k;};
+A.pPxeGo=function(){
+  var g=pImg(pImgDev());if(!g.ts){g.msg="Pick a task sequence first.";return;}
+  if(g.ts==="win11"){g.msg="";g.step="install";g.prog=0;g.method="PXE";}
+  else if(g.ts==="win10"){g.msg="That is the old Windows 10 image. This device needs the Windows 11 corporate image.";}
+  else{g.msg="WinPE booted and ran diagnostics. It did not install Windows. Pick the Windows 11 task sequence.";}
+};
+A.pPart=function(d){pImg(pImgDev()).sel=+d.k;};
+A.pDelPart=function(){
+  var g=pImg(pImgDev()),x=g.parts[g.sel];g.msg="";
+  if(!x){return;}
+  if(x.t==="Unallocated"){g.msg="Unallocated space cannot be deleted.";return;}
+  g.parts.splice(g.sel,1);
+  if(!g.parts.some(function(q){return q.t!=="Unallocated";})){g.parts=[{n:"Drive 0 Unallocated Space",s:"476.9 GB",t:"Unallocated"}];}
+  g.sel=0;
+};
+A.pSetupNext=function(){
+  var g=pImg(pImgDev()),x=g.parts[g.sel];
+  if(!x){return;}
+  if(x.t!=="Unallocated"){g.msg="Windows cannot be installed here: the disk still has old partitions from the vendor. Delete them all, then select the unallocated space.";return;}
+  g.msg="";g.step="install";g.prog=0;g.method="USB";
+};
+A.pInstall=function(){
+  var dev=pImgDev(),g=pImg(dev);
+  if(g.prog<100){g.prog=Math.min(100,g.prog+34);return;}
+  g.step="done";dev.stage="imaged";dev.os="Windows 11 Pro";dev.imgMethod=g.method;
+};
+A.pAgent=function(d){
+  var dev=pDev(d.id);if(!dev||dev.stage!=="imaged"||dev.agent){return;}
+  dev.agent=true;
+  var rec={id:dev.id,serial:dev.serial,name:"",model:dev.model,maker:dev.maker,os:"Windows 11 Pro",osVer:"10.0.22631",userId:null,state:"unmanaged",baseBitlocker:false,autopilot:false,spare:true,sync:"-",join:"",joinUser:null,fromBench:true,agent:true,kind:dev.type};
+  rec.name=compNameFor(rec);S.devices.push(rec);
+  toast(rec.name+" now reports to Remote support and can be opened as a device.");
 };
