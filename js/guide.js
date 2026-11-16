@@ -1,7 +1,7 @@
 "use strict";
 /* =============== NAV + SHELL =============== */
-var TITLES={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Microsoft Entra admin center",intune:"Microsoft Intune admin center",exchange:"Exchange admin center",vm:"Windows laptop (virtual)"};
-var DEFAULT={m365:"home",ad:"aduc",entra:"overview",intune:"home",exchange:"mailboxes",vm:"d2"};
+var TITLES={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Microsoft Entra admin center",intune:"Microsoft Intune admin center",exchange:"Exchange admin center",vm:"Windows laptop (virtual)",env:"Environment"};
+var DEFAULT={m365:"home",ad:"aduc",entra:"overview",intune:"home",exchange:"mailboxes",vm:"d2",env:"map"};
 var NAVS={
   m365:[{pg:"home",l:"Home",i:"home"},{l:"Users",i:"user",kids:[["users","Active users"],["deleted","Deleted users"]]},{l:"Teams & groups",i:"users",kids:[["groups","Active teams & groups"]]},{l:"Billing",i:"license",kids:[["licenses","Licenses"]]},
     {sep:"Admin centers"},{go:["entra","overview"],l:"Identity",i:"shield"},{go:["intune","home"],l:"Endpoint Manager",i:"device"},{go:["exchange","mailboxes"],l:"Exchange",i:"mail"}],
@@ -16,6 +16,7 @@ var NAVS={
     {sep:"Related"},{go:["entra","users"],l:"Synced users (Entra)",i:"shield"},{go:["vm","d3"],l:"Windows laptop",i:"device"}]
 };
 function leftNav(){
+  if(S.portal==="env"){return "";}
   if(S.portal==="vm"){return '<nav class="lnav" aria-label="Laptops"><div class="grp">'+ico("device")+'Virtual laptops</div>'+vmDevices().map(function(x){return '<button type="button" class="it kid" data-a="go" data-p="vm" data-pg="'+x.id+'"'+(S.page===x.id?' aria-current="true"':'')+'>'+esc(x.spare?"Spare ThinkPad (manual join)":x.maker+" "+x.model+" (Autopilot)")+'</button>';}).join("")+'</nav>';}
   var h='<nav class="lnav" aria-label="'+esc(TITLES[S.portal])+' navigation">';
   NAVS[S.portal].forEach(function(n){
@@ -26,11 +27,8 @@ function leftNav(){
   });
   return h+'</nav>';
 }
-function labBar(){
-  var tot=0,done=0;missions().forEach(function(m){m.s.forEach(function(x){tot+=1;if(x[1]){done+=1;}});});
-  return '<div class="lab"><b>Practice lab</b><button type="button" class="introbtn" data-a="tour">Introduction walk through</button>'+["m365","ad","entra","intune","exchange","vm"].map(function(p){return '<button type="button" data-a="go" data-p="'+p+'" data-pg="'+DEFAULT[p]+'"'+(S.portal===p?' aria-current="true"':'')+'>'+esc(TITLES[p])+'</button>';}).join("")+'<span class="sp"></span><span>Simulated. Not the real portals.</span></div>';
-}
 function portalHeader(){
+  if(S.portal==="env"){return "";}
   return '<header class="phdr"><span class="waf">'+ico("apps")+'</span><h1>'+esc(TITLES[S.portal])+'</h1><div class="search">'+ico("search")+'<input id="hq" data-q="1" type="text" autocomplete="off" aria-label="Search this page" placeholder="Search this page" value="'+esc(S.q)+'"></div><span class="av" title="Admin (you)">AD</span></header>';
 }
 function flyHtml(){
@@ -328,7 +326,7 @@ function equivHtml(){
 }
 function guideHtml(){
   var pr=progress(),pct=Math.round(pr[0]/pr[1]*100);
-  if(!S.guide){return '<button type="button" class="gbtn" data-a="guide">Lab guide '+pr[0]+'/'+pr[1]+'</button>';}
+  if(!S.guide){return "";}
   var body="";
   if(S.guideTab==="missions"){
     var lv=levelsView(),next=nextMission(lv),alldone=lv.every(function(L){return L.complete;});
@@ -387,7 +385,7 @@ function introHtml(){
       '<p class="small">All six share connected users, groups, licenses and devices, including an on-premises directory synchronized to the cloud.</p>';
     btns='<button type="button" class="btn link" data-a="introSkip">Skip</button><span class="sp"></span><button type="button" class="btn" data-a="introBack">Back</button><button type="button" class="btn primary" data-a="introNext">Next</button>';
   }else if(n===2){
-    h='<h2 id="introT">How missions work</h2><ul class="pl"><li>Open the <b>Lab guide</b> with the yellow button at the bottom right. Each mission is a short list of steps.</li><li>Every step names the portal and the menu path, with a <b>Go there</b> button that jumps straight to it.</li><li>A step is checked off when you actually do it in the lab, not when you click it.</li><li>When you finish a mission, the guide explains <b>why it works that way</b>.</li><li>Click the <b>i</b> icons anywhere for plain-English definitions.</li><li>Mistakes are safe. <b>Reset lab</b> in the guide restores the starting state.</li></ul><p class="small">Progress is saved in this browser only.</p>';
+    h='<h2 id="introT">How missions work</h2><ul class="pl"><li>Open the <b>Lab guide</b> with the <b>Missions and guide</b> button in the taskbar at the bottom. Each mission is a short list of steps.</li><li>Every step names the portal and the menu path, with a <b>Go there</b> button that jumps straight to it.</li><li>A step is checked off when you actually do it in the lab, not when you click it.</li><li>When you finish a mission, the guide explains <b>why it works that way</b>.</li><li>Click the <b>i</b> icons anywhere for plain-English definitions.</li><li>Mistakes are safe. <b>Reset lab</b> in the guide restores the starting state.</li></ul><p class="small">Progress is saved in this browser only.</p>';
     btns='<button type="button" class="btn link" data-a="introSkip">Skip</button><span class="sp"></span><button type="button" class="btn" data-a="introBack">Back</button><button type="button" class="btn primary" data-a="introNext">Next</button>';
   }else{
     var fresh=progress()[0]===0;
