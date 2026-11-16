@@ -74,17 +74,18 @@ function render(){
   else if(S.wiz){content=wizHtml();}
   else if(PAGES[key]){content=PAGES[key]();}
   else{content='<p>Page not found.</p>';}
-  $("#app").innerHTML=topBar()+portalHeader()+'<div class="shell">'+leftNav()+'<main class="content" id="main">'+content+'</main></div>'+taskbar()+ticketDock()+flyHtml()+guideHtml();
+  if(S.portal==="start"){$("#app").innerHTML=startHtml();document.body.classList.remove("guide-open","dock-open");}
+  else{$("#app").innerHTML=topBar()+portalHeader()+'<div class="shell">'+leftNav()+'<main class="content" id="main">'+content+'</main></div>'+taskbar()+ticketDock()+flyHtml()+guideHtml();}
   if(navReset){window.scrollTo(0,0);navReset=false;}else{window.scrollTo(wx,wy);}
   gb=document.querySelector(".guide .gb");if(gb){gb.scrollTop=gy;}
-  document.body.classList.toggle("guide-open",!!S.guide);document.body.classList.toggle("dock-open",!!S.scenarios.active);
+  if(S.portal!=="start"){document.body.classList.toggle("guide-open",!!S.guide);document.body.classList.toggle("dock-open",!!S.scenarios.active);}
   fitLaptop();
   /* level completion toast, then the tour or the finish screen */
   var lv=levelsView(),fresh=null;
   lv.forEach(function(L){var i=S.lvlDone.indexOf(L.n);if(L.complete&&i<0){S.lvlDone.push(L.n);fresh=L;}if(!L.complete&&i>-1){S.lvlDone.splice(i,1);}});
   if(fresh&&S.onboarded){toast("Level "+fresh.n+" complete: "+fresh.name+".");}
   var allDone=lv.every(function(L){return L.complete;}),ov=$("#intro"),app=$("#app");
-  if(!S.onboarded){ov.innerHTML=introHtml();}
+  if(!S.onboarded&&S.portal!=="start"){ov.innerHTML=introHtml();}
   else if(allDone&&!S.finishSeen){ov.innerHTML=finishHtml();}
   else{ov.innerHTML="";}
   if(ov.innerHTML){app.setAttribute("inert","");var pb=ov.querySelector(".btn.primary");if(pb&&!ov.contains(document.activeElement)){try{pb.focus({preventScroll:true});}catch(e){pb.focus();}}}
@@ -156,4 +157,5 @@ if(S.lvlDone===undefined){S.lvlDone=levelsView().filter(function(L){return L.com
 if(S.intro===undefined){S.intro=0;}
 if(S.finishSeen===undefined){S.finishSeen=false;}
 if(S.onboarded===undefined){S.onboarded=progress()[0]>0;S.finishSeen=levelsView().every(function(L){return L.complete;});}
+S.portal="start";S.page="home";S.sel=null;S.wiz=null;S.fly=null;
 render();

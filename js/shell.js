@@ -22,6 +22,7 @@ function taskbar(){
   var web=isWeb(S.portal)?S.portal:(S.web||"m365");
   function tb(label,icon,attrs,on){return '<button type="button" class="tbi'+(on?' on':'')+'" '+attrs+(on?' aria-current="true"':'')+'>'+ico(icon)+'<span>'+esc(label)+'</span></button>';}
   return '<div class="wsbar" role="toolbar" aria-label="Taskbar">'+
+    tb("Start","apps",'data-a="go" data-p="start" data-pg="home"',false)+
     tb("Environment","home",'data-a="go" data-p="env" data-pg="map"',S.portal==="env")+
     tb("Edge","globe",'data-a="go" data-p="'+web+'" data-pg="'+DEFAULT[web]+'"',isWeb(S.portal))+
     tb("DC01 (Remote Desktop)","users",'data-a="go" data-p="ad" data-pg="aduc"',S.portal==="ad")+
@@ -97,3 +98,22 @@ A.nextTicket=function(){A.exitScenario();S.portal="env";S.page="map";resetNav();
   A.startScenario=function(d){dockMsg="";h(d);S.guide=false;};
   A.resetScenario=function(){dockMsg="";r();};
   A.exitScenario=function(){dockMsg="";x();};})();
+
+/* =============== START SCREEN =============== */
+/* Shown on every page load. Not saved: reopening the site always starts here, then the environment map. */
+TITLES.start="Admin Practice Lab";DEFAULT.start="home";
+function startHtml(){
+  var pr=progress(),active=S.scenarios.active,sc=active?SCENARIOS.filter(function(x){return x.id===active;})[0]:null,m=nextMission(levelsView());
+  var primary=pr[0]>0&&m?'<button type="button" class="sbtn primary" data-a="introStart">Continue: '+esc(m.t)+'</button>':'<button type="button" class="sbtn primary" data-a="introStart">Start Level 1</button>';
+  var resume=sc?'<button type="button" class="sbtn" data-a="go" data-p="env" data-pg="map">Resume ticket #'+ticketNo(sc.id)+': '+esc(sc.title)+'</button>':'<button type="button" class="sbtn" data-a="go" data-p="env" data-pg="map">Open the environment</button>';
+  function card(k,t,x){return '<div class="scard"><div class="sk">'+esc(k)+'</div><b>'+esc(t)+'</b><span>'+esc(x)+'</span></div>';}
+  return '<div class="start"><div class="sbar"><b>Admin Practice Lab</b><nav><button type="button" data-a="go" data-p="env" data-pg="map">Environment</button><button type="button" data-a="guide-open">Missions</button><button type="button" data-a="go" data-p="env" data-pg="map">Scenarios</button><button type="button" data-a="go" data-p="tools" data-pg="links">Toolkit</button></nav></div>'+
+   '<div class="sbody"><h1>Learn hybrid IT administration by doing it.</h1><p class="slead">A free practice workstation with Active Directory, Microsoft 365, Entra, Intune and Exchange wired together. Work real tickets. Nothing real to break.</p>'+
+   '<div class="sact">'+primary+resume+'<button type="button" class="sbtn link" data-a="startTour">Take the walk through</button></div>'+
+   '<div class="scards">'+card("Levels 1 to 3","Microsoft 365 admin","Onboarding, offboarding, compromised accounts and MFA.")+card("Level 4","Intune and laptops","Autopilot, BitLocker, apps, and joining a laptop by hand.")+card("Level 5","Hybrid identity","Remote into DC01: AD, sync, Group Policy and hybrid join.")+card(SCENARIOS.length+" tickets","Help desk scenarios","Lockouts, trust failures, suspicious sign-ins. Isolated from your lab.")+'</div>'+
+   '<div class="srow2"><button type="button" class="scard link" data-a="go" data-p="tools" data-pg="links"><b>Toolkit</b><span>Links to the real tools: MXToolbox, IP lookup, message header analyzer and more.</span></button><div class="scard dashed"><b>Planned <span class="sk">(not built yet)</span></b><span>Knowledge base, remote support session, imaging walkthrough, Azure basics.</span></div></div></div>'+
+   '<div class="sdisc">A learning simulator. Not affiliated with Microsoft, Jamf or Google. All users, passwords and domains are fake. Progress is saved in this browser only.</div></div>';
+}
+PAGES["start.home"]=function(){return "";};
+A["guide-open"]=function(){S.portal="env";S.page="map";S.guide=true;S.guideTab="missions";resetNav();navReset=true;};
+A.startTour=function(){S.portal="env";S.page="map";resetNav();navReset=true;A.tour();};

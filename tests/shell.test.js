@@ -67,7 +67,7 @@ test("the Toolkit page links to real sites in new tabs", function () {
 });
 
 test("an active scenario opens as a ticket dock and Resolve only works when the state is fixed", function () {
-  const w = boot(); w.S.onboarded = true;
+  const w = boot(); w.S.onboarded = true; w.S.portal = "env"; w.S.page = "map"; w.render();
   assert.equal(w.document.querySelectorAll(".dock").length, 0);
   w.A.startScenario({ id: "s1" }); w.render();
   const d = w.document;
@@ -86,10 +86,34 @@ test("an active scenario opens as a ticket dock and Resolve only works when the 
 });
 
 test("Next ticket leaves the scenario and returns to the environment map", function () {
-  const w = boot(); w.S.onboarded = true;
+  const w = boot(); w.S.onboarded = true; w.S.portal = "env"; w.S.page = "map";
   w.A.startScenario({ id: "s1" }); w.S.scenarios.completed.s1 = true; w.render();
   w.document.querySelector('.dock [data-a="nextTicket"]').click();
   assert.equal(w.S.scenarios.active, null);
   assert.equal(w.S.portal, "env");
+  assert.equal(w.document.querySelectorAll(".dock").length, 0);
+});
+
+test("the site opens on the start screen, with Start Level 1 for a new lab", function () {
+  const w = boot(); const d = w.document;
+  assert.equal(w.S.portal, "start");
+  assert.match(d.querySelector(".start h1").textContent, /Learn hybrid IT administration/);
+  assert.match(d.querySelector(".sbtn.primary").textContent, /Start Level 1/);
+  assert.equal(d.querySelectorAll(".wsbar").length, 0);
+  assert.equal(d.querySelector("#intro").innerHTML, "");
+});
+
+test("Open the environment and the taskbar Start button move between start and map", function () {
+  const w = boot(); const d = w.document;
+  d.querySelector('.sact [data-p="env"]').click();
+  assert.equal(w.S.portal, "env");
+  d.querySelector('.wsbar [data-p="start"]').click();
+  assert.equal(w.S.portal, "start");
+});
+
+test("with progress the start screen offers Continue, and an active ticket offers Resume", function () {
+  const w = boot(); w.S.onboarded = true;
+  w.A.startScenario({ id: "s3" }); w.S.portal = "start"; w.render();
+  assert.match(w.document.querySelector(".sact").textContent, /Resume ticket #1042/);
   assert.equal(w.document.querySelectorAll(".dock").length, 0);
 });
