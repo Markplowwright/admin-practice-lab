@@ -16,7 +16,7 @@ var NAVS={
     {sep:"Related"},{go:["entra","users"],l:"Synced users (Entra)",i:"shield"},{go:["vm","d3"],l:"Windows laptop",i:"device"}]
 };
 function leftNav(){
-  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"||S.portal==="remote"){return "";}
+  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"||S.portal==="remote"||S.portal==="vm"){return "";}
   if(S.portal==="vm"){return '<nav class="lnav" aria-label="Laptops"><div class="grp">'+ico("device")+'Virtual laptops</div>'+vmDevices().map(function(x){return '<button type="button" class="it kid" data-a="go" data-p="vm" data-pg="'+x.id+'"'+(S.page===x.id?' aria-current="true"':'')+'>'+esc(x.spare?"Spare ThinkPad (manual join)":x.maker+" "+x.model+" (Autopilot)")+'</button>';}).join("")+'</nav>';}
   var h='<nav class="lnav" aria-label="'+esc(TITLES[S.portal])+' navigation">';
   NAVS[S.portal].forEach(function(n){
@@ -28,7 +28,7 @@ function leftNav(){
   return h+'</nav>';
 }
 function portalHeader(){
-  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"||S.portal==="remote"){return "";}
+  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"||S.portal==="remote"||S.portal==="vm"){return "";}
   return '<header class="phdr"><span class="waf">'+ico("apps")+'</span><h1>'+esc(TITLES[S.portal])+'</h1><div class="search">'+ico("search")+'<input id="hq" data-q="1" type="text" autocomplete="off" aria-label="Search this page" placeholder="Search this page" value="'+esc(S.q)+'"></div><span class="av" title="Admin (you)">AD</span></header>';
 }
 function flyHtml(){
@@ -94,7 +94,7 @@ function missions(){
      ["See it installed on an enrolled device",S.devices.some(function(d){return d.state==="enrolled"&&d.appsIn&&d.appsIn.length>0;}),["intune","devices","Devices > All devices > a laptop > Discovered apps"]]]},
    {t:"Set up Priya's laptop on the virtual Windows PC",w:"The hands-on side of Autopilot: the setup screens, the sign-in, and what happens when something is missing.",s:[
      ["Click through setup until Autopilot asks for a work account (needs a deployment profile on All devices)",!!S.flags.vmApSignin,["vm","d2","Dell Latitude > Region > Keyboard > Network (Practice-Corp) > Next"]],
-     ["Sign in as priya.nair and finish device setup (if it errors, fix the cause in the admin centers, then Try again)",!!d2&&d2.state==="enrolled"&&d2.userId==="u3"&&d2.join==="joined",["vm","d2","Dell Latitude > Sign in > Enrollment status page"]],
+     ["Sign in as priya.nair and finish device setup (if it errors, fix the cause in the admin centers, then Try again)",!!d2&&d2.state==="enrolled"&&d2.userId==="u3"&&d2.join==="joined",["vm","d2","Dell Latitude > Next > Sign in > Continue to desktop"]],
      ["Open Command Prompt and run dsregcmd /status. Find AzureAdJoined and MdmUrl",!!S.flags.vmDsreg,["vm","d2","Start > Command Prompt > dsregcmd /status"]],
      ["Settings > Accounts > Access work or school > Info > Sync",!!S.flags.vmSync,["vm","d2","Settings > Accounts > Access work or school > Info > Sync"]]]},
    {t:"Join a spare laptop to Entra by hand",w:"The manual route: local admin on the PC, then Join this device to Microsoft Entra ID.",s:[
@@ -120,11 +120,11 @@ function missions(){
      ["Add Sam to the Finance security group",ADG("adg1").members.indexOf("adu2")>-1,["ad","aduc","Finance > Add member > Sam Ortiz"]],
      ["Run delta sync and verify Finance in Entra",(function(){var g=G("g1");return !!S.flags.financeSynced&&g&&g.members.indexOf("u2")>-1;})(),["entra","groups","Groups > All groups > Finance > Members"]]]},
    {t:"Apply Group Policy to a domain laptop",w:"The computer and user OUs decide which linked policies apply.",s:[
-     ["Join the spare laptop to practice.local",!!D("d3").domainJoined,["vm","d3","Settings > Accounts > Access work or school > Join a domain"]],
-     ["Run gpupdate /force",!!D("d3").gpUpdated,["vm","d3","Command Prompt > gpupdate /force"]],
-     ["Verify the drive map and wallpaper policies",!!D("d3").driveMapped&&!!D("d3").wallpaperApplied,["vm","d3","Command Prompt > gpresult /r"]]]},
+     ["Join the spare laptop to practice.local",!!D("d3").domainJoined,["vm","d3","LocalAdmin > Settings > Accounts > Access work or school > Join a domain"]],
+     ["Run gpupdate /force",!!D("d3").gpUpdated,["vm","d3","LocalAdmin > Start > Command Prompt > gpupdate /force"]],
+     ["Verify the drive map and wallpaper policies",!!D("d3").driveMapped&&!!D("d3").wallpaperApplied,["vm","d3","LocalAdmin > Start > Command Prompt > gpresult /r"]]]},
    {t:"Complete a hybrid device join",w:"A domain computer is registered in Entra by the hybrid identity configuration.",s:[
-     ["Domain join the spare laptop",!!D("d3").domainJoined,["vm","d3","Settings > Accounts > Access work or school > Join a domain"]],
+     ["Domain join the spare laptop",!!D("d3").domainJoined,["vm","d3","LocalAdmin > Settings > Accounts > Access work or school > Join a domain"]],
      ["Move its computer account into the synced Computers OU",(function(){var c=S.ad.computers.filter(function(x){return x.deviceId==="d3";})[0];return c&&c.ou==="ou-computers";})(),["ad","aduc","Active Directory Users and Computers > computer > Move > Computers"]],
      ["Run delta sync and verify Hybrid Azure AD joined",!!D("d3").azureAdJoined,["entra","devices","Devices > All devices > Join type"]]]},
    {t:"Fix a password at its source",w:"Password writeback is not enabled, so resetting a synchronized account in Microsoft 365 cannot update AD.",s:[
