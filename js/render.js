@@ -77,7 +77,7 @@ function render(){
   else{$("#app").innerHTML=topBar()+portalHeader()+'<div class="shell">'+leftNav()+'<main class="content" id="main">'+content+'</main></div>'+taskbar()+ticketDock()+flyHtml();}
   if(navReset){window.scrollTo(0,0);navReset=false;}else{window.scrollTo(wx,wy);}
     if(S.portal!=="start"){document.body.classList.remove("guide-open");document.body.classList.toggle("dock-open",!!S.scenarios.active||!!S.mission||S.portal==="env");}
-  fitLaptop();
+  fitLaptop();spotlight();
   /* level completion toast, then the tour or the finish screen */
   var lv=levelsView(),fresh=null;
   lv.forEach(function(L){var i=S.lvlDone.indexOf(L.n);if(L.complete&&i<0){S.lvlDone.push(L.n);fresh=L;}if(!L.complete&&i>-1){S.lvlDone.splice(i,1);}});

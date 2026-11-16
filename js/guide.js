@@ -375,6 +375,7 @@ function missionDock(){
     m.s.map(function(x){return '<li class="'+(x[1]?'on':'')+'"><i aria-hidden="true">'+(x[1]?"&#10003;":"")+'</i><span>'+esc(x[0])+'</span></li>';}).join("")+'</ul>';
   if(nx){h+='<div class="dn"><b>Next up</b>'+esc(nx[0])+'<br><small>'+esc(PNAME[nx[2][0]])+': '+esc(nx[2][2])+'</small></div><div class="btnrow">'+B("Go there","go",{sm:1,primary:1,d:{p:nx[2][0],pg:nx[2][1]}})+'</div>';}
   else{h+=whyHtml(m);}
+  h+='<div class="btnrow dbtns">'+B(S.spot===false?"Spotlight: Off":"Spotlight: On","toggleSpot",{sm:1})+'</div>';
   return h+'<div class="btnrow dbtns">'+B("Back to Learn","go",{sm:1,d:{p:"learn",pg:"path"}})+B(all?"Close mission":"Leave mission","closeMission",{sm:1})+'</div></aside>';
 }
 A.ltab=function(d){S.learnTab=d.t;};
