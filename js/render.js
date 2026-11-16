@@ -100,6 +100,7 @@ function render(){
 
 /* =============== EVENTS =============== */
 document.addEventListener("click",function(e){
+  var cm=document.getElementById("ctx");if(cm){cm.remove();}
   var collapse=!!(S.guide&&e.target.closest&&e.target.closest("#app")&&!e.target.closest(".guide"));
   var t=e.target.closest("[data-a]");
   if(!t){if(!e.target.closest("#pop")){hidePop();}if(collapse){S.guide=false;render();}return;}

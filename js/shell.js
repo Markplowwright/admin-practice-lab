@@ -145,3 +145,27 @@ function rdpHtml(content){
     '<div class="rdesk"><div class="ricons">'+icons+'</div>'+win+'</div>'+
     '<div class="rtb"><span class="rstart" aria-hidden="true"><i></i><i></i><i></i><i></i></span>'+tasks+'<span class="sp"></span><span class="rclock">Server time '+esc(adClock(S.ad.nowMin))+'</span></div></div>';
 }
+
+/* Right-click menus and double-click to open properties, as in Active Directory Users and Computers. */
+function adKind(id){return ADU(id)?"user":ADG(id)?"group":"computer";}
+document.addEventListener("contextmenu",function(e){
+  var old=document.getElementById("ctx");if(old){old.remove();}
+  var t=e.target.closest&&e.target.closest("#main .lnk[data-kind]");
+  if(!t||S.portal!=="ad"||S.page!=="aduc"){return;}
+  e.preventDefault();
+  var id=t.getAttribute("data-id"),k=adKind(id),u=ADU(id),items=[];
+  S.checked=[id];render();
+  if(k==="user"){items=[["Reset Password...","adResetPw",{}],u&&u.locked?["Unlock Account","adUnlock",{}]:null,[u&&u.enabled?"Disable Account":"Enable Account","adToggle",{}],["Move...","adMove",{}],["Add to a group...","adAddGroup",{}],["Delete","adDelete",{}],["Properties","adOpenProps",{}]];}
+  else if(k==="computer"){items=[["Reset Account","adResetComputer",{}],["Move...","adMove",{}],["Properties","adOpenProps",{}]];}
+  else{items=[["Add member...","adAddGroupMember",{g:id}],["Properties","adOpenProps",{}]];}
+  var m=document.createElement("div");m.id="ctx";m.className="ctxm";m.setAttribute("role","menu");
+  m.style.left=Math.min(e.clientX,window.innerWidth-220)+"px";m.style.top=Math.min(e.clientY,window.innerHeight-300)+"px";
+  m.innerHTML=items.filter(Boolean).map(function(i){var g=i[2].g?' data-g="'+esc(i[2].g)+'"':"";return '<button type="button" role="menuitem" data-a="'+i[1]+'" data-id="'+esc(id)+'"'+g+'>'+esc(i[0])+'</button>';}).join("");
+  document.body.appendChild(m);
+});
+document.addEventListener("dblclick",function(e){
+  if(S.portal!=="ad"||S.page!=="aduc"||S.sel){return;}
+  var tr=e.target.closest&&e.target.closest("#main tbody tr"),l=tr&&tr.querySelector(".lnk[data-kind]");
+  if(!l){return;}
+  A.adOpenProps({id:l.getAttribute("data-id")});render();
+});
