@@ -6,7 +6,7 @@ const test = require("node:test");
 const { JSDOM, VirtualConsole } = require("jsdom");
 
 const root = path.join(__dirname, "..");
-const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "guide.js", "shell.js", "render.js"];
+const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "remote.js", "guide.js", "shell.js", "render.js"];
 
 function boot() {
   const html = "<!doctype html><html><head></head><body data-portal=\"m365\"><div id=\"app\"></div><div id=\"intro\"></div>" +
