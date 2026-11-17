@@ -6,7 +6,7 @@ Simulates hybrid identity: Active Directory, Entra Connect sync, Group Policy, h
 
 **Try it now:** https://markplowwright.github.io/admin-practice-lab/
 
-![Admin Practice Lab](docs/screenshot.png)
+![Admin Practice Lab welcome page in dark mode](docs/screenshots/01-welcome.png)
 
 > This is a learning simulator. It does not connect to Microsoft, and all users, passwords, and domains in it are fake. Nothing you do here touches a real tenant.
 
@@ -66,6 +66,38 @@ Click the **i** icons for plain-English definitions with Jamf and Google Admin e
 ## Realistic failures
 
 Enrollment can fail the way it does in a real tenant: a blocked account, a user outside the MDM user scope, a missing license (error 80180018), or device join disabled (error 801c0003). A joined but unmanaged device is fixed by correcting the scope or license and then syncing.
+
+## Screenshots
+
+Shown in dark mode. The app also has a light theme and follows your system setting.
+
+**The environment map.** Start here: on-premises Windows Server on the left, the Microsoft cloud on the right, with the ticket queue beside it. Opening a ticket outlines the systems it needs.
+
+![Environment map with the ticket queue](docs/screenshots/02-environment-map.png)
+
+**Microsoft Entra admin center.** The cloud tools sit in a simulated browser window with a bookmarks bar for switching between them.
+
+![Entra admin center, all users](docs/screenshots/03-entra-users.png)
+
+**Active Directory on DC01.** A remote desktop session into the domain controller, with Users and Computers, Group Policy and Entra Connect sync. Here a new-hire ticket is open in the side panel.
+
+![Active Directory Users and Computers on DC01](docs/screenshots/04-active-directory.png)
+
+**Remote support console.** A generic remote support tool: join a machine, then use its processes, event log and commands.
+
+![Remote support console](docs/screenshots/05-remote-support.png)
+
+**BIOS and Secure Boot.** Ticket #1053: a new laptop will not take Windows 11 until the boot list is set to UEFI and Secure Boot is on.
+
+![BIOS Secure Boot screen during imaging](docs/screenshots/06-bios-secure-boot.png)
+
+**Virtual PC.** Click through Windows setup on a practice laptop, including joining it to Entra ID and Intune.
+
+![Virtual PC setup screen](docs/screenshots/07-virtual-pc-setup.png)
+
+**Knowledge base.** Searchable how-to articles. Each ticket's write-up unlocks when you resolve it.
+
+![Knowledge base article](docs/screenshots/08-knowledge-base.png)
 
 ## Run it locally
 
