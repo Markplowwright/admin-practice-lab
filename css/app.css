@@ -851,3 +851,17 @@ body[data-portal="vm"] .vmside .tile{background:var(--panel);color:var(--ink)}
 :root[data-theme="dark"] .mbtn button.pri{background:#f1ece4;color:#201e1c}
 :root[data-theme="dark"] .maplink{border-top-color:#a8a197;color:#f1ece4}
 :root[data-theme="dark"] .maplink span{background:#201e1c}
+
+/* ---------- App shell: the page itself never scrolls; panels do ---------- */
+body:not([data-portal="start"]){height:100vh;overflow:hidden;padding-bottom:0}
+body:not([data-portal="start"]) #app{height:calc(100vh - 40px);min-height:0;overflow:hidden}
+.shell>.content{overflow-y:auto;padding-bottom:28px}
+/* Remote support, Procurement and Knowledge base are full-screen apps: fill the workspace edge to edge */
+body[data-portal="remote"] .shell>.content,body[data-portal="procure"] .shell>.content,body[data-portal="kb"] .shell>.content{padding:0;display:flex;flex-direction:column;overflow:hidden}
+.shell>.content>.rc,.shell>.content>.pc,.shell>.content>.kb{flex:1;min-height:0;height:auto}
+.shell>.content>.pc,.shell>.content>.kb{overflow-y:auto}
+.envwin{border-radius:10px}
+body[data-portal="env"] .shell>.content{padding-bottom:20px}
+@media (max-width:1500px){.wsbar .tbnote{display:none}}
+body[data-portal="vm"] .shell>.content{padding-bottom:12px}
+.dock .dn small{color:#5a4a10}

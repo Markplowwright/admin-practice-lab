@@ -596,3 +596,9 @@ test("theme button cycles Auto, Light, Dark and the start screen and taskbar bot
   w.A.theme(); assert.equal(root.getAttribute("data-theme-choice"), null);
   w.A.go({ p: "env", pg: "map" }); w.render(); assert.ok(d.querySelector('.wsbar [data-a="theme"]'));
 });
+test("layout: the page never scrolls, and Remote support, Procurement and Knowledge base fill the workspace", function () {
+  const fs = require("fs"), css = fs.readFileSync(require("path").join(__dirname, "..", "css", "app.css"), "utf8");
+  assert.match(css, /body:not\(\[data-portal="start"\]\)\{height:100vh;overflow:hidden;padding-bottom:0\}/, "the document is fixed to the window");
+  assert.match(css, /body\[data-portal="remote"\] \.shell>\.content,body\[data-portal="procure"\] \.shell>\.content,body\[data-portal="kb"\] \.shell>\.content\{padding:0/, "full-screen apps have no padding");
+  assert.match(css, /@media \(max-width:1500px\)\{\.wsbar \.tbnote\{display:none\}\}/, "taskbar note hides before it can overflow");
+});
