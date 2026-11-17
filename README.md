@@ -20,7 +20,7 @@ People who want to learn IT admin tasks before they have access to a real tenant
 
 ## How it works
 
-The first time you open it, a welcome page and a 3-minute tour explain the six places you'll work and how missions work (or skip straight to Level 1). You can reopen the introduction at any time with the **Introduction walk through** button in the gray bar at the top. Then you follow a five-level path in the **Lab guide**:
+The first time you open it, a welcome page and a 3-minute tour explain the six places you'll work and how missions work (or skip straight to Level 1). You can reopen the introduction at any time with the **Introduction walk through** button in the gray bar at the top. Then you follow a six-level path in the **Lab guide**:
 
 | Level | What you practice |
 |---|---|
@@ -29,8 +29,17 @@ The first time you open it, a welcome page and a 3-minute tour explain the six p
 | 3. Compromised accounts and MFA | Contain a compromised account (password, sessions, rogue phone number, mail forwarding), roll out MFA with Conditional Access |
 | 4. Intune and laptops | BitLocker disk encryption vs compliance, app deployment, Autopilot setup and enrollment errors, joining a laptop by hand and checking `dsregcmd /status` |
 | 5. Hybrid identity | Active Directory users and groups, OU sync scope, Entra Connect, Group Policy, domain and hybrid join, and help-desk scenarios |
+| 6. Procurement and imaging | Order a laptop or desktop and receive it by serial number, image it from USB or over PXE, set the BIOS boot order, zero-touch setup with Autopilot, install the support agent |
 
-There are 18 guided missions with 64 guided steps, plus 10 real-world scenarios. Every guided step names the portal and menu path and has a **Go there** button. A step is checked off when you actually do it in the lab, and when you finish a mission the guide explains **why it works that way**.
+There are 21 guided missions with 73 guided steps, plus 13 real-world tickets. Every guided step names the portal and menu path and has a **Go there** button. A step is checked off when you actually do it in the lab, and when you finish a mission the guide explains **why it works that way**.
+
+## Procurement, imaging and remote support
+
+Order a laptop or desktop (desktops need a monitor, and a second device for a person who already has one raises a request), receive it on the staging bench by typing the serial from the box, and image it. Imaging has the Dell F12 boot menu, a BIOS Boot Sequence screen, Windows Setup partitioning, a PXE network route, and an Autopilot route for serials registered in Intune. After you install the support agent, the machine appears in Remote support and the Virtual PC, where a desktop is drawn as a monitor, keyboard, mouse and tower.
+
+## Knowledge base
+
+Searchable how-to articles, plus one write-up per ticket that stays locked until you resolve that ticket. **My notes** collects the ticket notes you wrote.
 
 ## Hybrid identity
 
@@ -42,7 +51,7 @@ Directory sync uses a deterministic lab clock. The displayed 30-minute directory
 
 ## Real-world scenarios
 
-Level 5 includes ten ticket-style exercises covering lockouts, source-of-authority password resets, onboarding, urgent offboarding, missing file-share access, GPO scope, broken domain trust, excluded sync OUs, expiring contractor access, and suspicious sign-ins. Hints are optional, completion checks actual state, and each completed scenario includes a cause, user-facing response, and example ticket note.
+Thirteen ticket-style exercises cover lockouts, source-of-authority password resets, onboarding, urgent offboarding, missing file-share access, GPO scope, broken domain trust, excluded sync OUs, expiring contractor access, and suspicious sign-ins, a slow laptop, and ordering and imaging a desktop or replacement laptop. Hints are optional, completion checks actual state, and each completed scenario includes a cause, user-facing response, and example ticket note.
 
 Only one scenario runs at a time in an isolated sandbox. Resetting or leaving it preserves the main lab and previously earned completion badges.
 
@@ -92,7 +101,10 @@ Settings > Pages > Source: **Deploy from a branch** > Branch: `main`, folder `/ 
 | `js/ui.js` | Shared buttons, tables, wizards, and glossary |
 | `js/ad.js` | AD Users and Computers, Group Policy Management, and Entra Connect Sync |
 | `js/entra.js`, `js/m365.js`, `js/exchange.js`, `js/intune.js` | The four cloud admin centers |
-| `js/vm.js` | Virtual Windows laptop |
+| `js/vm.js` | Virtual Windows laptop and desktop |
+| `js/procure.js` | Procurement, staging bench, imaging, BIOS, Autopilot |
+| `js/remote.js` | Remote support console |
+| `js/kb.js` | Knowledge base |
 | `js/guide.js` | Lab guide, welcome page, and tour |
 | `js/render.js` | Drawing the page and handling clicks |
 | `tests/rules.test.js` | Checks for ids, licenses, enrollment, and mission steps |
