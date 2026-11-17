@@ -37,6 +37,10 @@ There are 21 guided missions with 73 guided steps, plus 14 real-world tickets. E
 
 Order a laptop or desktop (desktops need a monitor, and a second device for a person who already has one raises a request), receive it on the staging bench by typing the serial from the box, and image it. Imaging has the Dell F12 boot menu, a BIOS Boot Sequence screen, Windows Setup partitioning, a PXE network route, and an Autopilot route for serials registered in Intune. After you install the support agent, the machine appears in Remote support and the Virtual PC, where a desktop is drawn as a monitor, keyboard, mouse and tower.
 
+## Light and dark
+
+The **Theme** button (start screen, and the taskbar at the bottom) cycles Auto, Light and Dark. Auto follows your computer. The choice is remembered in this browser.
+
 ## Knowledge base
 
 Searchable how-to articles, plus one write-up per ticket that stays locked until you resolve that ticket. **My notes** collects the ticket notes you wrote.
