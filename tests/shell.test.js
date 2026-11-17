@@ -6,7 +6,7 @@ const test = require("node:test");
 const { JSDOM, VirtualConsole } = require("jsdom");
 
 const root = path.join(__dirname, "..");
-const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "remote.js", "procure.js", "guide.js", "shell.js", "render.js"];
+const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "remote.js", "procure.js", "kb.js", "guide.js", "shell.js", "render.js"];
 
 function boot() {
   const html = "<!doctype html><html><head></head><body data-portal=\"m365\"><div id=\"app\"></div><div id=\"intro\"></div>" +
@@ -520,4 +520,25 @@ test("an imaged desktop opens as a monitor, tower and keyboard; a laptop keeps t
   assert.match(d.querySelector(".tower").textContent, new RegExp(dev.serial));
   assert.match(d.querySelector(".mlabel").textContent, /P2423|E24/, "monitor model from the order");
   w.A.go({ p: "vm", pg: "d2" }); w.render(); assert.ok(w.document.querySelector(".lbase")); assert.equal(w.document.querySelector(".tower"), null);
+});
+test("knowledge base: search finds articles, ticket articles stay locked until the ticket is resolved", function () {
+  const w = boot(); w.S.onboarded = true; w.A.go({ p: "kb", pg: "home" }); w.render(); const d = w.document;
+  assert.equal(d.querySelectorAll(".edge, .phdr, .lnav").length, 0);
+  assert.ok(d.querySelectorAll(".kbit").length >= 20, "general plus ticket articles");
+  w.S.q = "autopilot"; w.render(); const t = Array.from(d.querySelectorAll(".kbit b")).map(function (e) { return e.textContent; });
+  assert.ok(t.some(function (x) { return /Autopilot/.test(x); })); assert.ok(t.length < 8);
+  w.S.q = "zzzzqq"; w.render(); assert.match(d.querySelector(".kbnone").textContent, /No article matches/);
+  w.S.q = ""; w.A.kbOpen({ id: "t-s1" }); w.render();
+  assert.match(d.querySelector(".kbart").textContent, /Resolve the ticket first/); assert.equal(d.querySelector(".kbart ol"), null);
+  w.S.scenarios.completed.s1 = true; w.render(); assert.match(d.querySelector(".kbart").textContent, /Why it happens/);
+});
+test("knowledge base: My notes lists notes only for resolved tickets, and the dock links to the knowledge base", function () {
+  const w = boot(); w.S.onboarded = true; w.S.scenarios.notes = { s1: "Unlocked Dana and told her to update her phone.", s2: "unfinished" };
+  w.S.scenarios.completed.s1 = true; w.A.kbTab({ k: "notes" }); w.A.go({ p: "kb", pg: "home" }); w.render();
+  const t = w.document.querySelector(".kbbody").textContent; assert.match(t, /Unlocked Dana/); assert.doesNotMatch(t, /unfinished/);
+  w.A.startScenario({ id: "s5" }); w.render(); assert.match(w.ticketDock(), /Search the knowledge base/);
+});
+test("saved lab from before the knowledge base loads", function () {
+  const w = boot(); const o = JSON.parse(JSON.stringify(w.S)); delete o.kb; o.version = 9;
+  const m = w.Lab.migrate(o); assert.equal(m.version, w.STATE_VERSION); assert.equal(m.kb, null);
 });

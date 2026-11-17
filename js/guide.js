@@ -1,7 +1,7 @@
 "use strict";
 /* =============== NAV + SHELL =============== */
-var TITLES={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Microsoft Entra admin center",intune:"Microsoft Intune admin center",exchange:"Exchange admin center",remote:"Remote support",procure:"Procurement",vm:"Windows PC (virtual)",env:"Environment",tools:"Toolkit",learn:"Learn"};
-var DEFAULT={m365:"home",ad:"aduc",entra:"overview",intune:"home",exchange:"mailboxes",remote:"console",procure:"order",vm:"d2",env:"map",tools:"links",learn:"path"};
+var TITLES={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Microsoft Entra admin center",intune:"Microsoft Intune admin center",exchange:"Exchange admin center",remote:"Remote support",procure:"Procurement",kb:"Knowledge base",vm:"Windows PC (virtual)",env:"Environment",tools:"Toolkit",learn:"Learn"};
+var DEFAULT={m365:"home",ad:"aduc",entra:"overview",intune:"home",exchange:"mailboxes",remote:"console",procure:"order",kb:"home",vm:"d2",env:"map",tools:"links",learn:"path"};
 var NAVS={
   m365:[{pg:"home",l:"Home",i:"home"},{l:"Users",i:"user",kids:[["users","Active users"],["deleted","Deleted users"]]},{l:"Teams & groups",i:"users",kids:[["groups","Active teams & groups"]]},{l:"Billing",i:"license",kids:[["licenses","Licenses"]]},
     {sep:"Admin centers"},{go:["entra","overview"],l:"Identity",i:"shield"},{go:["intune","home"],l:"Endpoint Manager",i:"device"},{go:["exchange","mailboxes"],l:"Exchange",i:"mail"}],
@@ -16,7 +16,7 @@ var NAVS={
     {sep:"Related"},{go:["entra","users"],l:"Synced users (Entra)",i:"shield"},{go:["vm","d3"],l:"Windows laptop",i:"device"}]
 };
 function leftNav(){
-  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"||S.portal==="remote"||S.portal==="vm"||S.portal==="procure"){return "";}
+  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"||S.portal==="remote"||S.portal==="vm"||S.portal==="procure"||S.portal==="kb"){return "";}
   if(S.portal==="vm"){return '<nav class="lnav" aria-label="Laptops"><div class="grp">'+ico("device")+'Virtual PCs</div>'+vmDevices().map(function(x){return '<button type="button" class="it kid" data-a="go" data-p="vm" data-pg="'+x.id+'"'+(S.page===x.id?' aria-current="true"':'')+'>'+esc(x.spare?"Spare ThinkPad (manual join)":x.maker+" "+x.model+" (Autopilot)")+'</button>';}).join("")+'</nav>';}
   var h='<nav class="lnav" aria-label="'+esc(TITLES[S.portal])+' navigation">';
   NAVS[S.portal].forEach(function(n){
@@ -28,7 +28,7 @@ function leftNav(){
   return h+'</nav>';
 }
 function portalHeader(){
-  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"||S.portal==="remote"||S.portal==="vm"||S.portal==="procure"){return "";}
+  if(S.portal==="env"||S.portal==="tools"||S.portal==="learn"||S.portal==="remote"||S.portal==="vm"||S.portal==="procure"||S.portal==="kb"){return "";}
   return '<header class="phdr"><span class="waf">'+ico("apps")+'</span><h1>'+esc(TITLES[S.portal])+'</h1><div class="search">'+ico("search")+'<input id="hq" data-q="1" type="text" autocomplete="off" aria-label="Search this page" placeholder="Search this page" value="'+esc(S.q)+'"></div><span class="av" title="Admin (you)">AD</span></header>';
 }
 function flyHtml(){
@@ -207,7 +207,7 @@ var MMETA={
 "Complete a hybrid device join":{l:5,why:"Hybrid join means the same PC is joined to practice.local and registered in Entra. The computer account must be in synchronization scope; the user's sync status alone does not create hybrid join.",eq:"Jamf enrollment plus identity-provider device registration is an approximate comparison."},
 "Fix a password at its source":{l:5,why:"The source of authority decides where a change is valid. Password hash sync copies an AD password hash to Entra; password writeback, which this lab leaves disabled, is the reverse direction.",eq:"The same principle applies to any directory synchronized from an HR or identity source."}
 };
-var PNAME={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Entra admin center",intune:"Intune admin center",exchange:"Exchange admin center",vm:"Windows PC (virtual)",procure:"Procurement",remote:"Remote support"};
+var PNAME={m365:"Microsoft 365 admin center",ad:"Active Directory",entra:"Entra admin center",intune:"Intune admin center",exchange:"Exchange admin center",vm:"Windows PC (virtual)",procure:"Procurement",remote:"Remote support",kb:"Knowledge base"};
 function toolsOf(m){var seen=[];m.s.forEach(function(x){if(seen.indexOf(x[2][0])<0){seen.push(x[2][0]);}});return seen;}
 function stepHtml(x){
   var w=x[2];
