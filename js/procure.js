@@ -133,7 +133,7 @@ function pImg(d){if(!d.img){d.img={step:"cables",cab:{},msg:"",parts:null,sel:0,
 function pImgPorts(d){return d.type==="desktop"?["power","net","mon","kbd","usb"]:["power","net","usb"];}
 function pImgDev(){var id=P().imgId;return id?pDev(id):null;}
 function pStepper(d){
-  var st={cables:1,post:2,menu:3,pxe:3,bios:3,setup:4,install:4,done:5}[pImg(d).step]||1;
+  var st={cables:1,post:2,menu:3,pxe:3,bios:3,setup:4,blocked:4,install:4,done:5}[pImg(d).step]||1;
   return '<ol class="pstep">'+["Connect","Power on","Boot menu","Install","Done"].map(function(l,i){return '<li class="'+(i+1===st?'on':i+1<st?'ok':'')+'">'+l+'</li>';}).join("")+'</ol>';
 }
 function pScr(inner){return '<div class="pscr">'+inner+'</div>';}
@@ -149,11 +149,23 @@ function pImgBody(d){
     h=pScr('<div class="pbig">DELL</div><p>Preparing one-time boot menu...</p><p class="dim">Press the key you need now. Do nothing and it boots from the internal disk.</p>')+'<div class="pkeys">'+pKey("F2 (BIOS setup)","pKey",' data-k="f2" data-spot="F2"')+pKey("F12 (one-time boot menu)","pKey",' data-k="f12" data-spot="F12"')+pKey("Press nothing","pKey",' data-k="none"')+'</div>'+m;
   }else if(g.step==="menu"){
     var mm=[["win","Windows Boot Manager"],["usb","UEFI: USB device"],["nic4","Onboard NIC (IPV4)"],["nic6","Onboard NIC (IPV6)"]];
-    h=pScr('<div class="dim">Boot mode is set to: UEFI; Secure Boot: ON; PTT is ON</div><div class="pmh">UEFI BOOT:</div>'+mm.map(function(x){return '<button type="button" class="pitem" data-a="pBoot" data-k="'+x[0]+'">'+esc(x[1])+'</button>';}).join("")+'<div class="pmh">OTHER OPTIONS:</div>'+[["bios","BIOS Setup"],["diag","Diagnostics"],["exit","Exit Boot Menu and Continue"]].map(function(x){return '<button type="button" class="pitem" data-a="pBoot" data-k="'+x[0]+'">'+esc(x[1])+'</button>';}).join(""))+m;
+    h=pScr('<div class="dim">Boot mode is set to: '+esc(pBios(g).mode)+'; Secure Boot: '+(pBios(g).sb?"ON":"OFF")+'; PTT is ON</div><div class="pmh">'+(pBios(g).mode==="UEFI"?"UEFI":"LEGACY")+' BOOT:</div>'+mm.map(function(x){return '<button type="button" class="pitem" data-a="pBoot" data-k="'+x[0]+'">'+esc(x[1])+'</button>';}).join("")+'<div class="pmh">OTHER OPTIONS:</div>'+[["bios","BIOS Setup"],["diag","Diagnostics"],["exit","Exit Boot Menu and Continue"]].map(function(x){return '<button type="button" class="pitem" data-a="pBoot" data-k="'+x[0]+'">'+esc(x[1])+'</button>';}).join(""))+m;
   }else if(g.step==="bios"){
-    var dr=g.draft;
-    h=pScr('<div class="pmh">BIOS Setup &gt; General &gt; Boot Sequence</div><div class="dim">Boot mode: UEFI. Secure Boot: On. Check the devices to boot from, and put them in order.</div><table class="ptab"><tr><th>Order</th><th>On</th><th>Boot option</th><th></th></tr>'+dr.order.map(function(k,i){return '<tr><td>'+(i+1)+'</td><td><label><input type="checkbox" data-a="pBiosTog" data-k="'+k+'"'+(dr.on[k]?' checked':'')+' aria-label="'+esc(BIOS_ITEMS[k])+'"></label></td><td>'+esc(BIOS_ITEMS[k])+'</td><td><button type="button" class="pkey" data-a="pBiosMove" data-k="'+k+'" data-dir="-1" aria-label="Move '+esc(BIOS_ITEMS[k])+' up">Up</button> <button type="button" class="pkey" data-a="pBiosMove" data-k="'+k+'" data-dir="1" aria-label="Move '+esc(BIOS_ITEMS[k])+' down">Down</button></td></tr>';}).join("")+'</table>'+(g.applied?'<p class="dim">Changes applied.</p>':""))+m+
+    var dr=g.draft,tab=dr.tab||"boot";
+    function btab(k,l){return '<button type="button" class="pkey'+(tab===k?' on':'')+'" data-a="pBiosTab" data-k="'+k+'" data-spot="'+esc(l)+'"'+(tab===k?' aria-current="true"':'')+'>'+esc(l)+'</button> ';}
+    var body;
+    if(tab==="boot"){
+      body='<div class="pmh">BIOS Setup &gt; General &gt; Boot Sequence</div><div class="dim">Boot List Option decides whether the PC starts in UEFI or old Legacy mode. Check the devices to boot from, and put them in order.</div>'+
+        '<div class="prow2"><b>Boot List Option</b> '+["UEFI","Legacy"].map(function(k){return '<label class="pradio"><input type="radio" name="bm" data-a="pBiosMode" data-k="'+k+'"'+(dr.mode===k?' checked':'')+' aria-label="'+k+'"> '+k+'</label>';}).join(" ")+'</div>'+
+        '<table class="ptab"><tr><th>Order</th><th>On</th><th>Boot option</th><th></th></tr>'+dr.order.map(function(k,i){return '<tr><td>'+(i+1)+'</td><td><label><input type="checkbox" data-a="pBiosTog" data-k="'+k+'"'+(dr.on[k]?' checked':'')+' aria-label="'+esc(BIOS_ITEMS[k])+'"></label></td><td>'+esc(BIOS_ITEMS[k])+'</td><td><button type="button" class="pkey" data-a="pBiosMove" data-k="'+k+'" data-dir="-1" aria-label="Move '+esc(BIOS_ITEMS[k])+' up">Up</button> <button type="button" class="pkey" data-a="pBiosMove" data-k="'+k+'" data-dir="1" aria-label="Move '+esc(BIOS_ITEMS[k])+' down">Down</button></td></tr>';}).join("")+'</table>';
+    }else{
+      body='<div class="pmh">BIOS Setup &gt; Boot Configuration &gt; Secure Boot</div><div class="dim">Secure Boot only lets the PC start software signed by a trusted publisher. It needs UEFI mode.</div>'+
+        '<div class="prow2"><label class="pradio"><input type="checkbox" data-a="pBiosSb"'+(dr.sb?' checked':'')+' aria-label="Secure Boot Enable"> <b>Secure Boot Enable</b></label></div>'+(dr.mode!=="UEFI"?'<p class="dim">Secure Boot has no effect while Boot List Option is Legacy.</p>':'');
+    }
+    h=pScr('<div class="pbtns">'+btab("boot","Boot Sequence")+btab("sec","Secure Boot")+'</div>'+body+(g.applied?'<p class="dim">Changes applied.</p>':""))+m+
       '<div class="pbtns"><button type="button" class="pbtn pri" data-a="pBiosApply">Apply Changes</button><button type="button" class="pbtn" data-a="pBiosExit">Exit</button></div>';
+  }else if(g.step==="blocked"){
+    h=pScr('<div class="pmh">Windows 11 Setup</div><p><b>This PC can\'t run Windows 11</b></p><p class="dim">'+esc(g.blockWhy||"")+'</p>')+'<p>Setup cannot continue. Restart the PC and change the setting in BIOS (F2), then try again.</p><div class="pbtns"><button type="button" class="pbtn pri" data-a="pRestart" data-spot="Restart">Restart the PC</button></div>';
   }else if(g.step==="pxe"){
     h=pScr('<div class="pmh">Network boot: Task sequence selection</div><div class="dim">Pick the image for this device.</div>'+IMG_TS.map(function(x){return '<button type="button" class="pitem'+(g.ts===x[0]?' on':'')+'" data-a="pTs" data-k="'+x[0]+'">'+esc(x[1])+'</button>';}).join(""))+m+'<div class="pbtns"><button type="button" class="pbtn pri" data-a="pPxeGo">Deploy</button></div>';
   }else if(g.step==="setup"){
@@ -163,7 +175,7 @@ function pImgBody(d){
   }else if(g.step==="install"){
     h=pScr('<div class="pmh">Installing Windows 11 Pro</div><div class="pbar"><i style="width:'+g.prog+'%"></i></div><p class="dim">'+esc(["Copying files","Installing features","Installing updates","Finishing up"][Math.min(3,Math.floor(g.prog/26))])+' ('+g.prog+'%)</p>')+'<div class="pbtns"><button type="button" class="pbtn pri" data-a="pInstall">'+(g.prog<100?"Let it run":"Restart")+'</button></div>';
   }else if(g.step==="done"){
-    var oem=g.method==="Autopilot"?"The disk still held the vendor's Windows, so it booted to setup. This serial is registered in Autopilot, so setup will ask for a work account. Open the device to go through it.":g.method==="OEM"?"The disk still held the vendor's Windows, so it booted to the standard setup. This serial is not registered in Autopilot, so nothing will configure it automatically. Register it in Intune first for zero-touch, or image it by USB or PXE.":"Windows is installed on "+esc(d.tag)+". It is not joined, not managed, and nothing can see it yet.";
+    var oem=g.method==="Autopilot"?"The disk still held the vendor's Windows, so it booted to setup. This serial is registered in Autopilot, so setup will ask for a work account. Open the device to go through it.":g.method==="NoProfile"?"The disk still held the vendor's Windows, so it booted to setup. This serial is registered, but no Autopilot deployment profile is assigned to it, so setup is the standard one and nothing configures it. In Intune, create a deployment profile assigned to All devices, then reset the device and boot it again.":g.method==="OEM"?"The disk still held the vendor's Windows, so it booted to the standard setup. This serial is not registered in Autopilot, so nothing will configure it automatically. Register it in Intune first for zero-touch, or image it by USB or PXE.":"Windows is installed on "+esc(d.tag)+". It is not joined, not managed, and nothing can see it yet.";
     h='<div class="pmsg ok">'+esc(oem)+'</div><p>Next: install the support agent so the device can be reached remotely.</p><div class="pbtns"><button type="button" class="pbtn pri" data-a="pBackBench">Back to the bench</button></div>';
   }
   return h;
@@ -185,9 +197,25 @@ A.pPower=function(){
   g.msg="";g.step="post";
 };
 var BIOS_ITEMS={win:"Windows Boot Manager",usb:"UEFI: USB device",nic4:"Onboard NIC (IPV4)",nic6:"Onboard NIC (IPV6)"};
-function pBios(g){if(!g.bios){g.bios={order:["win","usb","nic4","nic6"],on:{win:true,usb:true,nic4:true,nic6:true}};}return g.bios;}
+function pBios(g){
+  if(!g.bios){g.bios={order:["win","usb","nic4","nic6"],on:{win:true,usb:true,nic4:true,nic6:true},mode:"UEFI",sb:true};}
+  if(!g.bios.mode){g.bios.mode="UEFI";}if(g.bios.sb===undefined){g.bios.sb=true;}
+  return g.bios;
+}
+function pDraft(g){var b=pBios(g);g.applied=false;g.draft={order:b.order.slice(),on:JSON.parse(JSON.stringify(b.on)),mode:b.mode,sb:b.sb,tab:"boot"};}
+function pBiosSame(b,d){return JSON.stringify(b.order)===JSON.stringify(d.order)&&JSON.stringify(b.on)===JSON.stringify(d.on)&&b.mode===d.mode&&b.sb===d.sb;}
+/* Windows 11 setup needs UEFI and Secure Boot. Returns true (and shows the error screen) when it is blocked. */
+function pWin11Block(dev,g){
+  var b=pBios(g);
+  if(b.mode==="UEFI"&&b.sb){return false;}
+  g.step="blocked";g.hitBlock=true;dev.hitBlock=true;g.blockWhy=b.mode!=="UEFI"?"The PC is set to start in Legacy BIOS mode. Windows 11 needs UEFI.":"Secure Boot is turned off. Windows 11 needs Secure Boot on.";g.msg="";return true;
+}
 /* Try to boot one device. Returns true when it started something; otherwise sets g.msg. */
 function pTryBoot(dev,g,k){
+  var legacy=pBios(g).mode==="Legacy";
+  if(legacy&&k==="win"){g.msg="Operating system not found. The Windows on this disk starts in UEFI mode, not Legacy.";return false;}
+  if(legacy&&k==="usb"&&g.cab.usb){g.msg="The installer on this stick starts in UEFI mode only. In BIOS setup (F2), set Boot List Option to UEFI.";return false;}
+  if(legacy&&k==="nic4"&&g.cab.net){g.msg="PXE started in Legacy mode and found no boot image. The network serves UEFI clients only. Set Boot List Option to UEFI in BIOS setup.";return false;}
   if(k==="win"){return pOem(dev,g);}
   if(k==="usb"){
     if(!g.cab.usb){g.msg="No USB boot device found. Is the installer stick plugged in?";return false;}
@@ -203,7 +231,8 @@ function pTryBoot(dev,g,k){
 function pOem(dev,g){
   var reg=S.devices.filter(function(x){return x.serial===dev.serial&&x.autopilot;})[0];
   g.msg="";g.step="done";dev.stage="imaged";
-  if(reg){g.method="Autopilot";dev.imgMethod="Autopilot";dev.devId=reg.id;reg.fromBench=true;reg.kind=dev.type;reg.maker=dev.maker;reg.model=dev.model;}
+  if(reg&&!apAssigned()){g.method="NoProfile";dev.imgMethod="OEM Windows";dev.devId=reg.id;reg.fromBench=true;reg.kind=dev.type;reg.maker=dev.maker;reg.model=dev.model;}
+  else if(reg){g.method="Autopilot";dev.imgMethod="Autopilot";dev.devId=reg.id;reg.fromBench=true;reg.kind=dev.type;reg.maker=dev.maker;reg.model=dev.model;}
   else{g.method="OEM";dev.imgMethod="OEM Windows";}
   dev.os="Windows 11 Pro";return true;
 }
@@ -215,32 +244,36 @@ function pNormalBoot(dev,g){
 A.pKey=function(d){
   var dev=pImgDev(),g=pImg(dev);g.msg="";
   if(d.k==="f12"){g.step="menu";}
-  else if(d.k==="f2"){pBios(g);g.draft={order:g.bios.order.slice(),on:JSON.parse(JSON.stringify(g.bios.on))};g.step="bios";}
+  else if(d.k==="f2"){pDraft(g);g.step="bios";}
   else{pNormalBoot(dev,g);}
 };
 A.pBoot=function(d){
   var dev=pImgDev(),g=pImg(dev);g.msg="";
   if(d.k==="win"||d.k==="usb"||d.k==="nic4"||d.k==="nic6"){pTryBoot(dev,g,d.k);}
-  else if(d.k==="bios"){pBios(g);g.draft={order:g.bios.order.slice(),on:JSON.parse(JSON.stringify(g.bios.on))};g.step="bios";}
+  else if(d.k==="bios"){pDraft(g);g.step="bios";}
   else if(d.k==="diag"){g.msg="Hardware diagnostics passed. Nothing is installed yet.";}
   else{pNormalBoot(dev,g);}
 };
-A.pBiosTog=function(d){var g=pImg(pImgDev());g.draft.on[d.k]=!g.draft.on[d.k];g.msg="";};
+A.pBiosTog=function(d){var g=pImg(pImgDev());g.draft.on[d.k]=!g.draft.on[d.k];g.msg="";g.applied=false;};
 A.pBiosMove=function(d){
   var g=pImg(pImgDev()),o=g.draft.order,i=o.indexOf(d.k),j=i+(+d.dir);g.msg="";
-  if(i<0||j<0||j>=o.length){return;}
+  if(i<0||j<0||j>=o.length){return;}g.applied=false;
   var t=o[i];o[i]=o[j];o[j]=t;
 };
-A.pBiosApply=function(){var g=pImg(pImgDev());g.bios={order:g.draft.order.slice(),on:JSON.parse(JSON.stringify(g.draft.on))};g.msg="";g.applied=true;};
+A.pBiosApply=function(){var g=pImg(pImgDev());g.bios={order:g.draft.order.slice(),on:JSON.parse(JSON.stringify(g.draft.on)),mode:g.draft.mode,sb:g.draft.sb};g.msg="";g.applied=true;};
+A.pBiosTab=function(d){var g=pImg(pImgDev());g.draft.tab=d.k;g.msg="";};
+A.pBiosMode=function(d){var g=pImg(pImgDev());g.draft.mode=d.k;g.msg="";g.applied=false;};
+A.pBiosSb=function(){var g=pImg(pImgDev());g.draft.sb=!g.draft.sb;g.msg="";g.applied=false;};
+A.pRestart=function(){var g=pImg(pImgDev());g.msg="";g.step="post";g.draft=null;};
 A.pBiosExit=function(){
-  var dev=pImgDev(),g=pImg(dev),b=pBios(g),dirty=JSON.stringify(b.order)!==JSON.stringify(g.draft.order)||JSON.stringify(b.on)!==JSON.stringify(g.draft.on);
+  var dev=pImgDev(),g=pImg(dev),b=pBios(g),dirty=!pBiosSame(b,g.draft);
   if(dirty){g.msg="You changed settings but did not choose Apply Changes. Apply them first, or exit and lose them.";g.confirmExit=true;if(g.exitTwice){g.exitTwice=false;g.confirmExit=false;g.msg="";g.draft=null;pNormalBoot(dev,g);}else{g.exitTwice=true;}return;}
   g.exitTwice=false;g.draft=null;pNormalBoot(dev,g);
 };
 A.pTs=function(d){pImg(pImgDev()).ts=d.k;};
 A.pPxeGo=function(){
   var g=pImg(pImgDev());if(!g.ts){g.msg="Pick a task sequence first.";return;}
-  if(g.ts==="win11"){g.msg="";g.step="install";g.prog=0;g.method="PXE";}
+  if(g.ts==="win11"){if(pWin11Block(pImgDev(),g)){return;}g.msg="";g.step="install";g.prog=0;g.method="PXE";}
   else if(g.ts==="win10"){g.msg="That is the old Windows 10 image. This device needs the Windows 11 corporate image.";}
   else{g.msg="WinPE booted and ran diagnostics. It did not install Windows. Pick the Windows 11 task sequence.";}
 };
@@ -254,8 +287,9 @@ A.pDelPart=function(){
   g.sel=0;
 };
 A.pSetupNext=function(){
-  var g=pImg(pImgDev()),x=g.parts[g.sel];
+  var dev=pImgDev(),g=pImg(dev),x=g.parts[g.sel];
   if(!x){return;}
+  if(pWin11Block(dev,g)){return;}
   if(x.t!=="Unallocated"){g.msg="Windows cannot be installed here: the disk still has old partitions from the vendor. Delete them all, then select the unallocated space.";return;}
   g.msg="";g.step="install";g.prog=0;g.method="USB";
 };
@@ -278,6 +312,17 @@ A.pAgent=function(d){
 function pS12(){
   var ds=P().devs.filter(function(d){return d.type==="desktop"&&d.user==="u4"&&d.stage!=="cancelled"&&d.monitors.length>0;});
   return [["Ordered a desktop with a monitor for Marcus",ds.length>0],["Received it and imaged it",ds.some(function(d){return d.stage==="imaged";})],["Installed the support agent so IT can reach it",ds.some(function(d){return !!d.agent;})]];
+}
+function pS14(){
+  var ds=P().devs.filter(function(d){return d.type==="laptop"&&d.user==="u3"&&d.stage!=="cancelled";});
+  var ok=ds.some(function(d){var b=pBios(pImg(d));return b.mode==="UEFI"&&b.sb;});
+  return [["Set the BIOS to UEFI with Secure Boot on",ok],["Installed Windows 11 from USB or the network",ds.some(function(d){return d.stage==="imaged"&&d.imgMethod!=="OEM Windows"&&pBios(pImg(d)).mode==="UEFI"&&pBios(pImg(d)).sb;})],["Installed the support agent so IT can reach it",ds.some(function(d){return !!d.agent;})]];
+}
+function pS14Setup(){
+  var p=pBlank();p.n=1;var m=PMODELS.laptop[0];
+  var dv={id:"p1",type:"laptop",maker:m[0],model:m[1],tag:pTag(1),serial:pSerial(1,"LP"),user:"u3",monitors:[],stage:"received"};
+  dv.img={step:"cables",cab:{},msg:"",parts:null,sel:0,ts:"",bios:{order:["usb","win","nic4","nic6"],on:{win:true,usb:true,nic4:true,nic6:true},mode:"Legacy",sb:false}};
+  p.devs.push(dv);p.tab="bench";S.procure=p;
 }
 function pS13(){
   var ds=P().devs.filter(function(d){return d.type==="laptop"&&d.user==="u2"&&d.stage!=="cancelled";});

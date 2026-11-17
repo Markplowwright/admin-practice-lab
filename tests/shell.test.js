@@ -233,7 +233,7 @@ test("clicking map cards opens the matching tool", function () {
 test("with no ticket open the map has a ticket queue and Start opens that ticket", function () {
   const w = boot(); w.S.onboarded = true; w.S.portal = "env"; w.S.page = "map"; w.render(); const d = w.document;
   assert.match(d.querySelector(".dock").textContent, /Ticket queue/);
-  assert.equal(d.querySelectorAll(".dock .tk").length, 13);
+  assert.equal(d.querySelectorAll(".dock .tk").length, 14);
   assert.ok(d.body.classList.contains("dock-open"));
   d.querySelector('.dock [data-a="startScenario"][data-id="s3"]').click();
   assert.equal(w.S.scenarios.active, "s3");
@@ -281,7 +281,7 @@ test("Learn replaces the Missions and guide panel", function () {
   w.A.go({ p: "learn", pg: "path" }); w.render();
   assert.match(d.querySelector("#main").textContent, /Training path/);
   assert.match(d.querySelector("#main").textContent, /0 of 73/);
-  assert.match(d.querySelector("#main").textContent, /0 of 13/);
+  assert.match(d.querySelector("#main").textContent, /0 of 14/);
   assert.equal(d.querySelectorAll(".learn .lvl").length, 6);
   assert.equal(d.querySelector(".learn [data-a=\"startMission\"]").disabled, false);
 });
@@ -481,6 +481,7 @@ test("Autopilot boot: only a serial registered in Intune gets zero-touch setup",
   assert.equal(dev.imgMethod, "OEM Windows"); assert.equal(w.S.devices.length, 3);
   const w2 = boot(), d2 = readyDev(w2, "laptop");
   w2.S.devices.push({ id: "dap", serial: d2.serial, name: "(not set up)", model: "x", maker: "Dell", os: "Windows 11 Pro", osVer: "10.0.22631", userId: null, state: "registered", baseBitlocker: false, autopilot: true, sync: "-" });
+  w2.S.apProfiles.push({ id: "apx", name: "Corp", assign: { all: "devices" } });
   w2.A.pPower(); w2.A.pKey({ k: "f12" }); w2.A.pBoot({ k: "win" });
   assert.equal(d2.imgMethod, "Autopilot"); assert.equal(d2.devId, "dap"); assert.equal(w2.S.devices.length, 4);
   w2.A.pAgent({ id: d2.id }); assert.equal(w2.rAll().length, 6); assert.match(w2.rAll()[5].name, /^DESKTOP-/);
@@ -547,4 +548,43 @@ test("saved lab with Sam only in Entra Finance is lined up so the first sync doe
   o.ad.groups.filter(function (g) { return g.id === "adg1"; })[0].members = ["adu1"];
   const m = w.Lab.migrate(o);
   assert.ok(m.ad.groups.filter(function (g) { return g.id === "adg1"; })[0].members.indexOf("adu2") > -1);
+});
+function s14Boot() {
+  const w = boot(); w.S.onboarded = true; w.A.startScenario({ id: "s14" });
+  const dev = w.S.procure.devs[0]; w.A.pImgStart({ id: dev.id }); ["power", "usb"].forEach(function (k) { w.A.pCable({ k: k }); }); w.A.pPower();
+  return { w: w, dev: dev };
+}
+test("s14: Legacy mode blocks the USB stick, Secure Boot off blocks Setup, fixing both lets it install", function () {
+  const x = s14Boot(), w = x.w, dev = x.dev, g = w.pImg(dev);
+  assert.equal(w.pBios(g).mode, "Legacy"); assert.equal(w.pBios(g).sb, false);
+  w.A.pKey({ k: "f12" }); w.A.go({ p: "procure", pg: "image" }); w.render(); assert.match(w.document.querySelector("#app").textContent, /Boot mode is set to: Legacy; Secure Boot: OFF/);
+  w.A.pBoot({ k: "usb" }); assert.equal(g.step, "menu"); assert.match(g.msg, /UEFI mode only/);
+  w.A.pBoot({ k: "bios" }); w.A.pBiosMode({ k: "UEFI" }); w.A.pBiosApply(); w.A.pBiosExit();
+  assert.equal(g.step, "setup", "UEFI lets the stick boot first");
+  while (g.parts.some(function (p) { return p.t !== "Unallocated"; })) { g.sel = g.parts.findIndex(function (p) { return p.t !== "Unallocated"; }); w.A.pDelPart(); }
+  g.sel = 0; w.A.pSetupNext(); assert.equal(g.step, "blocked", "Secure Boot still off"); assert.match(g.blockWhy, /Secure Boot is turned off/);
+  w.A.go({ p: "procure", pg: "image" }); w.render(); assert.match(w.document.querySelector("#app").textContent, /can.t run Windows 11/);
+  w.A.pRestart(); assert.equal(g.step, "post"); w.A.pKey({ k: "f2" }); w.A.pBiosTab({ k: "sec" }); w.A.pBiosSb(); w.A.pBiosApply(); w.A.pBiosExit();
+  assert.equal(g.step, "setup"); while (g.parts.some(function (p) { return p.t !== "Unallocated"; })) { g.sel = g.parts.findIndex(function (p) { return p.t !== "Unallocated"; }); w.A.pDelPart(); }
+  g.sel = 0; w.A.pSetupNext(); assert.equal(g.step, "install");
+  assert.equal(w.scenarioDone("s14"), false, "not done until installed and the agent is on");
+});
+test("BIOS: leaving without Apply Changes keeps the old Boot List Option and Secure Boot", function () {
+  const x = s14Boot(), w = x.w, g = w.pImg(x.dev);
+  w.A.pKey({ k: "f2" }); w.A.pBiosMode({ k: "UEFI" }); w.A.pBiosTab({ k: "sec" }); w.A.pBiosSb();
+  w.A.pBiosExit(); assert.match(g.msg, /did not choose Apply/); assert.equal(g.step, "bios");
+  w.A.pBiosExit(); assert.equal(w.pBios(g).mode, "Legacy"); assert.equal(w.pBios(g).sb, false);
+});
+test("s14 is isolated: leaving the ticket restores the main lab's procurement", function () {
+  const w = boot(); w.S.onboarded = true; const before = JSON.stringify(w.S.procure); w.A.startScenario({ id: "s14" });
+  assert.equal(w.S.procure.devs.length, 1); w.A.exitScenario(); assert.equal(JSON.stringify(w.S.procure), before);
+});
+
+test("Autopilot boot: a registered serial with no deployment profile still gets the standard setup", function () {
+  const w = boot(), d = readyDev(w, "laptop");
+  w.S.devices.push({ id: "dap", serial: d.serial, name: "(not set up)", model: "x", maker: "Dell", os: "Windows 11 Pro", osVer: "10.0.22631", userId: null, state: "registered", baseBitlocker: false, autopilot: true, sync: "-" });
+  assert.equal(w.apAssigned(), false);
+  w.A.pPower(); w.A.pKey({ k: "f12" }); w.A.pBoot({ k: "win" });
+  assert.equal(d.imgMethod, "OEM Windows"); assert.equal(w.pImg(d).method, "NoProfile");
+  w.A.go({ p: "procure", pg: "image" }); w.render(); assert.match(w.document.querySelector("#app").textContent, /no Autopilot deployment profile/);
 });
