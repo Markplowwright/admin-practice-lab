@@ -111,6 +111,12 @@ function completeScenario(w, id) {
     w.rSw("d1").splice(w.rSw("d1").findIndex(function (x) { return x.bad; }), 1); w.S.remote.flags.removed = true;
     const i = w.document.createElement("input"); i.value = "Fixed"; w.A.rChat({}, i); w.A.rEnd();
   }
+  if (id === "s12" || id === "s13") {
+    const u = id === "s12" ? "u4" : "u2", ty = id === "s12" ? "desktop" : "laptop";
+    w.A.pType({ k: ty }); if (ty === "desktop") { w.A.pMon({ k: "1" }); } w.S.procure.form.user = u; w.A.pOrder();
+    const dev = w.S.procure.devs[0]; w.S.procure.reqs.forEach(function (r) { if (r.kind === "dup") { w.A.pDup({ id: r.id, k: "keep" }); } });
+    dev.stage = "imaged"; dev.imgMethod = id === "s13" ? "Autopilot" : "USB"; w.A.pAgent({ id: dev.id });
+  }
   assert.equal(w.scenarioDone(id), true, "scenario should complete: " + id);
 }
 
