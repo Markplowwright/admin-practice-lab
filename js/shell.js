@@ -33,7 +33,7 @@ function taskbar(){
     tb("Toolkit","search",'data-a="go" data-p="tools" data-pg="links"',S.portal==="tools")+
     tb("Learn "+trainProgress()[0]+" of "+trainProgress()[1],"help",'data-a="go" data-p="learn" data-pg="path"',S.portal==="learn")+
     '<span class="sp"></span>'+
-    '<span class="tbnote">Simulated. Not the real portals.</span></div>';
+    '<button type="button" class="tbi tbtheme" data-a="theme" aria-label="Change theme" title="'+themeLabel()+'"><span>\u25D0</span></button><span class="tbnote">Simulated. Not the real portals.</span></div>';
 }
 /* Which systems each ticket needs. Used to outline them on the map. */
 var NEEDS={
@@ -143,7 +143,7 @@ function startHtml(){
   var primary=pr[0]>0&&m?'<button type="button" class="sbtn primary" data-a="introStart">Continue: '+esc(m.t)+'</button>':'<button type="button" class="sbtn primary" data-a="introStart">Start Level 1</button>';
   var resume=sc?'<button type="button" class="sbtn" data-a="go" data-p="env" data-pg="map">Resume ticket #'+ticketNo(sc.id)+': '+esc(sc.title)+'</button>':'<button type="button" class="sbtn" data-a="go" data-p="env" data-pg="map">Open the environment</button>';
   function card(k,t,x){return '<div class="scard"><div class="sk">'+esc(k)+'</div><b>'+esc(t)+'</b><span>'+esc(x)+'</span></div>';}
-  return '<div class="start"><div class="sbar"><b>Admin Practice Lab</b><nav><button type="button" data-a="go" data-p="env" data-pg="map">Environment</button><button type="button" data-a="guide-open">Learn</button><button type="button" data-a="go" data-p="env" data-pg="map">Scenarios</button><button type="button" data-a="go" data-p="tools" data-pg="links">Toolkit</button></nav></div>'+
+  return '<div class="start"><div class="sbar"><b>Admin Practice Lab</b><nav><button type="button" data-a="go" data-p="env" data-pg="map">Environment</button><button type="button" data-a="guide-open">Learn</button><button type="button" data-a="go" data-p="env" data-pg="map">Scenarios</button><button type="button" data-a="go" data-p="tools" data-pg="links">Toolkit</button><button type="button" data-a="theme" aria-label="Change theme" data-spot="Theme">'+themeLabel()+'</button></nav></div>'+
    '<div class="sbody"><h1>Learn hybrid IT administration by doing it.</h1><p class="slead">A free practice workstation with Active Directory, Microsoft 365, Entra, Intune and Exchange wired together. Work real tickets. Nothing real to break.</p>'+
    '<div class="sact">'+primary+resume+'<button type="button" class="sbtn link" data-a="startTour">Take the walk through</button></div>'+
    '<div class="scards">'+card("Levels 1 to 3","Microsoft 365 admin","Onboarding, offboarding, compromised accounts and MFA.")+card("Level 4","Intune and laptops","Autopilot, BitLocker, apps, and joining a laptop by hand.")+card("Level 5","Hybrid identity","Remote into DC01: AD, sync, Group Policy and hybrid join.")+card("Level 6","Procurement and imaging","Order a laptop or desktop, image it by USB or PXE, use the BIOS, Autopilot.")+card(SCENARIOS.length+" tickets","Help desk scenarios","Lockouts, trust failures, suspicious sign-ins. Isolated from your lab.")+'</div>'+
@@ -153,6 +153,14 @@ function startHtml(){
 PAGES["start.home"]=function(){return "";};
 A.ttab=function(d){S.toolTab=d.t;};
 A["guide-open"]=function(){S.portal="learn";S.page="path";S.learnTab="path";resetNav();navReset=true;};
+function themeChoice(){var c=document.documentElement.getAttribute("data-theme-choice");return c==="light"||c==="dark"?c:"auto";}
+function themeLabel(){var c=themeChoice();return c==="auto"?"Theme: Auto":c==="light"?"Theme: Light":"Theme: Dark";}
+A.theme=function(){
+  var n={auto:"light",light:"dark",dark:"auto"}[themeChoice()],root=document.documentElement;
+  if(n==="auto"){root.removeAttribute("data-theme-choice");}else{root.setAttribute("data-theme-choice",n);}
+  try{if(n==="auto"){localStorage.removeItem("adminPracticeLabTheme");}else{localStorage.setItem("adminPracticeLabTheme",n);}}catch(e){}
+  if(window.applyTheme){window.applyTheme();}
+};
 A.startTour=function(){S.portal="env";S.page="map";resetNav();navReset=true;A.tour();};
 
 /* =============== DC01 REMOTE DESKTOP SESSION =============== */

@@ -820,3 +820,34 @@ body[data-portal="vm"] .vmside .tile{background:var(--panel);color:var(--ink)}
 }
 .prow2{display:flex;align-items:center;gap:14px;margin:8px 0}.pradio{display:inline-flex;align-items:center;gap:5px;cursor:pointer}
 .pkey.on{outline:2px solid #4ea3ff}
+
+/* ---------- Dark theme: start screen, environment map, theme button ---------- */
+.tbtheme{padding:0 10px;font-size:15px}
+.sbar nav button[data-a="theme"]{border:1px solid var(--line);font-size:12px}
+:root[data-theme="dark"] .start{background:#141414}
+:root[data-theme="dark"] .sbar{background:#1b1b1b;border-bottom-color:#3d3d3d}
+:root[data-theme="dark"] .sbar b,:root[data-theme="dark"] .sbody h1{color:#f5f5f5}
+:root[data-theme="dark"] .sbar nav button{color:#c9cdd3}
+:root[data-theme="dark"] .sbar nav button:hover{background:#ffffff14}
+:root[data-theme="dark"] .slead,:root[data-theme="dark"] .scard span{color:#b5bac1}
+:root[data-theme="dark"] .sbtn{background:#242424;border-color:#4a5563;color:#8cc4f5}
+:root[data-theme="dark"] .sbtn.primary{background:#2b88d8;border-color:#2b88d8;color:#0a0a0a}
+:root[data-theme="dark"] .sbtn.primary:hover{background:#479ef5}
+:root[data-theme="dark"] .sbtn.link{background:none;border:0;color:#8cc4f5}
+:root[data-theme="dark"] .scard{background:#222;border-color:#3d3d3d;color:#f5f5f5}
+:root[data-theme="dark"] .scard .sk,:root[data-theme="dark"] .sdisc{color:#9aa0a8}
+:root[data-theme="dark"] .scard.link:hover{border-color:#479ef5}
+:root[data-theme="dark"] .scard.dashed{border-color:#5a626c}
+:root[data-theme="dark"] .envwin{background:#201e1c;color:#f1ece4}
+:root[data-theme="dark"] .envt{background:#0d0c0b;color:#f1ece4}
+:root[data-theme="dark"] .envcap{color:#c9c2b7}
+:root[data-theme="dark"] .zl{background:#2c2925;color:#d6cfc4}
+:root[data-theme="dark"] .zr{background:#1d2a38;color:#a9c8e6}
+:root[data-theme="dark"] .mapc{background:#2a2724;color:#f1ece4;border-color:#6d675e}
+:root[data-theme="dark"] .mapc > span,:root[data-theme="dark"] .mapc .mfact{color:#c0b9ae}
+:root[data-theme="dark"] .mapc.need{border-color:#f1ece4}
+:root[data-theme="dark"] button.mapc:hover{border-color:#479ef5}
+:root[data-theme="dark"] .mbtn button{background:#2a2724;color:#f1ece4;border-color:#a8a197}
+:root[data-theme="dark"] .mbtn button.pri{background:#f1ece4;color:#201e1c}
+:root[data-theme="dark"] .maplink{border-top-color:#a8a197;color:#f1ece4}
+:root[data-theme="dark"] .maplink span{background:#201e1c}

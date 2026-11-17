@@ -7,11 +7,13 @@
 <script>
 (function(){
   var root=document.documentElement,mq=window.matchMedia("(prefers-color-scheme: dark)");
+  try{var saved=localStorage.getItem("adminPracticeLabTheme");if(saved==="light"||saved==="dark"){root.setAttribute("data-theme-choice",saved);}}catch(e){}
   function apply(){
     var choice=root.getAttribute("data-theme-choice");
     var dark=choice==="dark"||(choice!=="light"&&mq.matches);
     root.setAttribute("data-theme",dark?"dark":"light");
   }
+  window.applyTheme=apply;
   apply();
   if(mq.addEventListener){mq.addEventListener("change",apply);}
 })();

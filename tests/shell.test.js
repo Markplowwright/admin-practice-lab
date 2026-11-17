@@ -588,3 +588,11 @@ test("Autopilot boot: a registered serial with no deployment profile still gets 
   assert.equal(d.imgMethod, "OEM Windows"); assert.equal(w.pImg(d).method, "NoProfile");
   w.A.go({ p: "procure", pg: "image" }); w.render(); assert.match(w.document.querySelector("#app").textContent, /no Autopilot deployment profile/);
 });
+test("theme button cycles Auto, Light, Dark and the start screen and taskbar both offer it", function () {
+  const w = boot(); w.S.onboarded = true; w.A.go({ p: "start", pg: "home" }); w.render(); const d = w.document, root = d.documentElement;
+  assert.ok(d.querySelector('.sbar [data-a="theme"]')); assert.match(d.querySelector('.sbar [data-a="theme"]').textContent, /Theme: Auto/);
+  w.A.theme(); assert.equal(root.getAttribute("data-theme-choice"), "light");
+  w.A.theme(); assert.equal(root.getAttribute("data-theme-choice"), "dark");
+  w.A.theme(); assert.equal(root.getAttribute("data-theme-choice"), null);
+  w.A.go({ p: "env", pg: "map" }); w.render(); assert.ok(d.querySelector('.wsbar [data-a="theme"]'));
+});
