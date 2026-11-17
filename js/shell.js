@@ -29,6 +29,7 @@ function taskbar(){
     tb("Remote support","key",'data-a="go" data-p="remote" data-pg="'+((S.remote&&S.remote.sess)?"session":(S.portal==="remote"?S.page:"console"))+'"',S.portal==="remote")+
     tb("Procurement","download",'data-a="go" data-p="procure" data-pg="'+(S.portal==="procure"?S.page:"order")+'"',S.portal==="procure")+
     tb("Virtual PC","device",'data-a="go" data-p="vm" data-pg="d2"',S.portal==="vm")+
+    tb("Knowledge base","book",'data-a="go" data-p="kb" data-pg="home"',S.portal==="kb")+
     tb("Toolkit","search",'data-a="go" data-p="tools" data-pg="links"',S.portal==="tools")+
     tb("Learn "+trainProgress()[0]+" of "+trainProgress()[1],"help",'data-a="go" data-p="learn" data-pg="path"',S.portal==="learn")+
     '<span class="sp"></span>'+
@@ -119,7 +120,7 @@ function ticketDock(){
     '<div class="btnrow">'+B("Next ticket","nextTicket",{primary:1})+B("Practice again","startScenario",{sm:1,d:{id:id}})+'</div>';}
   else{h+='<div class="btnrow">'+B(open.length?"Resolve ticket ("+open.length+" left)":"Resolve ticket","resolveTicket",{primary:!open.length})+B(S.scenarios.hint[id]?"Hide hint":"Hint","scenarioHint",{sm:1,d:{id:id}})+'</div><div class="btnrow">'+B("Reset this ticket","resetScenario",{sm:1})+B("Leave ticket","exitScenario",{sm:1})+'</div>'+
     (id==="s1"?B("Tell Dana to update her phone password","scenarioPhone",{sm:1}):"")+'<p class="small">Completion checks the resulting state in the lab, not which buttons you clicked. A good ticket note is shown after you resolve it.</p>';}
-  return h+pReqDock()+'</aside>';
+  return h+pReqDock()+kbDockLink()+'</aside>';
 }
 A.resolveTicket=function(){
   var id=S.scenarios.active;

@@ -1,6 +1,6 @@
 "use strict";
 
-var DOMAIN="practicetenant.onmicrosoft.com",AD_DOMAIN="practice.local",KEY="adminPracticeLabV4",TENANT="7c1e4a52-9b3d-4f08-a1e6-5d2c8b90f3a7",STATE_VERSION=9;
+var DOMAIN="practicetenant.onmicrosoft.com",AD_DOMAIN="practice.local",KEY="adminPracticeLabV4",TENANT="7c1e4a52-9b3d-4f08-a1e6-5d2c8b90f3a7",STATE_VERSION=10;
 var uid=100,navReset=false;function nid(p){uid+=1;return p+uid;}
 function maxIdNum(id){var m=String(id==null?"":id).match(/(\d+)\s*$/);return m?parseInt(m[1],10):0;}
 function syncUid(s){var max=100;function see(id){var n=maxIdNum(id);if(n>max){max=n;}}
@@ -12,7 +12,7 @@ function syncUid(s){var max=100;function see(id){var n=maxIdNum(id);if(n>max){ma
 /* ---------- state ---------- */
 function seed(){
   var s={
-    portal:"m365",page:"home",sel:null,tab:null,q:"",checked:[],fly:null,wiz:null,draft:null,guide:false,guideTab:"missions",mission:null,spot:true,learnTab:"path",toolTab:"tools",remote:null,procure:null,vmRef:false,tUser:"",
+    portal:"m365",page:"home",sel:null,tab:null,q:"",checked:[],fly:null,wiz:null,draft:null,guide:false,guideTab:"missions",mission:null,spot:true,learnTab:"path",toolTab:"tools",remote:null,procure:null,kb:null,vmRef:false,tUser:"",
     onboarded:false,intro:0,lvlDone:[],finishSeen:false,rdpOpen:["aduc"],
     secDefaults:false,deviceJoin:"all",vmIn:{},total:10,mdm:{scope:"none",group:""},
     scenarios:{active:null,completed:{},hint:{},wrong:{},notes:{},base:null,setup:null},
@@ -97,7 +97,8 @@ var MIGRATIONS=[
   {to:6,run:function(o){if(!Array.isArray(o.rdpOpen)){o.rdpOpen=["aduc"];}}},
   {to:7,run:function(o){if(o.scenarios&&!o.scenarios.notes){o.scenarios.notes={};}}},
   {to:8,run:function(o){if(o.remote===undefined){o.remote=null;}}},
-  {to:9,run:function(o){if(o.procure===undefined){o.procure=null;}}}
+  {to:9,run:function(o){if(o.procure===undefined){o.procure=null;}}},
+  {to:10,run:function(o){if(o.kb===undefined){o.kb=null;}}}
 ];
 function migrate(o){
   if(!o||typeof o!=="object"||!o.users){return null;}
