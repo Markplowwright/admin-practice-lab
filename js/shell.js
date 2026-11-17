@@ -14,7 +14,6 @@ function topBar(){
   if(!isWeb(S.portal)){return "";}
   var w=WEBINFO[S.portal];
   return '<div class="edge" role="group" aria-label="Browser (simulated)">'+
-    '<div class="etabs"><span class="etab">'+ico("shield")+'<span class="et">'+esc(w.tab)+'</span></span></div>'+
     '<div class="ebar"><span class="eurl">'+ico("lock")+'<span>https://'+esc(w.url)+'</span></span></div>'+
     '<div class="ebm" aria-label="Bookmarks">'+WEB.map(function(p){return '<button type="button" data-a="go" data-p="'+p+'" data-pg="'+DEFAULT[p]+'"'+(S.portal===p?' aria-current="true"':'')+'>'+esc(TITLES[p])+'</button>';}).join("")+'</div></div>';
 }
