@@ -117,8 +117,8 @@ function missions(){
      ["Run delta sync and confirm Entra blocks or removes the user",(function(){var c=cloudForAd(ADU("adu4"));return c&&(c.blocked||c.deleted);})(),["ad","sync","Microsoft Entra Connect Sync > Run delta sync"]],
      ["Confirm his Microsoft 365 license is reclaimed",(function(){var c=cloudForAd(ADU("adu4"));return c&&!hasLicense(c);})(),["m365","licenses","Billing > Licenses > Microsoft 365 Business Premium"]]]},
    {t:"Synchronize a security group",w:"Access groups originate in AD and their membership reaches Entra on the next directory sync.",s:[
-     ["Add Sam to the Finance security group",ADG("adg1").members.indexOf("adu2")>-1,["ad","aduc","Finance > Add member > Sam Ortiz"]],
-     ["Run delta sync and verify Finance in Entra",(function(){var g=G("g1");return !!S.flags.financeSynced&&g&&g.members.indexOf("u2")>-1;})(),["entra","groups","Groups > All groups > Finance > Members"]]]},
+     ["Add Priya to the Finance security group",ADG("adg1").members.indexOf("adu3")>-1,["ad","aduc","Finance > Add member > Priya Nair"]],
+     ["Run delta sync and verify Finance in Entra",(function(){var g=G("g1");return !!S.flags.financeSynced&&g&&g.members.indexOf("u3")>-1;})(),["entra","groups","Groups > All groups > Finance > Members"]]]},
    {t:"Apply Group Policy to a domain laptop",w:"The computer and user OUs decide which linked policies apply.",s:[
      ["Join the spare laptop to practice.local",!!D("d3").domainJoined,["vm","d3","LocalAdmin > Settings > Accounts > Access work or school > Join a domain"]],
      ["Run gpupdate /force",!!D("d3").gpUpdated,["vm","d3","LocalAdmin > Start > Command Prompt > gpupdate /force"]],

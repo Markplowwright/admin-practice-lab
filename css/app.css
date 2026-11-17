@@ -813,3 +813,8 @@ body[data-portal="vm"] .vmside .tile{background:var(--panel);color:var(--ink)}
 .kbmine{background:#fff;border:1px solid #d3dbe3;border-radius:6px;padding:10px 14px}.kbmine p{margin:4px 0 0;color:#344250;white-space:pre-wrap}
 .kbnone{color:#5b6b7b}
 @media (max-width:1280px){.wsbar{gap:0}.wsbar .tbi{padding:0 6px;gap:4px}.wsbar .tbi span{font-size:11px}.wsbar .tbnote{display:none}}
+@media (min-width:701px) and (max-width:1120px){
+  .admmc{grid-template-columns:minmax(130px,150px) minmax(0,1fr)}
+  .rwin table th,.rwin table td{padding-left:8px;padding-right:8px}
+  .addetails{min-width:0;overflow-x:auto}
+}

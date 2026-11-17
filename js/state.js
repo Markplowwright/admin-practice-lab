@@ -1,6 +1,6 @@
 "use strict";
 
-var DOMAIN="practicetenant.onmicrosoft.com",AD_DOMAIN="practice.local",KEY="adminPracticeLabV4",TENANT="7c1e4a52-9b3d-4f08-a1e6-5d2c8b90f3a7",STATE_VERSION=10;
+var DOMAIN="practicetenant.onmicrosoft.com",AD_DOMAIN="practice.local",KEY="adminPracticeLabV4",TENANT="7c1e4a52-9b3d-4f08-a1e6-5d2c8b90f3a7",STATE_VERSION=11;
 var uid=100,navReset=false;function nid(p){uid+=1;return p+uid;}
 function maxIdNum(id){var m=String(id==null?"":id).match(/(\d+)\s*$/);return m?parseInt(m[1],10):0;}
 function syncUid(s){var max=100;function see(id){var n=maxIdNum(id);if(n>max){max=n;}}
@@ -54,7 +54,7 @@ function seed(){
         {id:"adu7",cloudId:null,name:"Taylor Morgan",sam:"taylor.morgan",upn:"taylor.morgan@"+DOMAIN,department:"Contractor",ou:"ou-disabled",enabled:false,locked:false,mustChange:false,pw:"Welcome#2026",expires:720,passwordChanged:false}
       ],
       groups:[
-        {id:"adg1",name:"Finance",type:"Security",members:["adu1"]},
+        {id:"adg1",name:"Finance",type:"Security",members:["adu1","adu2"]},
         {id:"adg2",name:"Finance Announcements",type:"Distribution",members:["adu1","adu2"]},
         {id:"adg3",name:"Domain Admins",type:"Security",members:[]}
       ],
@@ -98,7 +98,12 @@ var MIGRATIONS=[
   {to:7,run:function(o){if(o.scenarios&&!o.scenarios.notes){o.scenarios.notes={};}}},
   {to:8,run:function(o){if(o.remote===undefined){o.remote=null;}}},
   {to:9,run:function(o){if(o.procure===undefined){o.procure=null;}}},
-  {to:10,run:function(o){if(o.kb===undefined){o.kb=null;}}}
+  {to:10,run:function(o){if(o.kb===undefined){o.kb=null;}}},
+  {to:11,run:function(o){
+    /* Entra Finance had Sam but AD Finance did not, so the first sync silently removed him. Line them up. */
+    var ag=o.ad&&(o.ad.groups||[]).filter(function(g){return g.id==="adg1";})[0],cg=(o.groups||[]).filter(function(g){return g.id==="g1";})[0];
+    if(ag&&cg&&ag.members.indexOf("adu2")<0&&cg.members.indexOf("u2")>-1){ag.members.push("adu2");}
+  }}
 ];
 function migrate(o){
   if(!o||typeof o!=="object"||!o.users){return null;}

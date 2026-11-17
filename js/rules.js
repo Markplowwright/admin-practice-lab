@@ -138,7 +138,7 @@ function runDeltaSync(){
       audit("Register hybrid joined device",d.name,"Device","Microsoft Entra Connect");
     }
   });
-  if(ADG("adg1")&&ADG("adg1").members.indexOf("adu2")>-1){S.flags.financeSynced=true;}
+  if(ADG("adg1")&&ADG("adg1").members.indexOf("adu3")>-1){S.flags.financeSynced=true;}
   runPasswordSync();
   S.ad.lastDirSyncMin=S.ad.nowMin;
   audit("Run delta synchronization",AD_DOMAIN,"Provisioning","Microsoft Entra Connect");

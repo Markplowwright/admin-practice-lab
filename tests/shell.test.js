@@ -542,3 +542,9 @@ test("saved lab from before the knowledge base loads", function () {
   const w = boot(); const o = JSON.parse(JSON.stringify(w.S)); delete o.kb; o.version = 9;
   const m = w.Lab.migrate(o); assert.equal(m.version, w.STATE_VERSION); assert.equal(m.kb, null);
 });
+test("saved lab with Sam only in Entra Finance is lined up so the first sync does not remove him", function () {
+  const w = boot(); const o = JSON.parse(JSON.stringify(w.S)); o.version = 10;
+  o.ad.groups.filter(function (g) { return g.id === "adg1"; })[0].members = ["adu1"];
+  const m = w.Lab.migrate(o);
+  assert.ok(m.ad.groups.filter(function (g) { return g.id === "adg1"; })[0].members.indexOf("adu2") > -1);
+});
