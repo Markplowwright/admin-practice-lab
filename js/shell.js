@@ -38,7 +38,7 @@ function taskbar(){
 /* Which systems each ticket needs. Used to outline them on the map. */
 var NEEDS={
   s1:["dc01"],s2:["dc01","entra"],s3:["dc01","entra","m365","d3"],s4:["dc01","entra","m365","intune","d1"],s5:["dc01","files01","d3"],
-  s6:["dc01","d3"],s7:["dc01","d3"],s8:["dc01","entra"],s9:["dc01","entra"],s10:["dc01","entra","exchange"],s11:["d1"],s12:["bench"],s13:["bench","intune"]
+  s6:["dc01","d3"],s7:["dc01","d3"],s8:["dc01","entra"],s9:["dc01","entra"],s10:["dc01","entra","exchange"],s11:["d1"],s12:["bench"],s13:["bench","intune"],s14:["bench"]
 };
 function deviceBadge(d){
   if(!d){return "";}

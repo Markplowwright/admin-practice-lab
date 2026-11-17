@@ -818,3 +818,5 @@ body[data-portal="vm"] .vmside .tile{background:var(--panel);color:var(--ink)}
   .rwin table th,.rwin table td{padding-left:8px;padding-right:8px}
   .addetails{min-width:0;overflow-x:auto}
 }
+.prow2{display:flex;align-items:center;gap:14px;margin:8px 0}.pradio{display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.pkey.on{outline:2px solid #4ea3ff}

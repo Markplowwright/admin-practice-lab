@@ -117,6 +117,9 @@ function completeScenario(w, id) {
     const dev = w.S.procure.devs[0]; w.S.procure.reqs.forEach(function (r) { if (r.kind === "dup") { w.A.pDup({ id: r.id, k: "keep" }); } });
     dev.stage = "imaged"; dev.imgMethod = id === "s13" ? "Autopilot" : "USB"; w.A.pAgent({ id: dev.id });
   }
+  if (id === "s14") {
+    const dev = w.S.procure.devs[0]; const g = w.pImg(dev); g.bios.mode = "UEFI"; g.bios.sb = true; dev.stage = "imaged"; w.A.pAgent({ id: dev.id });
+  }
   assert.equal(w.scenarioDone(id), true, "scenario should complete: " + id);
 }
 

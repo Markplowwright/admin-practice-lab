@@ -31,7 +31,7 @@ The first time you open it, a welcome page and a 3-minute tour explain the six p
 | 5. Hybrid identity | Active Directory users and groups, OU sync scope, Entra Connect, Group Policy, domain and hybrid join, and help-desk scenarios |
 | 6. Procurement and imaging | Order a laptop or desktop and receive it by serial number, image it from USB or over PXE, set the BIOS boot order, zero-touch setup with Autopilot, install the support agent |
 
-There are 21 guided missions with 73 guided steps, plus 13 real-world tickets. Every guided step names the portal and menu path and has a **Go there** button. A step is checked off when you actually do it in the lab, and when you finish a mission the guide explains **why it works that way**.
+There are 21 guided missions with 73 guided steps, plus 14 real-world tickets. Every guided step names the portal and menu path and has a **Go there** button. A step is checked off when you actually do it in the lab, and when you finish a mission the guide explains **why it works that way**.
 
 ## Procurement, imaging and remote support
 
@@ -51,7 +51,7 @@ Directory sync uses a deterministic lab clock. The displayed 30-minute directory
 
 ## Real-world scenarios
 
-Thirteen ticket-style exercises cover lockouts, source-of-authority password resets, onboarding, urgent offboarding, missing file-share access, GPO scope, broken domain trust, excluded sync OUs, expiring contractor access, and suspicious sign-ins, a slow laptop, and ordering and imaging a desktop or replacement laptop. Hints are optional, completion checks actual state, and each completed scenario includes a cause, user-facing response, and example ticket note.
+Fourteen ticket-style exercises cover lockouts, source-of-authority password resets, onboarding, urgent offboarding, missing file-share access, GPO scope, broken domain trust, excluded sync OUs, expiring contractor access, and suspicious sign-ins, a slow laptop, ordering and imaging a desktop or replacement laptop, and a laptop whose BIOS blocks Windows 11. Hints are optional, completion checks actual state, and each completed scenario includes a cause, user-facing response, and example ticket note.
 
 Only one scenario runs at a time in an isolated sandbox. Resetting or leaving it preserves the main lab and previously earned completion badges.
 
