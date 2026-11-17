@@ -865,3 +865,23 @@ body[data-portal="env"] .shell>.content{padding-bottom:20px}
 @media (max-width:1500px){.wsbar .tbnote{display:none}}
 body[data-portal="vm"] .shell>.content{padding-bottom:12px}
 .dock .dn small{color:#5a4a10}
+
+/* ---------- Environment map: fit the window, keep zones around their cards ---------- */
+.zone{margin-bottom:-12px}
+:root[data-theme="dark"]{color-scheme:dark}
+@media (min-width:1101px){
+  .laps{grid-template-columns:1fr 1fr;gap:8px}
+  .envmap{gap:12px 0;padding:10px 20px 20px}
+  .envcap{padding:8px 24px 0}
+}
+@media (min-width:1101px) and (max-height:800px){
+  .envcap{display:none}
+  .envmap{gap:8px 0;padding:8px 18px 16px;grid-template-rows:28px auto auto auto auto}
+  .zone{padding:10px 18px}
+  .mapc{padding:9px 12px;gap:3px}
+  .mapc.need{padding:7px 10px}
+  .mapc b{font-size:13.5px}
+  .mbtn{flex-wrap:nowrap;gap:6px;margin-top:3px}
+  .mbtn button{padding:4px 7px;font-size:11px}
+  .laps{gap:6px}
+}

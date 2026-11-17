@@ -23,7 +23,7 @@ function go(w, p, pg) { w.S.onboarded = true; w.S.portal = p; w.S.page = pg; w.r
 test("web portals show one browser window with a bookmarks bar", function () {
   const w = boot(); go(w, "entra", "overview");
   const d = w.document;
-  assert.equal(d.querySelectorAll(".etab").length, 1);
+  assert.equal(d.querySelectorAll(".etab").length, 0, "no tab strip: the address bar and bookmarks are enough");
   assert.match(d.querySelector(".eurl").textContent, /entra\.microsoft\.com/);
   assert.equal(d.querySelectorAll(".ebm button").length, 4);
 });
