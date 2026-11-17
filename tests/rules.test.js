@@ -208,3 +208,12 @@ test("a duplicate logon name error names the container that holds the existing a
   const res = lab.createAdUser({ name: "Alex Chen", sam: "alex.chen", ou: "ou-staff", pw: "Practice#2026", mustChange: true });
   assert.match(res.error, /Servers/);
 });
+
+test("the first sync changes nobody: Entra and AD Finance start in agreement", function () {
+  const lab = boot();
+  assert.deepEqual(lab.ADG("adg1").members, ["adu1", "adu2"]);
+  assert.deepEqual(lab.G("g1").members, ["u1", "u2"]);
+  lab.runDeltaSync();
+  assert.deepEqual(lab.G("g1").members, ["u1", "u2"], "Sam is still in Finance in Entra after a sync that changed nothing");
+  assert.equal(lab.S.flags.financeSynced, false);
+});

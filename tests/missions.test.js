@@ -38,7 +38,7 @@ test("Level 5 sync steps need the user's action first, then the sync", function 
   // syncing before touching Finance membership must not tick the verify step
   w.runDeltaSync();
   assert.equal(find("Run delta sync and verify Finance in Entra").done, false);
-  w.ADG("adg1").members.push("adu2");
+  w.ADG("adg1").members.push("adu3");
   w.runDeltaSync();
   assert.equal(find("Run delta sync and verify Finance in Entra").done, true);
   // password sync step needs the AD reset first

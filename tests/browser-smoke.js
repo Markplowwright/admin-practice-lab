@@ -58,7 +58,7 @@ function completeHybridMissions(w) {
   marcus.enabled = false; marcus.ou = "ou-disabled";
   dispatchAction(w, "adSync");
 
-  if (!w.ADG("adg1").members.includes("adu2")) { w.ADG("adg1").members.push("adu2"); }
+  if (!w.ADG("adg1").members.includes("adu3")) { w.ADG("adg1").members.push("adu3"); }
   dispatchAction(w, "adSync");
 
   let d = w.D("d3");
