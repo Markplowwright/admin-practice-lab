@@ -497,3 +497,16 @@ test("mission steps on procurement and imaging screens get a spotlight", functio
   assert.equal(w.S.portal, "procure"); assert.ok(w.document.querySelector(".spot"), "Desktop card is highlighted");
   w.A.pType({ k: "desktop" }); w.render(); assert.match(w.document.querySelector(".spot").textContent, /monitor|Place order/);
 });
+test("layout class names are not defined twice by different windows (the .rdesk collision)", function () {
+  const css = require("fs").readFileSync(__dirname + "/../css/app.css", "utf8");
+  ["rdesk", "rbody", "rwin", "ricons", "psub"].forEach(function (c) {
+    const n = (css.match(new RegExp("(^|\\n)\\." + c + "\\{", "g")) || []).length;
+    assert.ok(n <= 1, "." + c + " is defined " + n + " times at the start of a rule");
+  });
+});
+test("DC01 desktop keeps icons in a left column and the window beside them", function () {
+  const w = boot(); w.S.onboarded = true; w.A.go({ p: "ad", pg: "sync" }); w.render();
+  const d = w.document;
+  assert.ok(d.querySelector(".rdesk > .ricons"), "icon column is inside the DC01 desktop");
+  assert.equal(d.querySelectorAll(".rsdesk").length, 0, "remote session desktop class is not used here");
+});

@@ -44,7 +44,7 @@ function pReqDone(r){
 function pTabs(){
   var p=P(),o=pOpenReqs();p.tab=S.page;
   function t(k,l,extra){return '<button type="button" data-spot="'+esc(l)+'" class="'+((S.page===k||(k==="bench"&&S.page==="image"))?'on':'')+'" data-a="pTab" data-k="'+k+'">'+esc(l)+(extra||"")+'</button>';}
-  return '<div class="ptop"><b>Procurement</b><span class="psub">Vendor portal (simulated)</span><nav>'+t("order","New order")+t("bench","Orders and bench",pBenchCount()?' <i>'+pBenchCount()+'</i>':"")+t("reqs","Requests",o?' <i class="hot">'+o+'</i>':"")+'</nav></div>';
+  return '<div class="ptop"><b>Procurement</b><span class="pcsub">Vendor portal (simulated)</span><nav>'+t("order","New order")+t("bench","Orders and bench",pBenchCount()?' <i>'+pBenchCount()+'</i>':"")+t("reqs","Requests",o?' <i class="hot">'+o+'</i>':"")+'</nav></div>';
 }
 function pTypeCard(k,label,sub,on,off){
   return '<button type="button" data-spot="'+esc(label)+'" class="ptype'+(on?' on':'')+(off?' off':'')+'" data-a="'+(off?'pSoon':'pType')+'" data-k="'+k+'"'+(on?' aria-pressed="true"':'')+'><span class="pic pic-'+k+'" aria-hidden="true"></span><b>'+esc(label)+'</b><small>'+esc(sub)+'</small>'+(off?'<em>Coming soon</em>':'')+'</button>';

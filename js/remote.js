@@ -91,9 +91,9 @@ function rDetail(){
   return h+'</div></div>';
 }
 function rTerm(mid,user,act){return '<div class="rterm" aria-label="Command output">'+((R().hist[mid]||[]).map(function(l){return '<div>'+esc(l)+'</div>';}).join("")||'<div class="dim">Type a command and press Enter. Try: help</div>')+'</div><div class="rcmdrow"><span>'+(user?'C:\\Users\\'+esc((rMach(mid).sam||"user"))+'>':'SYSTEM&gt;')+'</span><input id="rcmd" data-enter="'+act+'" type="text" autocomplete="off" spellcheck="false" aria-label="Command"></div>';}
-PAGES["remote.console"]=function(){return '<div class="rc">'+rRail("console")+'<div class="rbody">'+rGroups()+'<div class="rmain">'+rList()+rDetail()+'</div></div></div>';};
+PAGES["remote.console"]=function(){return '<div class="rc">'+rRail("console")+'<div class="rcbody">'+rGroups()+'<div class="rmain">'+rList()+rDetail()+'</div></div></div>';};
 PAGES["remote.support"]=function(){
-  var r=R(),s=r.support,h='<div class="rc">'+rRail("support")+'<div class="rbody"><div class="rsup"><h2>Support session</h2><p>Use this when a machine has no agent, or a user is working from home. You create a session, the user types its short code, and you can then join.</p>';
+  var r=R(),s=r.support,h='<div class="rc">'+rRail("support")+'<div class="rcbody"><div class="rsup"><h2>Support session</h2><p>Use this when a machine has no agent, or a user is working from home. You create a session, the user types its short code, and you can then join.</p>';
   if(!s){h+='<div class="rbtns"><button type="button" class="rb pri" data-a="rSupNew">Create support session</button></div>';}
   else{h+='<div class="rcode"><span>Session code</span><b>'+esc(s.code)+'</b><small>Name: '+esc(s.name)+'</small></div>'+
     (s.state==="waiting"?'<p>Tell the user: open the support page and enter <b>'+esc(s.code)+'</b>. Nothing happens until they do.</p><div class="rbtns"><button type="button" class="rb" data-a="rSupJoin">Simulate: the user enters the code</button></div>':'<p>'+esc(s.name)+' joined. The session is listed under Support sessions.</p><div class="rbtns"><button type="button" class="rb pri" data-a="rJoin" data-id="d1" data-guest="1">Join '+esc(s.name)+'</button></div>');}
@@ -120,11 +120,11 @@ function rScreen(se,m){
   else if(se.app==="cmd"){apps='<div class="rwinx"><div class="rwt">Command Prompt <button type="button" data-a="rApp" data-v="">&times;</button></div>'+rTerm(m.id,true,"rSessCmd")+'</div>';}
   else if(se.app==="svc"){apps='<div class="rwinx"><div class="rwt">Services <button type="button" data-a="rApp" data-v="">&times;</button></div><ul class="raud">'+RSVC.map(function(s){return '<li>'+esc(s)+': Running</li>';}).join("")+'</ul></div>';}
   var note=se.blank?'<div class="rflag">Guest monitor is blanked</div>':(se.blocked?'<div class="rflag">Guest input is blocked</div>':'');
-  return '<div class="rscr"><div class="rdesk">'+note+(m.user?'':'<div class="rlock">Sign-in screen. No user is signed in.</div>')+apps+'<div class="rtk"><span>Start</span><span class="rsp"></span><span>'+esc(m.user?m.user:"")+'  09:'+(10+((R().audit.length||0)%40))+'</span></div></div></div>';
+  return '<div class="rscr"><div class="rsdesk">'+note+(m.user?'':'<div class="rlock">Sign-in screen. No user is signed in.</div>')+apps+'<div class="rtk"><span>Start</span><span class="rsp"></span><span>'+esc(m.user?m.user:"")+'  09:'+(10+((R().audit.length||0)%40))+'</span></div></div></div>';
 }
 PAGES["remote.session"]=function(){
   var r=R(),se=r.sess;
-  if(!se){return '<div class="rc">'+rRail("console")+'<div class="rbody"><div class="rsup"><h2>No active session</h2><p>Pick a machine in Access and press Join.</p></div></div></div>';}
+  if(!se){return '<div class="rc">'+rRail("console")+'<div class="rcbody"><div class="rsup"><h2>No active session</h2><p>Pick a machine in Access and press Join.</p></div></div></div>';}
   var m=rMach(se.mid);
   return '<div class="rc rs"><div class="rsbar"><b>'+esc(m.name)+'</b>'+rDot(true)+'<span class="rst">'+(se.logon==="backstage"?"Backstage":"User session")+'</span><span class="rsp"></span>'+
     [["view","View"],["actions","Actions"],["commands","Commands"],["toolbox","Toolbox"],["people","Participants"],["chat","Chat"],["info","Info"]].map(function(x){return '<button type="button" class="rb'+(se.panel===x[0]?' on':'')+'" data-a="rPanel" data-v="'+x[0]+'">'+x[1]+'</button>';}).join("")+

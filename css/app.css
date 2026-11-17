@@ -673,7 +673,7 @@ body[data-portal="vm"] .phdr{background:#2b2b2b}
 .rrail button[aria-current]{border-left-color:var(--rt);color:#fff;background:var(--rp)}
 .rrail small{padding:12px 16px;color:var(--rm);font-size:11px;line-height:1.4}
 .rsp{flex:1}
-.rbody{flex:1;min-width:0;display:flex}
+.rcbody{flex:1;min-width:0;display:flex}
 .rgrp{width:190px;flex:none;border-right:1px solid var(--rl);padding:12px 0;background:var(--rp)}
 .rh{padding:4px 14px 8px;color:var(--rm);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
 .rgrp button{display:flex;width:100%;justify-content:space-between;background:none;border:0;padding:9px 14px;text-align:left;cursor:pointer}
@@ -705,7 +705,7 @@ body[data-portal="vm"] .phdr{background:#2b2b2b}
 .rpanel{position:absolute;top:12px;left:12px;z-index:5;width:420px;max-height:80%;overflow:auto;background:var(--rp);border:1px solid var(--rt);border-radius:6px;padding:12px 14px;box-shadow:0 10px 30px #000a}
 .rpanel h4{margin:10px 0 6px;color:var(--rm);font-size:11px;letter-spacing:.05em;text-transform:uppercase}.rpanel .rb{margin:0 6px 6px 0}
 .rscr{flex:1;border:1px solid var(--rl);border-radius:4px;overflow:hidden;display:flex;flex-direction:column;background:#000}
-.rdesk{flex:1;position:relative;background:linear-gradient(135deg,#0b4f8a,#12345a);display:flex;flex-direction:column;padding:14px}
+.rsdesk{flex:1;position:relative;background:linear-gradient(135deg,#0b4f8a,#12345a);display:flex;flex-direction:column;padding:14px}
 .rtk{margin-top:auto;display:flex;gap:10px;background:#101820;color:#fff;padding:6px 12px;font-size:12px;margin-left:-14px;margin-right:-14px;margin-bottom:-14px}
 .rwinx{background:#f3f3f3;color:#1a1a1a;border-radius:4px;width:560px;max-width:100%;box-shadow:0 8px 24px #0008;overflow:hidden}.rwinx .rterm{height:180px}.rwt{background:#e1e1e1;padding:6px 10px;display:flex;justify-content:space-between;font-weight:600}.rwt button{background:none;border:0;cursor:pointer;color:#1a1a1a}
 .rtbl.light td,.rtbl.light th{border-color:#ddd;color:#1a1a1a}.rwinx .raud{padding:10px 10px 10px 28px;color:#1a1a1a}
@@ -733,7 +733,7 @@ body[data-portal="vm"] .vmside .tile{background:var(--panel);color:var(--ink)}
 /* ---------- Procurement + staging bench ---------- */
 .pc{background:#f3f5f7;color:#1d2733;min-height:calc(100vh - 40px);font-size:13px}
 .ptop{display:flex;align-items:center;gap:12px;background:#1f3a52;color:#fff;padding:10px 20px}
-.ptop b{font-size:15px}.psub{color:#a9bccd;font-size:12px}.ptop nav{display:flex;gap:4px;margin-left:24px}
+.ptop b{font-size:15px}.pcsub{color:#a9bccd;font-size:12px}.ptop nav{display:flex;gap:4px;margin-left:24px}
 .ptop nav button{background:none;border:0;border-bottom:2px solid transparent;color:#d5e1ec;padding:6px 12px;cursor:pointer;font-size:13px}
 .ptop nav button.on{color:#fff;border-bottom-color:#5fb3ff}
 .ptop nav i{font-style:normal;background:#5fb3ff;color:#06263f;border-radius:9px;padding:0 6px;font-size:11px}.ptop nav i.hot{background:#f2b134}
