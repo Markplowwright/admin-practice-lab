@@ -510,3 +510,14 @@ test("DC01 desktop keeps icons in a left column and the window beside them", fun
   assert.ok(d.querySelector(".rdesk > .ricons"), "icon column is inside the DC01 desktop");
   assert.equal(d.querySelectorAll(".rsdesk").length, 0, "remote session desktop class is not used here");
 });
+function imagedDesktop(w) {
+  const dev = benchDev(w, "desktop"); dev.stage = "imaged"; w.A.pAgent({ id: dev.id }); return dev;
+}
+test("an imaged desktop opens as a monitor, tower and keyboard; a laptop keeps the laptop frame", function () {
+  const w = boot(), dev = imagedDesktop(w); w.A.go({ p: "vm", pg: dev.id }); w.render(); const d = w.document;
+  assert.ok(d.querySelector(".mbezel .vm"), "screen sits in a monitor bezel");
+  assert.ok(d.querySelector(".tower"), "tower is shown"); assert.ok(d.querySelector(".kbd")); assert.equal(d.querySelector(".lbase"), null);
+  assert.match(d.querySelector(".tower").textContent, new RegExp(dev.serial));
+  assert.match(d.querySelector(".mlabel").textContent, /P2423|E24/, "monitor model from the order");
+  w.A.go({ p: "vm", pg: "d2" }); w.render(); assert.ok(w.document.querySelector(".lbase")); assert.equal(w.document.querySelector(".tower"), null);
+});

@@ -38,7 +38,7 @@ function fitLaptop(){
   if(!el){return;}
   var w=el.clientWidth,h=window.innerHeight||800;
   if(!w){return;}
-  var sc=Math.min(w/960,1.4,Math.max(0.5,(h-210)/580));
+  var desk=el.className.indexOf("isdesk")>-1,sc=Math.min((w-(desk?24:0))/960,1.4,Math.max(0.5,(h-(desk?330:210))/580));
   sc=Math.max(0.5,sc);
   el.style.setProperty("--s",String(Math.round(sc*1000)/1000));
 }

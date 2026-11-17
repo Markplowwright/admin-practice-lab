@@ -777,3 +777,20 @@ body[data-portal="vm"] .vmside .tile{background:var(--panel);color:var(--ink)}
 .prow{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
 .prow .pmain{flex:1 1 260px;min-width:220px}.prow .pstat{flex:0 0 auto}.prow .pact{flex:1 1 260px;justify-content:flex-start}
 .pbody{max-width:1000px;width:100%;box-sizing:border-box}.porder{flex-wrap:wrap}.psum{flex:0 0 270px}
+
+/* ---------- Desktop rig in the Virtual PC window ---------- */
+.deskrig{display:flex;gap:28px;align-items:flex-start}
+.deskrig .isdesk{flex:1 1 auto;min-width:0;padding-bottom:0;overflow:visible}
+.mbezel{position:relative;background:#101215;border:9px solid #101215;border-bottom-width:20px;border-radius:7px;width:fit-content;margin:0 auto;box-shadow:0 8px 24px #0007}
+.mbezel .lwrap{margin:0}.mled{position:absolute;right:18px;bottom:-14px;width:5px;height:5px;border-radius:50%;background:#46d37a}
+.mneck{width:56px;height:34px;margin:0 auto;background:linear-gradient(90deg,#5b616a,#9aa0a8 50%,#5b616a)}
+.mfoot{width:190px;height:9px;margin:0 auto;background:linear-gradient(#aab0b8,#6b717a);border-radius:50% 50% 8px 8px/100% 100% 8px 8px}
+.mlabel{text-align:center;color:#cdd9e5;font-size:12px;margin-top:8px}.mlabel code{background:#ffffff1f;padding:0 4px;border-radius:3px}
+.dkit{display:flex;justify-content:center;gap:18px;margin-top:12px}
+.kbd{width:300px;height:22px;border-radius:4px;background:repeating-linear-gradient(90deg,#c6cbd2 0 14px,#aeb4bc 14px 16px);border:1px solid #6b717a}
+.mouse{width:20px;height:30px;border-radius:10px;background:#c6cbd2;border:1px solid #6b717a}
+.tower{flex:0 0 150px;height:330px;border-radius:6px;background:linear-gradient(90deg,#20252b,#343b44 45%,#20252b);border:1px solid #0b0d10;box-shadow:0 8px 22px #0007;padding:14px 12px;color:#cdd9e5;position:relative;box-sizing:border-box}
+.tdrive{height:14px;background:#0f1215;border-radius:2px;margin-bottom:8px}
+.tbtn2{width:30px;height:30px;border-radius:50%;border:2px solid #5b616a;margin:10px auto;display:flex;align-items:center;justify-content:center}.tbtn2 i{width:8px;height:8px;border-radius:50%;background:#46d37a;box-shadow:0 0 8px #46d37a}
+.tports{display:flex;gap:6px;justify-content:center;margin:6px 0 14px}.tports b{width:16px;height:7px;background:#0f1215;border:1px solid #5b616a;border-radius:1px}
+.tname{font-weight:600;font-size:12px;text-align:center;margin-top:60px}.tsmall{font-size:11px;text-align:center;color:#9aa5b1;margin-top:6px}.tsmall code{background:#ffffff1f;padding:0 4px;border-radius:3px}

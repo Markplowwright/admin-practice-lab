@@ -518,7 +518,18 @@ function vmPage(){
   var v=ensureVm(d);
   if(d.state==="wiping"){resetDevice(d);v=d.vm;toast("The Intune wipe command arrived. The laptop restarted into setup.");}
   var scr=v.stage==="oobe"?oobeHtml(d):v.stage==="lock"?lockHtml(d):desktopHtml(d);
-  return '<div class="vmws">'+vmStrip(d)+'<div class="vmhint">'+esc(vmTip(d))+'</div><div class="vmgrid"><div class="laptop" id="laptop"><div class="lwrap"><div class="lscale"><div class="vm" id="vmscreen">'+scr+'</div></div></div></div>'+
+  var desk=d.kind==="desktop",pd=desk&&typeof P==="function"?P().devs.filter(function(x){return x.id===d.id||x.devId===d.id;})[0]:null;
+  var scrn='<div class="lwrap"><div class="lscale"><div class="vm" id="vmscreen">'+scr+'</div></div></div>';
+  var body=desk?vmDesk(d,pd,scrn):'<div class="laptop" id="laptop">'+scrn+'<div class="lbase"></div></div>';
+  return '<div class="vmws">'+vmStrip(d)+'<div class="vmhint">'+esc(vmTip(d))+'</div><div class="vmgrid">'+body+
     (S.vmRef?'<section class="vmside" aria-label="Practice notes">'+vmSide(d)+'</section>':'')+'</div></div>';
+}
+/* A desktop: monitor on a stand, keyboard and mouse, and the tower beside it. */
+function vmDesk(d,pd,scrn){
+  var mon=pd&&pd.monitors&&pd.monitors[0],tag=pd?pd.tag:d.name;
+  return '<div class="deskrig"><div class="laptop isdesk" id="laptop"><div class="mbezel">'+scrn+'<div class="mled" aria-hidden="true"></div></div><div class="mneck"></div><div class="mfoot"></div>'+
+    '<div class="mlabel">'+esc(mon?mon.maker+" "+mon.model:"Monitor")+(mon?' &middot; <code>'+esc(mon.serial)+'</code>':'')+'</div>'+
+    '<div class="dkit"><span class="kbd" aria-label="Keyboard"></span><span class="mouse" aria-label="Mouse"></span></div></div>'+
+    '<aside class="tower" aria-label="Tower"><div class="tdrive"></div><div class="tbtn2"><i></i></div><div class="tports"><b></b><b></b><b></b></div><div class="tname">'+esc(d.maker+" "+d.model)+'</div><div class="tsmall">'+esc(tag)+'<br><code>'+esc(d.serial)+'</code></div></aside></div>';
 }
 A.openVm=function(ds){var d=D(ds.id);if(!d){return;}ensureVm(d);S.portal="vm";S.page=d.id;resetNav();};
