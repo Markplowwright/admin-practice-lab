@@ -45,6 +45,10 @@ The **Theme** button (start screen, and the taskbar at the bottom) cycles Auto, 
 
 On a phone the lab shows a small phone version instead of the laptop desktop. You can read the Learn path, the ticket queue and the knowledge base, and open the toolkit links. The hands-on screens (environment map, Microsoft admin centers, DC01, procurement and imaging, Virtual PC, remote support) show as **Desktop only** tiles with a preview picture and a button to copy the link. **View desktop version** at the bottom switches to the laptop layout, and the choice is remembered. You can also open the page with `?view=phone` or `?view=desktop`.
 
+## Visit counting
+
+The live site counts visits with [GoatCounter](https://www.goatcounter.com), which uses no cookies and stores no IP addresses. It also counts a few named events (mission started, ticket resolved, phone version opened). Only the event name is sent, never anything you type. The count is private to the site owner. Running the lab locally sends nothing.
+
 ## Knowledge base
 
 Searchable how-to articles, plus one write-up per ticket that stays locked until you resolve that ticket. **My notes** collects the ticket notes you wrote.
