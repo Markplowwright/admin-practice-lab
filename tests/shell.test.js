@@ -6,7 +6,7 @@ const test = require("node:test");
 const { JSDOM, VirtualConsole } = require("jsdom");
 
 const root = path.join(__dirname, "..");
-const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "remote.js", "procure.js", "kb.js", "guide.js", "shell.js", "mobile.js", "render.js"];
+const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "remote.js", "procure.js", "kb.js", "guide.js", "shell.js", "mobile.js", "analytics.js", "render.js"];
 
 function boot() {
   const html = "<!doctype html><html><head></head><body data-portal=\"m365\"><div id=\"app\"></div><div id=\"intro\"></div>" +
@@ -635,4 +635,17 @@ test("phone version: a laptop-size window is never switched to the phone shell",
   const w = boot();
   w.localStorage.removeItem("adminPracticeLabView");
   assert.equal(w.phoneMode(), false);
+});
+
+test("analytics sends only event names and never breaks without GoatCounter", function () {
+  const w = boot(); w.S.onboarded = true;
+  const t = w.levelsView()[0].ms[0].t;
+  w.A.startMission({ t: t }); /* no GoatCounter loaded: must not throw */
+  const sent = [];
+  w.goatcounter = { count: function (o) { sent.push(o); } };
+  w.S.mission = null;
+  w.A.startMission({ t: t });
+  w.A.phDesktop({});
+  assert.deepStrictEqual(sent.map(function (o) { return o.path; }), ["event/mission-started", "event/phone-to-desktop"]);
+  sent.forEach(function (o) { assert.strictEqual(o.event, true); assert.ok(!/ticket|note/i.test(JSON.stringify(Object.keys(o)))); });
 });
