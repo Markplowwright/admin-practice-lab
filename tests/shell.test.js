@@ -662,3 +662,13 @@ test("analytics sends only fixed event names and never breaks without GoatCounte
   assert.ok(names.includes("event/phone-to-desktop"));
   sent.forEach(function (o) { assert.strictEqual(o.event, true); assert.deepStrictEqual(Object.keys(o).sort(), ["event", "path", "title"]); });
 });
+
+test("flyouts stop at the ticket panel instead of sitting under it", function () {
+  const css = fs.readFileSync(path.join(root, "css", "app.css"), "utf8");
+  const dock = /\.dock\{[^}]*width:(\d+)px/.exec(css);
+  const fly = /body\.dock-open \.fly\{right:(\d+)px;width:min\(\d+px,calc\(100vw - (\d+)px\)\)\}/.exec(css);
+  assert.ok(dock && fly, "dock width and the dock-open flyout rule exist");
+  assert.strictEqual(fly[1], dock[1]);
+  assert.strictEqual(fly[2], dock[1]);
+  assert.ok(/@media \(max-width:900px\)\{body\.dock-open \.fly\{right:0;width:100%;z-index:3[6-9]\}\}/.test(css), "narrow windows show the flyout above the panel");
+});
