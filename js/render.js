@@ -62,6 +62,8 @@ function findFocus(key){
   return null;
 }
 function render(){
+  if(phoneMode()){hidePop();recompute();phoneRender();return;}
+  document.body.classList.remove("is-phone");
   var gy=0,gb=document.querySelector(".guide .gb");
   if(gb){gy=gb.scrollTop;}
   var wx=window.scrollX,wy=window.scrollY,ae=document.activeElement,fkey=focusKey(ae),pos=ae&&typeof ae.selectionStart==="number"?ae.selectionStart:null,infoOpen=fkey.indexOf("i:")===0;
@@ -153,6 +155,8 @@ document.addEventListener("keydown",function(e){
 });
 window.addEventListener("scroll",function(){if(popFor){hidePop();}},true);
 window.addEventListener("resize",fitLaptop);
+var lastPhone=phoneMode();
+window.addEventListener("resize",function(){var p=phoneMode();if(p!==lastPhone){lastPhone=p;render();}});
 /* Saved labs from before the tour existed: add the new fields, and don't show the tour to someone who already has progress. */
 if(S.lvlDone===undefined){S.lvlDone=levelsView().filter(function(L){return L.complete;}).map(function(L){return L.n;});}
 if(S.intro===undefined){S.intro=0;}

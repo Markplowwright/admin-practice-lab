@@ -6,7 +6,7 @@ const test = require("node:test");
 const { JSDOM, VirtualConsole } = require("jsdom");
 
 const root = path.join(__dirname, "..");
-const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "remote.js", "procure.js", "kb.js", "guide.js", "shell.js", "render.js"];
+const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "remote.js", "procure.js", "kb.js", "guide.js", "shell.js", "mobile.js", "render.js"];
 
 function boot() {
   const html = "<!doctype html><html><head></head><body data-portal=\"m365\"><div id=\"app\"></div><div id=\"intro\"></div>" +
@@ -601,4 +601,38 @@ test("layout: the page never scrolls, and Remote support, Procurement and Knowle
   assert.match(css, /body:not\(\[data-portal="start"\]\)\{height:100vh;overflow:hidden;padding-bottom:0\}/, "the document is fixed to the window");
   assert.match(css, /body\[data-portal="remote"\] \.shell>\.content,body\[data-portal="procure"\] \.shell>\.content,body\[data-portal="kb"\] \.shell>\.content\{padding:0/, "full-screen apps have no padding");
   assert.match(css, /@media \(max-width:1500px\)\{\.wsbar \.tbnote\{display:none\}\}/, "taskbar note hides before it can overflow");
+});
+test("phone version: a phone gets its own shell with four open areas and six desktop-only tiles", function () {
+  const w = boot(), d = w.document;
+  w.S.onboarded = true; w.localStorage.setItem("adminPracticeLabView", "phone"); w.render();
+  assert.ok(d.body.classList.contains("is-phone"));
+  assert.equal(d.querySelectorAll(".ph-tile:not(.ph-lock)").length, 4);
+  assert.equal(d.querySelectorAll(".ph-lock").length, 6);
+  assert.equal(d.querySelectorAll(".wsbar, .dock, .shell").length, 0, "no laptop taskbar, dock or portal shell on a phone");
+  w.A.phGo({ s: "desk", id: "proc" }); w.render();
+  assert.match(d.querySelector(".ph-shot").getAttribute("src"), /docs\/screenshots\//);
+  assert.match(d.querySelector(".ph-badge").textContent, /Desktop only/);
+  w.A.phGo({ s: "tickets" }); w.render();
+  assert.equal(d.querySelectorAll(".ph-row").length, w.SCENARIOS.length);
+  w.A.phGo({ s: "tickets", id: "s14" }); w.render();
+  assert.match(d.querySelector(".ph-h").textContent, /Windows 11/);
+  assert.ok(!/Why it happened/.test(d.querySelector(".ph").textContent), "the cause stays hidden until the ticket is resolved");
+  w.A.phGo({ s: "kb" }); w.render();
+  assert.match(d.querySelector(".ph").textContent, /Locked/, "ticket articles stay locked on a phone");
+  w.A.phGo({ s: "tools" }); w.render();
+  assert.ok(d.querySelectorAll("a.ph-tool").length >= 8);
+});
+test("phone version: View desktop version switches to the laptop layout and the choice is remembered", function () {
+  const w = boot(), d = w.document;
+  w.S.onboarded = true; w.localStorage.setItem("adminPracticeLabView", "phone"); w.render();
+  d.querySelector('[data-a="phDesktop"]').click();
+  assert.equal(w.localStorage.getItem("adminPracticeLabView"), "desktop");
+  assert.ok(!d.body.classList.contains("is-phone"));
+  assert.ok(d.querySelector(".sbar, .shell"), "the laptop start screen is back");
+  assert.equal(w.phoneMode(), false);
+});
+test("phone version: a laptop-size window is never switched to the phone shell", function () {
+  const w = boot();
+  w.localStorage.removeItem("adminPracticeLabView");
+  assert.equal(w.phoneMode(), false);
 });
