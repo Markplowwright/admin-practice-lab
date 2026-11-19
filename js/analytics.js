@@ -30,6 +30,27 @@ function track(name){
   };
   wrap("kbOpen",function(d){if(d.id){once("kb/"+d.id);}});
   wrap("phGo",function(d){once("phone/"+(d.s||"home"));});
+  /* hints: counted when a hint is shown, per ticket */
+  wrap("scenarioHint",function(d){if(d.id&&S.scenarios.hint[d.id]){once("hint/"+d.id);}});
+  wrap("phHint",function(d){if(d.id){once("hint/"+d.id);}});
+  wrap("phCopy",function(){track("phone/copy-link");});
+  /* missions finished during this visit (missions already finished before the visit are not counted again) */
+  var doneM=null;
+  function missionsDone(){var o={};try{missions().forEach(function(m){if(m.s.every(function(x){return x[1];})){o[m.t]=1;}});}catch(e){}return o;}
+  function missionCheck(){
+    var now=missionsDone();
+    if(doneM){Object.keys(now).forEach(function(t){if(!doneM[t]){once("mission/"+slug(t)+"-finished");}});}
+    doneM=now;
+  }
+  var r1=window.render;
+  if(typeof r1==="function"){window.render=function(){var r=r1.apply(this,arguments);try{missionCheck();}catch(e){}return r;};}
+  missionCheck();
+  /* outbound links: only the site name (for example github.com), never the full address */
+  document.addEventListener("click",function(e){
+    var a=e.target&&e.target.closest?e.target.closest("a[href]"):null;
+    if(!a){return;}
+    try{var u=new URL(a.href,location.href);if(/^https?:$/.test(u.protocol)&&u.host!==location.host){track("link/"+u.hostname.replace(/^www\./,""));}}catch(x){}
+  },true);
   var pd=A.phDesktop;
   A.phDesktop=function(){pd.apply(this,arguments);track("phone-to-desktop");};
   if(typeof phoneMode==="function"&&phoneMode()){track("phone-view");}else{screenSeen();}

@@ -47,7 +47,7 @@ On a phone the lab shows a small phone version instead of the laptop desktop. Yo
 
 ## Visit counting
 
-The live site counts visits with [GoatCounter](https://www.goatcounter.com), which uses no cookies and stores no IP addresses. It also counts named events: which screens are opened, which missions and tickets are started or resolved, which knowledge base articles are opened, and when the phone version is used. Only fixed names from the lab are sent (for example `ticket/s14-resolved`), never anything you type. The count is private to the site owner. Running the lab locally sends nothing.
+The live site counts visits with [GoatCounter](https://www.goatcounter.com), which uses no cookies and stores no IP addresses. It also counts named events: which screens are opened, which missions and tickets are started or resolved, which knowledge base articles are opened, when hints are shown, when missions are finished, which sites the outbound links go to (the site name only, such as `github.com`), and when the phone version is used. Only fixed names from the lab are sent (for example `ticket/s14-resolved`), never anything you type. The count is private to the site owner. Running the lab locally sends nothing.
 
 ## Knowledge base
 
