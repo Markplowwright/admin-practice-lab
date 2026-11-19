@@ -296,6 +296,10 @@ h2.sec{font-size:16px;font-weight:600;margin:18px 0 8px}
 /* flyout */
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:20}
 .fly{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--panel);border-left:1px solid var(--line);z-index:21;display:flex;flex-direction:column;box-shadow:var(--shadow);padding-top:env(safe-area-inset-top,0px)}
+/* The ticket panel (.dock, 320px, z-index 30) is fixed to the right edge and sat on top of the flyout (z-index 21),
+   hiding its right side. With the panel open the flyout stops at the panel's edge; on narrow windows it covers the panel instead. */
+body.dock-open .fly{right:320px;width:min(560px,calc(100vw - 320px))}
+@media (max-width:900px){body.dock-open .fly{right:0;width:100%;z-index:36}}
 .fly header{display:flex;align-items:flex-start;gap:8px;padding:16px 20px 0}
 .fly header h2{flex:1;margin:0;font-size:18px;line-height:26px;font-weight:600}
 .fly header .x{background:none;border:0;padding:4px}
