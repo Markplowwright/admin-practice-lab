@@ -648,12 +648,17 @@ test("analytics sends only fixed event names and never breaks without GoatCounte
   w.A.startScenario({ id: "s1" });
   w.A.go({ p: "intune" }); w.render(); w.render();
   w.A.kbOpen({ id: "dummy-article" });
+  w.A.scenarioHint({ id: "s1" });
+  const a = w.document.createElement("a"); a.href = "https://github.com/Markplowwright/x?secret=1"; w.document.body.appendChild(a); a.click();
   w.A.phDesktop({});
   const names = sent.map(function (o) { return o.path; });
   assert.ok(names.some(function (n) { return /^event\/mission\/[a-z0-9-]+-started$/.test(n); }));
   assert.ok(names.includes("event/ticket/s1-started"));
   assert.strictEqual(names.filter(function (n) { return n.indexOf("event/screen/intune") === 0; }).length, 1);
   assert.ok(names.includes("event/kb/dummy-article"));
+  assert.ok(names.includes("event/hint/s1"));
+  assert.ok(names.includes("event/link/github.com"));
+  assert.ok(names.every(function (n) { return n.indexOf("secret") < 0; }));
   assert.ok(names.includes("event/phone-to-desktop"));
   sent.forEach(function (o) { assert.strictEqual(o.event, true); assert.deepStrictEqual(Object.keys(o).sort(), ["event", "path", "title"]); });
 });
