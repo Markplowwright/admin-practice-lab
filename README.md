@@ -41,6 +41,10 @@ Order a laptop or desktop (desktops need a monitor, and a second device for a pe
 
 The **Theme** button (start screen, and the taskbar at the bottom) cycles Auto, Light and Dark. Auto follows your computer. The choice is remembered in this browser.
 
+## Phone version
+
+On a phone the lab shows a small phone version instead of the laptop desktop. You can read the Learn path, the ticket queue and the knowledge base, and open the toolkit links. The hands-on screens (environment map, Microsoft admin centers, DC01, procurement and imaging, Virtual PC, remote support) show as **Desktop only** tiles with a preview picture and a button to copy the link. **View desktop version** at the bottom switches to the laptop layout, and the choice is remembered. You can also open the page with `?view=phone` or `?view=desktop`.
+
 ## Knowledge base
 
 Searchable how-to articles, plus one write-up per ticket that stays locked until you resolve that ticket. **My notes** collects the ticket notes you wrote.
@@ -132,6 +136,7 @@ Settings > Pages > Source: **Deploy from a branch** > Branch: `main`, folder `/ 
 |---|---|
 | `index.html` | Page shell. Loads the styles and scripts below. No build step. |
 | `css/app.css` | Layout and portal styles |
+| `css/mobile.css` | Phone version styles |
 | `js/state.js` | Saved cloud tenant, on-premises AD, ids, users, groups, devices, and licenses |
 | `js/rules.js` | Enrollment, AD synchronization, hybrid join, Group Policy, and mission rules. No page markup. |
 | `js/ui.js` | Shared buttons, tables, wizards, and glossary |
@@ -141,6 +146,7 @@ Settings > Pages > Source: **Deploy from a branch** > Branch: `main`, folder `/ 
 | `js/procure.js` | Procurement, staging bench, imaging, BIOS, Autopilot |
 | `js/remote.js` | Remote support console |
 | `js/kb.js` | Knowledge base |
+| `js/mobile.js` | Phone version |
 | `js/guide.js` | Lab guide, welcome page, and tour |
 | `js/render.js` | Drawing the page and handling clicks |
 | `tests/rules.test.js` | Checks for ids, licenses, enrollment, and mission steps |
