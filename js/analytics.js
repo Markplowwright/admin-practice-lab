@@ -11,7 +11,19 @@ function track(name){
   try{
     /* the owner's own tracker (visit-tracker repo); same fixed names, nothing typed */
     if(typeof window.vtrack==="function"){window.vtrack(name);}
+    else{vq.push(name);vwait();}
   }catch(e){}
+}
+/* tracker.js loads async and can arrive after the first screen event: hold those names and send them once it is there */
+var vq=[],vtimer=0;
+function vwait(){
+  if(vtimer){return;}
+  var tries=0;
+  vtimer=setInterval(function(){
+    tries++;
+    if(typeof window.vtrack==="function"){clearInterval(vtimer);vtimer=0;var q=vq;vq=[];q.forEach(function(n){try{window.vtrack(n);}catch(e){}});}
+    else if(tries>40){clearInterval(vtimer);vtimer=0;vq=[];}
+  },250);
 }
 (function(){
   var seen={};
