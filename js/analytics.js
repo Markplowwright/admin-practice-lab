@@ -8,6 +8,10 @@ function track(name){
       window.goatcounter.count({path:"event/"+name,title:name,event:true});
     }
   }catch(e){}
+  try{
+    /* the owner's own tracker (visit-tracker repo); same fixed names, nothing typed */
+    if(typeof window.vtrack==="function"){window.vtrack(name);}
+  }catch(e){}
 }
 (function(){
   var seen={};
