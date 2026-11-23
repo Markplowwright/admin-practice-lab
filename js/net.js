@@ -10,6 +10,8 @@ function macFor(d){var n=0,i,h="";for(i=0;i<d.serial.length;i++){n+=d.serial.cha
   for(i=0;i<3;i++){h+="-"+("0"+((n*(i+5)+i*37)%256).toString(16)).slice(-2).toUpperCase();}return "00-15-5D"+h;}
 function autoIpFor(d){var n=0,i;for(i=0;i<d.serial.length;i++){n+=d.serial.charCodeAt(i)*(i+1);}return "169.254."+(1+n%250)+"."+(1+(n*7)%250);}
 function leaseFor(d){return {ip:ipFor(d),mask:NET_MASK,gw:NET_GW,dns:NET_DNS};}
+/* a new lease if the office DHCP server answers, otherwise none (the laptop falls back to 169.254) */
+function netFreshLease(d){var e=ensureNet(d).env;return e.dhcp&&!e.full?{ip:ipFor(d),mask:NET_MASK,gw:e.gw,dns:e.dns}:null;}
 function freshNet(d){
   return {adapterOn:true,driver:"ok",driverVer:"22.150.0.3",prevDriver:null,powerSaveOff:false,wakesBroken:false,
     mode:"dhcp",sIp:"",sMask:"",sGw:"",dnsMode:"auto",dnsManual:"",lease:leaseFor(d),
@@ -105,7 +107,7 @@ function netCmd(d,raw){
     r=netView(d);n=r.n;
     if(!r.link||n.mode==="static"){netLog(d,"badstate");return [NO_ADAPTER_MSG];}
     if(c.slice(-8)==="/release"){n.lease=null;netLog(d,"release");return ["Windows IP Configuration","","Wireless LAN adapter Wi-Fi:","",nrow("Connection-specific DNS Suffix",d.domainJoined?"practice.local":"")];}
-    if(n.env.dhcp&&!n.env.full){n.lease=leaseFor(d);n.lease.gw=n.env.gw;n.lease.dns=n.env.dns;netLog(d,"renew");return netIpconfig(d,false);}
+    if(netFreshLease(d)){n.lease=netFreshLease(d);netLog(d,"renew");return netIpconfig(d,false);}
     n.lease=null;netLog(d,"renewfail");
     return ["An error occurred while renewing interface Wi-Fi : unable to contact your DHCP server. Request has timed out."];
   }

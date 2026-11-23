@@ -239,21 +239,22 @@ function desktopHtml(d){
   else if(v.app==="terminal"||v.app==="cmd"){win=terminalHtml(d);}
   else if(v.app==="explorer"){win=explorerHtml(d);}
   else if(v.app==="portal"){win=portalHtml(d);}
-  var apps=[["explorer","File Explorer","&#128193;"],["settings","Settings","&#9881;"],["terminal","Terminal","&gt;_"]];
+  else if(v.app==="ncpa"){win=ncpaHtml(d);}
+  var apps=[["explorer","File Explorer","&#128193;"],["settings","Settings","&#9881;"],["terminal","Terminal","&gt;_"],["ncpa","Network Connections","&#127760;"],["run","Run","&#9654;"]];
   if(enrolledOk(d)){apps.push(["portal","Company Portal"]);}
   var ia=installedApps(d),extra=ia.filter(function(n){return ["Microsoft Edge","Notepad","Windows Security","Company Portal"].indexOf(n)<0;});
   if(v.start){
-    start='<div class="startmenu"><div class="startsearch">Search for apps, settings, and documents</div><div class="startlabel"><b>Pinned</b><span>All apps &gt;</span></div><div class="sgrid">'+apps.map(function(a){return '<button type="button" class="sapp" data-a="vmOpen" data-app="'+a[0]+'" data-spot="'+esc(a[0]==="terminal"?"Command Prompt|Terminal":a[1])+'"><span class="sic">'+(a[2]||esc(a[1][0]))+'</span>'+esc(a[1])+'</button>';}).join("")+
+    start='<div class="startmenu"><input class="startsearch wi" type="text" data-vi="startq" data-enter="vmStartGo" autocomplete="off" aria-label="Search" placeholder="Search for apps, settings, and documents" value="'+esc(S.vmIn.startq||"")+'"><div class="startlabel"><b>Pinned</b><span>All apps &gt;</span></div><div class="sgrid">'+apps.map(function(a){return '<button type="button" class="sapp" data-a="vmOpen" data-app="'+a[0]+'" data-spot="'+esc(a[0]==="terminal"?"Command Prompt|Terminal":a[1])+'"><span class="sic">'+(a[2]||esc(a[1][0]))+'</span>'+esc(a[1])+'</button>';}).join("")+
       extra.map(function(n){return '<button type="button" class="sapp" data-a="vmFake" data-n="'+esc(n)+'"><span class="sic">'+esc(n[0])+'</span>'+esc(n)+'</button>';}).join("")+'</div>'+
       '<div class="sfoot"><span><span class="av">'+esc((name||"?")[0])+'</span> '+esc(name)+'</span><span>'+wb("Sign out","vmSignout")+wb("Restart","vmRestart")+'</span></div></div>';
   }
   return '<div class="wall"></div><div class="dicons"><button type="button" class="dicon" data-a="vmOpen" data-app="explorer"><span class="sic">&#128187;</span>This PC</button><div class="dicon"><span class="sic">&#9851;</span>Recycle Bin</div>'+(enrolledOk(d)?'<button type="button" class="dicon" data-a="vmOpen" data-app="portal"><span class="sic">C</span>Company Portal</button>':'')+'</div>'+win+start+
    '<div class="taskbar"><div class="tcenter"><button type="button" class="tbtn starticon" data-a="vmStart" aria-label="Start" data-spot="Start">&#8862;</button><button type="button" class="tsearch" data-a="vmStart">&#128269; Search</button><button type="button" class="tbtn'+(v.app==="explorer"?' on':'')+'" data-a="vmOpen" data-app="explorer" aria-label="File Explorer">&#128193;</button><button type="button" class="tbtn'+(v.app==="settings"?' on':'')+'" data-a="vmOpen" data-app="settings" aria-label="Settings">&#9881;</button><button type="button" class="tbtn'+((v.app==="terminal"||v.app==="cmd")?' on':'')+'" data-a="vmOpen" data-app="terminal" aria-label="Windows Terminal">&gt;_</button></div><div class="ttray"><span class="trayicons">&#8963; '+(v.ssid?"&#9673;":"&#8856;")+' &#128266;</span><span>'+esc(v.ssid||"No network")+'<br>9:41 AM</span></div></div>'+
-   (v.dlg?'<div class="vmdlg">'+dlgInner(d)+'</div>':'');
+   (v.dlg?'<div class="vmdlg">'+dlgInner(d)+'</div>':'')+runHtml(d);
 }
 A.vmStart=function(){var v=curDev().vm;v.start=!v.start;};
-A.vmOpen=function(ds){var v=curDev().vm;v.app=ds.app==="cmd"?"terminal":ds.app;v.start=false;v.msg="";if(ds.app==="settings"){v.setPage="about";}};
-A.vmClose=function(){var v=curDev().vm;v.app=null;v.dlg=null;v.msg="";};
+A.vmOpen=function(ds){var v=curDev().vm;if(ds.app==="run"){v.run={err:""};S.vmIn.runcmd="";v.start=false;return;}if(ds.app==="ncpa"){A.vmNcLink();return;}v.app=ds.app==="cmd"?"terminal":ds.app;v.start=false;v.msg="";if(ds.app==="settings"){v.setPage="about";}};
+A.vmClose=function(){var v=curDev().vm;v.app=null;v.dlg=null;v.run=null;v.nc=null;v.msg="";};
 A.vmFake=function(ds){toast("Opened "+ds.n+" (simulated).");curDev().vm.start=false;};
 A.vmSignout=function(){var v=curDev().vm;v.stage="lock";v.cur=null;v.app=null;v.start=false;v.pick="";v.dlg=null;S.vmIn={};};
 A.vmRestart=function(){var d=curDev(),v=d.vm;v.stage="lock";v.cur=null;v.app=null;v.start=false;v.pick="";v.dlg=null;S.vmIn={};
@@ -268,7 +269,10 @@ function settingsHtml(d){
   if(pg==="about"){
     body='<h2>System &gt; About</h2><dl class="wdl"><dt>Device name</dt><dd>'+esc(d.name==="(not set up)"?compNameFor(d):d.name)+'</dd><dt>Processor</dt><dd>Intel Core i5 (virtual)</dd><dt>Installed RAM</dt><dd>16.0 GB</dd><dt>Device ID</dt><dd class="mono">'+guidFor(d)+'</dd><dt>Edition</dt><dd>'+esc(d.os)+'</dd><dt>OS build</dt><dd>'+esc(d.osVer)+'</dd><dt>Serial number</dt><dd class="mono">'+esc(d.serial)+'</dd></dl>';
   }else if(pg==="network"){
-    body='<h2>Network &amp; internet &gt; Wi-Fi</h2><dl class="wdl"><dt>Network</dt><dd>'+esc(v.ssid||"Not connected")+'</dd><dt>IPv4 address</dt><dd class="mono">'+ipFor(d)+'</dd><dt>IP assignment</dt><dd>Automatic (DHCP)</dd><dt>DHCP server</dt><dd class="mono">192.168.20.1</dd></dl><p class="wnote">Each device holds one address from the DHCP pool for the lease time. When the pool runs out, new devices connect to Wi-Fi but get no IP.</p>';
+    var nr=netView(d);
+    body='<h2>Network &amp; internet &gt; Wi-Fi</h2><dl class="wdl"><dt>Network</dt><dd>'+esc(v.ssid||"Not connected")+'</dd><dt>IPv4 address</dt><dd class="mono">'+esc(nr.link?nr.ip:"-")+'</dd><dt>IP assignment</dt><dd>'+(nr.dhcpEnabled?"Automatic (DHCP)":"Manual")+'</dd><dt>DHCP server</dt><dd class="mono">'+esc(nr.dhcpServer||"-")+'</dd><dt>Physical address (MAC)</dt><dd class="mono">'+esc(nr.mac)+'</dd></dl>'+
+      '<h3>Known networks</h3><div class="ssidlist">'+ssidList().map(function(n){return '<div class="ssidrow"><span>'+esc(n[1])+'<small>'+esc(n[2])+'</small></span>'+(v.ssid===n[0]?'<span>Connected '+wb("Forget","vmForgetNet")+'</span>':wb("Connect","vmJoinNet",{d:{s:n[0]}}))+'</div>';}).join("")+'</div>'+
+      '<p class="wnote">Each device holds one address from the DHCP pool for the lease time. When the pool runs out, new devices connect to Wi-Fi but get no IP.</p>';
   }else if(pg==="apps"){
     body='<h2>Apps &gt; Installed apps</h2><ul class="wlist">'+installedApps(d).map(function(n){return '<li>'+esc(n)+'</li>';}).join("")+'</ul>';
   }else if(pg==="privacy"){
