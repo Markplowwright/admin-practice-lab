@@ -40,7 +40,7 @@ function phProgress(){
 }
 function phHome(){
   var p=phProgress(),res=SCENARIOS.filter(function(x){return S.scenarios.completed[x.id];}).length;
-  var tiles=[["learn","Learn path","6 levels, 21 missions"],["tickets","Tickets",SCENARIOS.length+" help-desk tickets"],["kb","Knowledge base","How-to articles"],["tools","Toolkit","Real tools admins use"]];
+  var tiles=[["learn","Learn path","7 levels, 21 missions"],["tickets","Tickets",SCENARIOS.length+" help-desk tickets"],["kb","Knowledge base","How-to articles"],["tools","Toolkit","Real tools admins use"]];
   return phTitleBar("","Admin Practice Lab")+
    '<main class="ph-main"><section class="ph-hero"><h2>Practice IT admin work with nothing to break</h2><p>A free simulator of Active Directory, Microsoft 365, Entra, Intune and Exchange. Hands-on practice runs on a laptop. On your phone you can read the lessons, the tickets and the articles.</p>'+
    '<div class="ph-prog"><b>'+p[0]+' of '+p[1]+'</b> steps done &middot; <b>'+res+' of '+SCENARIOS.length+'</b> tickets resolved</div></section>'+

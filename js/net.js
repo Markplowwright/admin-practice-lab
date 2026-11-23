@@ -91,7 +91,7 @@ function pingProbe(d,t){
   return {res:"ok",addr:a};
 }
 function netNslookup(d,t){
-  var r=netView(d);
+  var r=netView(d);netLog(d,"nslookup");
   if(!r.link||!r.dns){return ["DNS request timed out.","    timeout was 2 seconds.","*** Can't find server address: No response from server"];}
   if(!r.resolveOk){return ["Server:  UnKnown","Address:  "+r.dns,"","DNS request timed out.","    timeout was 2 seconds.","DNS request timed out.","    timeout was 2 seconds.","*** UnKnown can't find "+t+": No response from server"];}
   return ["Server:  dc01.practice.local","Address:  "+r.dns,"","Non-authoritative answer:","Name:    "+t,"Address:  "+resolvedIp(t)];
@@ -113,7 +113,7 @@ function netCmd(d,raw){
   }
   if(parts[0].toLowerCase()==="ping"){t=networkTarget(parts);if(!t){return ["Usage: ping <host name or IP address>"];}
     var pr=pingProbe(d,t),rr=netView(d);
-    if(pr.res==="ok"){netLog(d,t===rr.gw?"pingGw":/^\d/.test(t)?"pingNet":"pingName");}
+    if(pr.res==="ok"){netLog(d,t===rr.gw?"pingGw":/^\d/.test(t)?"pingNet":"pingName");}else if(!/^\d/.test(t)){netLog(d,"pingNameFail");}
     return netPingLines(d,t);}
   if(parts[0].toLowerCase()==="nslookup"){t=networkTarget(parts);if(!t){return ["Usage: nslookup <host name or IP address>"];}return netNslookup(d,t);}
   if(c.indexOf("getmac")===0){r=netView(d);return ["Connection Name  Network Adapter     Physical Address    Transport Name","=============== =================== =================== =========================="].concat(r.present?["Wi-Fi           Intel Wi-Fi 6 AX201 "+r.mac+"   "+(r.link?"\\Device\\Tcpip_{"+guidFor(d)+"}":"Media disconnected")]:["N/A"]);}
@@ -144,4 +144,56 @@ function netPs(d,c,target){
     return ["Name                           Type   TTL   Section    IPAddress","----                           ----   ---   -------    --------- ",target.padEnd(30)+" A      300   Answer     "+resolvedIp(target)];
   }
   return null;
+}
+
+/* =============== INTERVIEW PRACTICE TICKETS (s15 to s21) =============== */
+var NET_TICKETS=["s15","s16","s17","s18","s19","s20","s21"];
+function netTicketDev(){return D("d3");}
+function netScenarioSetup(id){
+  var d=netTicketDev(),v=ensureVm(d),n,nv;
+  v.net=freshNet(d);n=v.net;n.log={};
+  if(!v.ssid){v.ssid="PlowLab-Staff";}
+  if(id==="s15"){n.mode="static";n.sIp="192.168.1.50";n.sMask="255.255.255.0";n.sGw="192.168.1.1";n.dnsMode="manual";n.dnsManual="192.168.1.1";n.lease=null;}
+  if(id==="s16"){n.env.dhcp=false;n.lease=null;}
+  if(id==="s17"){n.driver="error43";n.driverVer="22.200.0.1";n.prevDriver="22.150.0.3";n.lease=null;}
+  if(id==="s18"){n.lease={ip:"10.0.5.77",mask:"255.255.255.0",gw:"10.0.5.1",dns:"10.0.5.1"};}
+  if(id==="s19"){n.wakesBroken=true;n.lease=null;n.stuck=true;}
+  if(id==="s20"){n.dnsMode="manual";n.dnsManual="10.99.99.9";}
+  if(id==="s21"){n.mode="static";n.sIp="192.168.20.77";n.sMask="255.255.255.0";n.sGw="";n.dnsMode="manual";n.dnsManual=NET_DNS;n.lease=null;}
+}
+/* The escalation note for s16 has to carry the evidence a network team needs. */
+function netNoteChecks(id){
+  var d=netTicketDev(),t=String((S.scenarios.notes||{})[id]||""),v=ensureVm(d),mac=macFor(d).toLowerCase().replace(/[:]/g,"-");
+  var low=t.toLowerCase();
+  return {
+    ip:/169\.254\.\d{1,3}\.\d{1,3}/.test(t)||/169\.254/.test(t)&&/self-assigned|apipa|auto/i.test(t),
+    dhcp:/dhcp/i.test(t)&&/(yes|enabled|no\b|disabled)/i.test(t),
+    mac:low.replace(/:/g,"-").indexOf(mac)>-1||/(^|[^0-9a-f])([0-9a-f]{2}-){5}[0-9a-f]{2}/i.test(t),
+    ssid:!!v.ssid&&low.indexOf(String(v.ssid).toLowerCase())>-1||/wi-?fi/i.test(t)&&/name|ssid|network/i.test(t),
+    tried:/renew|release|flush|restart|reset|reboot/i.test(t),
+    others:/other (devices|laptops|phones|users|computers)|everyone|all devices|several|multiple|also (fail|affected)|same (problem|issue)/i.test(t)
+  };
+}
+function netScenarioSteps(id){
+  var d=netTicketDev(),nv=netView(d),n=nv.n,l=n.log||{},c;
+  if(id==="s15"){return [["Laptop set to obtain an IP address automatically",n.mode==="dhcp"],["DNS set to automatic",n.dnsMode==="auto"],["Internet and websites work",nv.nameOk]];}
+  if(id==="s16"){c=netNoteChecks(id);
+    return [["Read ipconfig /all and saw the 169.254 address",!!l.ipall],["Tried release and renew once",!!(l.renewfail||l.renew)],
+      ["Escalation note has the 169.254 address, DHCP Enabled value, MAC address and Wi-Fi name",c.ip&&c.dhcp&&c.mac&&c.ssid],["Note says what was tried and that other devices also fail",c.tried&&c.others]];}
+  if(id==="s17"){return [["Driver fixed in Device Manager (update or roll back)",n.driver==="ok"],["Adapter has a valid address",nv.validIp],["Internet works",nv.internetOk]];}
+  if(id==="s18"){return [["Checked the address with ipconfig",!!(l.ip||l.ipall)],["Old lease replaced (release and renew, or disable and enable)",!!nv.validIp&&!!n.lease&&n.lease.ip===ipFor(d)],["Internet works",nv.internetOk]];}
+  if(id==="s19"){return [["Power saving turned off for the Wi-Fi adapter",!!n.powerSaveOff],["Laptop has an address again",nv.validIp],["Internet works",nv.internetOk]];}
+  if(id==="s20"){return [["Tested a name against an address (ping or nslookup)",!!(l.nslookup||l.pingNameFail||l.pingName)],["DNS server corrected",nv.resolveOk],["Websites open",nv.nameOk]];}
+  if(id==="s21"){return [["Default gateway set",!!nv.gw&&nv.gatewayOk],["Internet and names work",nv.nameOk]];}
+  return [];
+}
+function netScenarioDone(id){
+  var s=netScenarioSteps(id);return s.length>0&&s.every(function(x){return x[1];});
+}
+/* Gentle wrong-tool feedback shown in the ticket dock. */
+function netWrongTool(id){
+  var l=ensureNet(netTicketDev()).log||{};
+  if(id==="s17"&&l.wrongToolNcpa){return "This is a driver error, so check Device Manager.";}
+  if((id==="s15"||id==="s20"||id==="s21")&&l.dmOpen&&!l.ipv4edit){return "The driver is fine. Settings live in Network Connections (ncpa.cpl).";}
+  return "";
 }

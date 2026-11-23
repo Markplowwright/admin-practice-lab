@@ -120,6 +120,20 @@ function completeScenario(w, id) {
   if (id === "s14") {
     const dev = w.S.procure.devs[0]; const g = w.pImg(dev); g.bios.mode = "UEFI"; g.bios.sb = true; dev.stage = "imaged"; w.A.pAgent({ id: dev.id });
   }
+  if (/^s(15|16|17|18|19|20|21)$/.test(id)) {
+    const d = w.D("d3"), n = w.ensureNet(d), run = function (l) { return w.runCmd(d, l); };
+    d.vm.cur = { kind: "local", name: "LocalAdmin" };
+    if (id === "s15") { run("ipconfig /all"); n.mode = "dhcp"; n.dnsMode = "auto"; n.lease = w.netFreshLease(d); w.netLog(d, "ipv4edit"); }
+    if (id === "s16") {
+      run("ipconfig /all"); run("ipconfig /release"); run("ipconfig /renew");
+      w.S.scenarios.notes = { s16: "Laptop has " + w.autoIpFor(d) + ", DHCP Enabled: Yes, MAC " + w.macFor(d) + ", Wi-Fi " + d.vm.ssid + ". Tried release and renew, failed. Other devices also fail." };
+    }
+    if (id === "s17") { n.prevDriver = n.driverVer; n.driverVer = "22.250.0.1"; n.driver = "ok"; n.lease = w.netFreshLease(d); }
+    if (id === "s18") { run("ipconfig /all"); run("ipconfig /release"); run("ipconfig /renew"); }
+    if (id === "s19") { n.powerSaveOff = true; run("ipconfig /renew"); }
+    if (id === "s20") { run("ping google.com"); n.dnsMode = "auto"; }
+    if (id === "s21") { n.sGw = "192.168.20.1"; }
+  }
   assert.equal(w.scenarioDone(id), true, "scenario should complete: " + id);
 }
 
