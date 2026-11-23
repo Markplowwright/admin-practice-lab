@@ -6,7 +6,7 @@ const test = require("node:test");
 const { JSDOM, VirtualConsole } = require("jsdom");
 
 const root = path.join(__dirname, "..");
-const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "net.js", "netui.js", "remote.js", "procure.js", "kb.js", "guide.js", "shell.js", "mobile.js", "render.js", "analytics.js"];
+const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "net.js", "netui.js", "devmgr.js", "remote.js", "procure.js", "kb.js", "guide.js", "shell.js", "mobile.js", "render.js", "analytics.js"];
 
 function boot() {
   const html = "<!doctype html><html><head></head><body data-portal=\"m365\"><div id=\"app\"></div><div id=\"intro\"></div>" +
@@ -294,4 +294,85 @@ test("Settings shows the real network state and can forget and rejoin Wi-Fi", fu
   assert.match(run(x, "ping 8.8.8.8"), /bytes=32/);
   x.d.vm.net.env.dhcp = false; act(x, "vmForgetNet"); act(x, "vmJoinNet", { s: "Practice-Corp" });
   assert.match(run(x, "ipconfig"), /169\.254\./, "rejoining does not fix a DHCP server that is down");
+});
+
+/* ---- Device Manager ---- */
+test("devmgmt.msc and Device Manager open from Run and Start, and the adapter shows its status", function () {
+  const x = desk(); act(x, "vmOpen", { app: "run" }); typeIn(x, "runcmd", "devmgmt.msc"); act(x, "vmRunGo");
+  assert.equal(x.d.vm.app, "devmgr");
+  assert.match(x.w.document.querySelector(".dmtree").textContent, /Intel\(R\) Wi-Fi 6 AX201/);
+  act(x, "dmSel", { id: "wifi" }); act(x, "dmProps");
+  assert.match(x.w.document.querySelector(".ncdlg").textContent, /working properly/);
+  x.d.vm.net.driver = "error43"; x.w.render();
+  assert.match(x.w.document.querySelector(".ncdlg").textContent, /Code 43/);
+  assert.ok(x.w.document.querySelector(".dmrow .warn"), "yellow warning on the broken adapter");
+  const y = desk(); act(y, "vmStart"); typeIn(y, "startq", "device manager"); act(y, "vmStartGo");
+  assert.equal(y.d.vm.app, "devmgr");
+});
+
+test("error 43: settings changes do not help, but Update Driver does", function () {
+  const x = desk(); Object.assign(x.d.vm.net, { driver: "error43", driverVer: "22.200.0.1", lease: null });
+  act(x, "vmOpen", { app: "ncpa" }); act(x, "ncEnable"); act(x, "ncProps"); act(x, "ncIpv4"); act(x, "ncMode", { k: "dhcp" }); act(x, "ncOk");
+  assert.equal(x.w.netView(x.d).link, false, "ncpa cannot fix a driver error");
+  assert.match(run(x, "ipconfig"), /Media disconnected/);
+  act(x, "vmOpen", { app: "devmgr" }); act(x, "dmUpdate");
+  assert.match(x.w.document.querySelector(".ncdlg").textContent, /successfully updated/);
+  assert.equal(x.d.vm.net.driver, "ok");
+  assert.match(run(x, "ping 8.8.8.8"), /bytes=32/);
+});
+
+test("Roll Back Driver is only available when a previous version exists, and fixes a bad new driver", function () {
+  const x = desk(); Object.assign(x.d.vm.net, { driver: "error43", driverVer: "22.200.0.1", prevDriver: null });
+  act(x, "vmOpen", { app: "devmgr" }); act(x, "dmProps"); act(x, "dmTab", { k: "driver" });
+  assert.ok(x.w.document.querySelector('[data-a="dmRollback"]').disabled);
+  x.d.vm.net.prevDriver = "22.150.0.3"; x.w.render();
+  assert.ok(!x.w.document.querySelector('[data-a="dmRollback"]').disabled);
+  act(x, "dmRollback");
+  assert.equal(x.d.vm.net.driver, "ok");
+  assert.equal(x.d.vm.net.driverVer, "22.150.0.3");
+  assert.equal(x.w.netView(x.d).link, true);
+});
+
+test("Uninstall Device removes the adapter until Restart, then Windows reinstalls it and DHCP runs", function () {
+  const x = desk(); act(x, "vmOpen", { app: "devmgr" }); act(x, "dmSel", { id: "wifi" }); act(x, "dmUninstall"); act(x, "dmUninstallOk");
+  assert.equal(x.d.vm.net.driver, "missing");
+  assert.equal(x.d.vm.net.restartPending, true);
+  act(x, "vmOpen", { app: "ncpa" });
+  assert.ok(!/Intel\(R\) Wi-Fi 6/.test(x.w.document.querySelector(".nclist").textContent));
+  assert.match(run(x, "ping 8.8.8.8"), /General failure/);
+  act(x, "vmRestart");
+  assert.equal(x.d.vm.net.restartPending, false);
+  assert.equal(x.d.vm.net.driver, "ok");
+  assert.equal(x.w.netView(x.d).internetOk, true);
+});
+
+test("a laptop whose DHCP server is down still lands on 169.254 after Uninstall and Restart", function () {
+  const x = desk(); x.d.vm.net.env.dhcp = false;
+  act(x, "vmOpen", { app: "devmgr" }); act(x, "dmUninstall"); act(x, "dmUninstallOk"); act(x, "vmRestart");
+  assert.match(x.w.netView(x.d).ip, /^169\.254\./);
+});
+
+test("Update Driver on a healthy adapter says the best driver is installed and changes nothing", function () {
+  const x = desk(); const before = x.d.vm.net.driverVer; act(x, "vmOpen", { app: "devmgr" }); act(x, "dmUpdate");
+  assert.match(x.w.document.querySelector(".ncdlg").textContent, /best drivers for your device are already installed/);
+  assert.equal(x.d.vm.net.driverVer, before);
+});
+
+test("power management: sleep breaks a laptop that is allowed to power the adapter down, until it is unticked", function () {
+  const x = desk(); x.d.vm.net.wakesBroken = true;
+  act(x, "vmSleep");
+  assert.equal(x.w.netView(x.d).gatewayOk, false, "no lease after waking");
+  run(x, "ipconfig /release"); 
+  act(x, "vmOpen", { app: "devmgr" }); act(x, "dmProps"); act(x, "dmTab", { k: "power" }); act(x, "dmPower");
+  assert.equal(x.d.vm.net.powerSaveOff, true);
+  act(x, "vmOpen", { app: "ncpa" }); act(x, "ncDisable"); act(x, "ncEnable");
+  act(x, "vmSleep");
+  assert.equal(x.w.netView(x.d).internetOk, true, "no longer breaks after sleep");
+});
+
+test("changing a device needs an administrator", function () {
+  const x = desk(false); x.d.vm.net.driver = "error43";
+  act(x, "vmOpen", { app: "devmgr" }); act(x, "dmUpdate");
+  assert.match(x.w.document.querySelector(".dmwin").textContent, /administrator/);
+  assert.equal(x.d.vm.net.driver, "error43");
 });

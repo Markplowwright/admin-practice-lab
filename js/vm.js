@@ -240,24 +240,25 @@ function desktopHtml(d){
   else if(v.app==="explorer"){win=explorerHtml(d);}
   else if(v.app==="portal"){win=portalHtml(d);}
   else if(v.app==="ncpa"){win=ncpaHtml(d);}
-  var apps=[["explorer","File Explorer","&#128193;"],["settings","Settings","&#9881;"],["terminal","Terminal","&gt;_"],["ncpa","Network Connections","&#127760;"],["run","Run","&#9654;"]];
+  else if(v.app==="devmgr"){win=devmgrHtml(d);}
+  var apps=[["explorer","File Explorer","&#128193;"],["settings","Settings","&#9881;"],["terminal","Terminal","&gt;_"],["ncpa","Network Connections","&#127760;"],["devmgr","Device Manager","&#128421;"],["run","Run","&#9654;"]];
   if(enrolledOk(d)){apps.push(["portal","Company Portal"]);}
   var ia=installedApps(d),extra=ia.filter(function(n){return ["Microsoft Edge","Notepad","Windows Security","Company Portal"].indexOf(n)<0;});
   if(v.start){
     start='<div class="startmenu"><input class="startsearch wi" type="text" data-vi="startq" data-enter="vmStartGo" autocomplete="off" aria-label="Search" placeholder="Search for apps, settings, and documents" value="'+esc(S.vmIn.startq||"")+'"><div class="startlabel"><b>Pinned</b><span>All apps &gt;</span></div><div class="sgrid">'+apps.map(function(a){return '<button type="button" class="sapp" data-a="vmOpen" data-app="'+a[0]+'" data-spot="'+esc(a[0]==="terminal"?"Command Prompt|Terminal":a[1])+'"><span class="sic">'+(a[2]||esc(a[1][0]))+'</span>'+esc(a[1])+'</button>';}).join("")+
       extra.map(function(n){return '<button type="button" class="sapp" data-a="vmFake" data-n="'+esc(n)+'"><span class="sic">'+esc(n[0])+'</span>'+esc(n)+'</button>';}).join("")+'</div>'+
-      '<div class="sfoot"><span><span class="av">'+esc((name||"?")[0])+'</span> '+esc(name)+'</span><span>'+wb("Sign out","vmSignout")+wb("Restart","vmRestart")+'</span></div></div>';
+      '<div class="sfoot"><span><span class="av">'+esc((name||"?")[0])+'</span> '+esc(name)+'</span><span>'+wb("Sign out","vmSignout")+wb("Sleep","vmSleep")+wb("Restart","vmRestart")+'</span></div></div>';
   }
   return '<div class="wall"></div><div class="dicons"><button type="button" class="dicon" data-a="vmOpen" data-app="explorer"><span class="sic">&#128187;</span>This PC</button><div class="dicon"><span class="sic">&#9851;</span>Recycle Bin</div>'+(enrolledOk(d)?'<button type="button" class="dicon" data-a="vmOpen" data-app="portal"><span class="sic">C</span>Company Portal</button>':'')+'</div>'+win+start+
    '<div class="taskbar"><div class="tcenter"><button type="button" class="tbtn starticon" data-a="vmStart" aria-label="Start" data-spot="Start">&#8862;</button><button type="button" class="tsearch" data-a="vmStart">&#128269; Search</button><button type="button" class="tbtn'+(v.app==="explorer"?' on':'')+'" data-a="vmOpen" data-app="explorer" aria-label="File Explorer">&#128193;</button><button type="button" class="tbtn'+(v.app==="settings"?' on':'')+'" data-a="vmOpen" data-app="settings" aria-label="Settings">&#9881;</button><button type="button" class="tbtn'+((v.app==="terminal"||v.app==="cmd")?' on':'')+'" data-a="vmOpen" data-app="terminal" aria-label="Windows Terminal">&gt;_</button></div><div class="ttray"><span class="trayicons">&#8963; '+(v.ssid?"&#9673;":"&#8856;")+' &#128266;</span><span>'+esc(v.ssid||"No network")+'<br>9:41 AM</span></div></div>'+
    (v.dlg?'<div class="vmdlg">'+dlgInner(d)+'</div>':'')+runHtml(d);
 }
 A.vmStart=function(){var v=curDev().vm;v.start=!v.start;};
-A.vmOpen=function(ds){var v=curDev().vm;if(ds.app==="run"){v.run={err:""};S.vmIn.runcmd="";v.start=false;return;}if(ds.app==="ncpa"){A.vmNcLink();return;}v.app=ds.app==="cmd"?"terminal":ds.app;v.start=false;v.msg="";if(ds.app==="settings"){v.setPage="about";}};
-A.vmClose=function(){var v=curDev().vm;v.app=null;v.dlg=null;v.run=null;v.nc=null;v.msg="";};
+A.vmOpen=function(ds){var v=curDev().vm;if(ds.app==="run"){v.run={err:""};S.vmIn.runcmd="";v.start=false;return;}if(ds.app==="ncpa"){A.vmNcLink();return;}if(ds.app==="devmgr"){var dd=curDev();vmLaunch(dd,"devmgmt.msc");dd.vm.start=false;return;}v.app=ds.app==="cmd"?"terminal":ds.app;v.start=false;v.msg="";if(ds.app==="settings"){v.setPage="about";}};
+A.vmClose=function(){var v=curDev().vm;v.app=null;v.dlg=null;v.run=null;v.nc=null;v.dm=null;v.msg="";};
 A.vmFake=function(ds){toast("Opened "+ds.n+" (simulated).");curDev().vm.start=false;};
 A.vmSignout=function(){var v=curDev().vm;v.stage="lock";v.cur=null;v.app=null;v.start=false;v.pick="";v.dlg=null;S.vmIn={};};
-A.vmRestart=function(){var d=curDev(),v=d.vm;v.stage="lock";v.cur=null;v.app=null;v.start=false;v.pick="";v.dlg=null;S.vmIn={};
+A.vmRestart=function(){var d=curDev(),v=d.vm;netAfterRestart(d);v.run=null;v.nc=null;v.dm=null;v.stage="lock";v.cur=null;v.app=null;v.start=false;v.pick="";v.dlg=null;S.vmIn={};
   if(S.scenarios.active==="s7"&&d.secureChannel!==false){d.restartedAfterTrust=true;}
   if(d.join==="joined"&&d.state!=="enrolled"&&d.joinUser){var r=tryEnroll(d,U(d.joinUser));if(r.ok){toast("After restart, the laptop enrolled in Intune.");}}
 };
