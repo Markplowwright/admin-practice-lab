@@ -30,8 +30,15 @@ The first time you open it, a welcome page and a 3-minute tour explain the six p
 | 4. Intune and laptops | BitLocker disk encryption vs compliance, app deployment, Autopilot setup and enrollment errors, joining a laptop by hand and checking `dsregcmd /status` |
 | 5. Hybrid identity | Active Directory users and groups, OU sync scope, Entra Connect, Group Policy, domain and hybrid join, and help-desk scenarios |
 | 6. Procurement and imaging | Order a laptop or desktop and receive it by serial number, image it from USB or over PXE, set the BIOS boot order, zero-touch setup with Autopilot, install the support agent |
+| 7. Interview practice | Windows networking troubleshooting on the virtual laptop: `ipconfig /all`, release and renew, a 169.254 address, static vs automatic IPv4, DNS, the ping ladder, Device Manager driver problems (Code 43, update, roll back, uninstall), sleep and power management, and writing an escalation note |
 
 There are 21 guided missions with 73 guided steps, plus 21 real-world tickets, including seven Windows networking tickets in Level 7 "Interview practice". Every guided step names the portal and menu path and has a **Go there** button. A step is checked off when you actually do it in the lab, and when you finish a mission the guide explains **why it works that way**.
+
+## Interview practice: Windows networking
+
+Level 7 is seven tickets on the spare virtual laptop, built from questions help-desk interviews tend to ask. Sign in as `LocalAdmin` (a standard user cannot change network settings). Use **Run** (`ncpa.cpl`, `devmgmt.msc`), the Start menu, Command Prompt and PowerShell. Each ticket is checked by the laptop's resulting network state, not by which buttons you clicked, and the 169.254 ticket also needs an escalation note with the evidence a network team would ask for.
+
+Be clear about what this is: a simulator. The screens approximate Windows and the network is a small model (one DHCP server, one gateway, one DNS server, a few failure switches). It teaches the order of thinking, not every real-world edge case, and it is not a substitute for production experience. Out of scope: IPv6, DHCP reservations, VLANs, real driver downloads, Group Policy network settings, and Mac equivalents.
 
 ## Procurement, imaging and remote support
 
