@@ -5,7 +5,7 @@ const path = require("node:path");
 const { JSDOM, VirtualConsole } = require("jsdom");
 
 const root = path.join(__dirname, "..");
-const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "net.js", "remote.js", "procure.js", "kb.js", "guide.js", "shell.js", "mobile.js", "render.js", "analytics.js"];
+const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "net.js", "netui.js", "remote.js", "procure.js", "kb.js", "guide.js", "shell.js", "mobile.js", "render.js", "analytics.js"];
 
 function appHtml() {
   return "<!doctype html><html><head></head><body data-portal=\"m365\">" +

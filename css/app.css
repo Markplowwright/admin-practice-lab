@@ -889,3 +889,33 @@ body[data-portal="vm"] .shell>.content{padding-bottom:12px}
   .mbtn button{padding:4px 7px;font-size:11px}
   .laps{gap:6px}
 }
+
+/* laptop network windows */
+.ncwin .ncaddr{padding:6px 14px;background:#fff;border-bottom:1px solid #d6dbe1;font-size:12px;color:#555}
+.ncwin .ncbar{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;background:#f7f9fb;border-bottom:1px solid #e1e5ea}
+.ncwin .ncbar .wbtn{min-height:28px;padding:3px 10px;font-size:12px}
+.ncwin>.wmsg{margin:8px 14px}
+.nclist{display:flex;flex-wrap:wrap;gap:12px;padding:16px 14px;align-content:flex-start;overflow:auto}
+.vm .nctile{display:grid;grid-template-columns:34px 1fr;gap:0 8px;text-align:left;width:250px;padding:8px 10px;background:#fff;color:#1b1b1b;border:1px solid transparent;border-radius:4px}
+.vm .nctile:hover{background:#e9f2fb}.vm .nctile.on{background:#cce4f7;border-color:#7fb6e6}
+.vm .nctile .ncic{grid-row:1/4;font-size:26px;color:#1269ad;align-self:center}.vm .nctile.off .ncic{color:#8a8a8a}
+.vm .nctile span:not(.ncic),.vm .nctile small{grid-column:2;font-size:12px;color:#555}.vm .nctile b{grid-column:2;font-size:13px}
+.vm .ncdlg{max-width:460px;width:100%;max-height:100%;overflow:auto}
+.vm .nclistbox{border:1px solid #bbb;background:#fff;margin:6px 0}
+.vm .ncitem{display:block;width:100%;text-align:left;background:#fff;border:0;color:#1b1b1b;padding:5px 8px;font-size:12px}
+.vm .ncitem.on{background:#cce4f7}
+.vm .wradio{display:block;background:none;border:0;color:inherit;text-align:left;padding:3px 0;font-size:13px}
+.vm .wradio.on{font-weight:600}
+.vm .runbox{max-width:420px;width:100%}
+.vm .ssidlist{margin:6px 0 10px}.vm .ssidrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #e1e5ea;font-size:13px}
+.vm .ssidrow small{display:block;color:#666;font-size:11px}
+.vm input.startsearch{display:block;width:100%;border-radius:20px;color:#172033}
+.vm .ncdlg{padding:14px 16px}
+.vm .ncdlg h3{font-size:15px;line-height:19px;margin:0 0 6px}
+.vm .ncdlg p{font-size:12px;line-height:16px;margin:4px 0}
+.vm .ncdlg .wl{display:grid;grid-template-columns:130px 1fr;align-items:center;gap:8px;margin:3px 0;font-size:12px}
+.vm .ncdlg .wi{height:26px;margin:0}
+.vm .ncdlg .wi:disabled{background:#eee;color:#888}
+.vm .ncdlg .wradio{padding:2px 0;font-size:12px}
+.vm .ncdlg .wbtns{margin-top:10px}
+.vm .ncdlg .wmsg{font-size:12px;padding:4px 8px;margin:6px 0}

@@ -6,7 +6,7 @@ const test = require("node:test");
 const { JSDOM, VirtualConsole } = require("jsdom");
 
 const root = path.join(__dirname, "..");
-const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "net.js", "remote.js", "procure.js", "kb.js", "guide.js", "shell.js", "mobile.js", "render.js", "analytics.js"];
+const scripts = ["state.js", "ui.js", "rules.js", "ad.js", "entra.js", "m365.js", "exchange.js", "intune.js", "vm.js", "net.js", "netui.js", "remote.js", "procure.js", "kb.js", "guide.js", "shell.js", "mobile.js", "render.js", "analytics.js"];
 
 function boot() {
   const html = "<!doctype html><html><head></head><body data-portal=\"m365\"><div id=\"app\"></div><div id=\"intro\"></div>" +
@@ -191,4 +191,107 @@ test("flushdns works and is logged", function () {
   const x = laptop();
   assert.match(run(x, "ipconfig /flushdns"), /Successfully flushed the DNS Resolver Cache/);
   assert.equal(x.n.log.flush, 1);
+});
+
+/* ---- screens ---- */
+function desk(admin) {
+  const x = laptop(), w = x.w;
+  w.S.onboarded = true; w.S.portal = "vm"; w.S.page = "d3";
+  x.d.vm.stage = "desktop"; x.d.vm.oobe = "done";
+  x.d.vm.cur = { kind: "local", name: admin === false ? "Student" : "LocalAdmin" };
+  w.render(); return x;
+}
+function act(x, name, ds) { x.w.A[name](ds || {}); x.w.render(); }
+function typeIn(x, key, val) { x.w.S.vmIn[key] = val; }
+
+test("Run opens Network Connections for ncpa.cpl, and says so when a name is not found", function () {
+  const x = desk();
+  act(x, "vmOpen", { app: "run" });
+  assert.ok(x.w.document.querySelector(".runbox"), "Run box shows");
+  typeIn(x, "runcmd", "nonsense.msc"); act(x, "vmRunGo");
+  assert.match(x.w.document.querySelector(".runbox").textContent, /Windows cannot find 'nonsense\.msc'/);
+  typeIn(x, "runcmd", "NCPA.CPL"); act(x, "vmRunGo");
+  assert.equal(x.d.vm.app, "ncpa");
+  assert.match(x.w.document.querySelector(".ncwin").textContent, /Wi-Fi[\s\S]*Practice-Corp/);
+  assert.equal(x.w.document.querySelector(".runbox"), null, "Run box closed");
+});
+
+test("the Start menu search opens the same things", function () {
+  const x = desk(); act(x, "vmStart");
+  typeIn(x, "startq", "network connections"); act(x, "vmStartGo");
+  assert.equal(x.d.vm.app, "ncpa");
+  assert.equal(x.d.vm.start, false);
+});
+
+test("Network Connections lists the adapters and hides the Wi-Fi adapter when its driver is missing", function () {
+  const x = desk(); act(x, "vmOpen", { app: "ncpa" });
+  let t = x.w.document.querySelector(".nclist").textContent;
+  assert.ok(/Wi-Fi/.test(t) && /Network cable unplugged/.test(t) && /Practice VPN/.test(t));
+  x.d.vm.net.driver = "missing"; x.w.render();
+  t = x.w.document.querySelector(".nclist").textContent;
+  assert.ok(!/Intel\(R\) Wi-Fi 6/.test(t));
+});
+
+test("fixing a static IP in the IPv4 properties: automatic for both, then the laptop gets a lease", function () {
+  const x = desk(); Object.assign(x.d.vm.net, { mode: "static", sIp: "192.168.1.50", sMask: "255.255.255.0", sGw: "192.168.1.1", dnsMode: "manual", dnsManual: "192.168.1.1" });
+  act(x, "vmOpen", { app: "ncpa" }); act(x, "ncProps"); act(x, "ncIpv4");
+  assert.equal(x.w.document.querySelector('[data-vi="ip"]').value, "192.168.1.50", "the old values are shown");
+  act(x, "ncMode", { k: "dhcp" }); act(x, "ncDns", { k: "auto" }); act(x, "ncOk");
+  assert.equal(x.d.vm.net.mode, "dhcp");
+  assert.equal(x.d.vm.net.dnsMode, "auto");
+  assert.match(run(x, "ipconfig /all"), /DHCP Enabled[. ]+: Yes/);
+  assert.match(run(x, "ping google.com"), /bytes=32/);
+});
+
+test("IPv4 properties reject bad addresses and need an administrator", function () {
+  const x = desk(); act(x, "vmOpen", { app: "ncpa" }); act(x, "ncProps"); act(x, "ncIpv4"); act(x, "ncMode", { k: "static" });
+  typeIn(x, "ip", "300.1.1.1"); typeIn(x, "mask", "255.255.255.0"); act(x, "ncOk");
+  assert.match(x.w.document.querySelector(".ncdlg").textContent, /not valid/);
+  assert.equal(x.d.vm.net.mode, "dhcp", "nothing changed");
+  const y = desk(false); act(y, "vmOpen", { app: "ncpa" }); act(y, "ncProps"); act(y, "ncIpv4"); act(y, "ncMode", { k: "static" });
+  typeIn(y, "ip", "192.168.20.50"); typeIn(y, "mask", "255.255.255.0"); act(y, "ncOk");
+  assert.match(y.w.document.querySelector(".ncdlg").textContent, /administrator/);
+  assert.equal(y.d.vm.net.mode, "dhcp");
+});
+
+test("a blank gateway is allowed in a static setup", function () {
+  const x = desk(); act(x, "vmOpen", { app: "ncpa" }); act(x, "ncProps"); act(x, "ncIpv4"); act(x, "ncMode", { k: "static" });
+  typeIn(x, "ip", "192.168.20.77"); typeIn(x, "mask", "255.255.255.0"); typeIn(x, "gw", ""); act(x, "ncOk");
+  assert.equal(x.d.vm.net.mode, "static");
+  assert.match(run(x, "ipconfig /all"), /Default Gateway[. ]+: *\n/);
+});
+
+test("Disable then Enable resets a stale lease; a driver error cannot be fixed here", function () {
+  const x = desk(); x.d.vm.net.lease = { ip: "10.0.5.77", mask: "255.255.255.0", gw: "10.0.5.1", dns: "10.0.5.1" };
+  act(x, "vmOpen", { app: "ncpa" }); act(x, "ncDisable");
+  assert.match(run(x, "ipconfig"), /Media disconnected/);
+  act(x, "ncEnable");
+  assert.equal(x.d.vm.net.lease.ip, x.w.ipFor(x.d));
+  x.d.vm.net.driver = "error43"; x.w.render();
+  assert.match(x.w.document.querySelector(".nclist").textContent, /Disabled/);
+  act(x, "ncEnable");
+  assert.match(x.w.document.querySelector(".ncwin").textContent, /Code 43[\s\S]*Device Manager/);
+  assert.equal(x.d.vm.net.log.wrongToolNcpa, 1);
+});
+
+test("Status shows connectivity and the same details as ipconfig", function () {
+  const x = desk(); act(x, "vmOpen", { app: "ncpa" }); act(x, "ncStatus"); act(x, "ncDetails");
+  const t = x.w.document.querySelector(".ncdlg").textContent;
+  assert.match(t, /IPv4 Connectivity\s*Internet/);
+  assert.ok(t.indexOf(x.w.macFor(x.d)) > -1 && t.indexOf("192.168.20.1") > -1);
+  x.d.vm.net.vpn = "broken"; x.w.render();
+  assert.match(x.w.document.querySelector(".ncdlg").textContent, /No Internet access/);
+});
+
+test("Settings shows the real network state and can forget and rejoin Wi-Fi", function () {
+  const x = desk(); x.d.vm.app = "settings"; x.d.vm.setPage = "network"; x.w.render();
+  assert.match(x.w.document.querySelector(".setbody").textContent, /Automatic \(DHCP\)/);
+  act(x, "vmForgetNet");
+  assert.equal(x.d.vm.ssid, "");
+  assert.match(run(x, "ipconfig"), /Media disconnected/);
+  act(x, "vmJoinNet", { s: "Practice-Corp" });
+  assert.equal(x.d.vm.ssid, "Practice-Corp");
+  assert.match(run(x, "ping 8.8.8.8"), /bytes=32/);
+  x.d.vm.net.env.dhcp = false; act(x, "vmForgetNet"); act(x, "vmJoinNet", { s: "Practice-Corp" });
+  assert.match(run(x, "ipconfig"), /169\.254\./, "rejoining does not fix a DHCP server that is down");
 });
