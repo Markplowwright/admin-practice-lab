@@ -102,3 +102,93 @@ test("netView builds state for a laptop that was saved before this existed", fun
   assert.equal(w.netView(d).nameOk, true);
   assert.ok(d.vm.net, "state was rebuilt");
 });
+
+function admin(x) { x.d.vm.cur = { kind: "local", name: "LocalAdmin" }; return x; }
+function run(x, line) { return x.w.runCmd(x.d, line).join("\n"); }
+function shell(x, line) { return x.w.runPowerShell(x.d, line).join("\n"); }
+
+test("ipconfig /all on a healthy laptop shows DHCP Enabled Yes, the lease, gateway, DNS and this laptop's MAC", function () {
+  const x = laptop(), o = run(x, "ipconfig /all");
+  assert.match(o, /DHCP Enabled[. ]+: Yes/);
+  assert.ok(o.indexOf("192.168.20.1") > -1 && o.indexOf("192.168.20.10") > -1);
+  assert.ok(o.indexOf(x.w.macFor(x.d)) > -1);
+  assert.match(o, /DHCP Server/);
+});
+
+test("static laptop: DHCP Enabled No, and release/renew say no adapter is in the right state", function () {
+  const x = admin(laptop()); Object.assign(x.n, { mode: "static", sIp: "192.168.1.50", sMask: "255.255.255.0", sGw: "192.168.1.1" });
+  assert.match(run(x, "ipconfig /all"), /DHCP Enabled[. ]+: No/);
+  assert.match(run(x, "ipconfig /release"), /no adapter is in the state permissible/);
+  assert.match(run(x, "ipconfig /renew"), /no adapter is in the state permissible/);
+});
+
+test("renew with a working DHCP server gives a lease and the pings work", function () {
+  const x = admin(laptop()); x.n.lease = { ip: "10.0.5.77", mask: "255.255.255.0", gw: "10.0.5.1", dns: "10.0.5.1" };
+  assert.match(run(x, "ping 192.168.20.1"), /Request timed out|unreachable/);
+  run(x, "ipconfig /release"); assert.equal(x.n.lease, null);
+  const o = run(x, "ipconfig /renew");
+  assert.ok(o.indexOf("192.168.20.1") > -1 && /IPv4 Address/.test(o));
+  assert.match(run(x, "ping 192.168.20.1"), /Reply from 192\.168\.20\.1: bytes=32/);
+  assert.match(run(x, "ping 8.8.8.8"), /Reply from 8\.8\.8\.8: bytes=32/);
+  assert.match(run(x, "ping google.com"), /Reply from/);
+});
+
+test("DHCP not answering: renew fails and the laptop sits on 169.254, whatever the learner tries", function () {
+  const x = admin(laptop()); x.n.env.dhcp = false;
+  run(x, "ipconfig /release");
+  assert.match(run(x, "ipconfig /renew"), /unable to contact your DHCP server/);
+  const o = run(x, "ipconfig /all");
+  assert.match(o, /Autoconfiguration IPv4 Address[. ]+: 169\.254\./);
+  assert.match(o, /DHCP Enabled[. ]+: Yes/);
+  x.n.adapterOn = false; x.n.adapterOn = true; x.n.driver = "ok";
+  assert.match(run(x, "ipconfig /renew"), /unable to contact your DHCP server/);
+  assert.doesNotMatch(run(x, "ping 192.168.20.1"), /Reply from 192\.168\.20\.1: bytes/);
+});
+
+test("release and renew need an administrator session", function () {
+  const x = laptop(); x.d.vm.cur = { kind: "local", name: "Student" };
+  assert.match(run(x, "ipconfig /renew"), /requires elevation/);
+});
+
+test("the ping ladder shows what each failure means", function () {
+  const x = laptop();
+  assert.match(run(x, "ping 192.168.20.1"), /Received = 4, Lost = 0/);
+  x.n.vpn = "broken";
+  assert.match(run(x, "ping 192.168.20.1"), /bytes=32/);
+  assert.match(run(x, "ping 8.8.8.8"), /Request timed out/);
+  x.n.vpn = "off"; x.n.dnsMode = "manual"; x.n.dnsManual = "10.99.99.9";
+  assert.match(run(x, "ping 8.8.8.8"), /bytes=32/);
+  assert.match(run(x, "ping google.com"), /could not find host google\.com/);
+  assert.match(run(x, "nslookup google.com"), /timed out/);
+  x.n.dnsMode = "auto";
+  assert.match(run(x, "ping google.com"), /bytes=32/);
+  assert.match(run(x, "nslookup google.com"), /Non-authoritative answer/);
+});
+
+test("a driver error shows Media disconnected and a missing adapter shows no adapter at all", function () {
+  const x = laptop(); x.n.driver = "error43";
+  assert.match(run(x, "ipconfig /all"), /Media disconnected/);
+  assert.match(run(x, "ping 8.8.8.8"), /General failure/);
+  x.n.driver = "missing";
+  assert.doesNotMatch(run(x, "ipconfig /all"), /Wi-Fi/);
+});
+
+test("PowerShell reads the same state as the Command Prompt", function () {
+  const x = laptop();
+  assert.ok(shell(x, "Get-NetIPConfiguration").indexOf(x.w.ipFor(x.d)) > -1);
+  assert.ok(shell(x, "Get-NetAdapter").indexOf(x.w.macFor(x.d)) > -1);
+  x.n.lease = null;
+  assert.match(shell(x, "Get-NetIPConfiguration"), /169\.254\./);
+  x.n.driver = "error43";
+  assert.match(shell(x, "Get-NetAdapter"), /Not Present/);
+  assert.match(shell(x, "Get-NetIPConfiguration"), /Disconnected/);
+  x.n.driver = "ok"; x.n.dnsMode = "manual"; x.n.dnsManual = "10.99.99.9";
+  assert.match(shell(x, "Resolve-DnsName google.com"), /DNS server failure/);
+  assert.match(shell(x, "Test-Connection 8.8.8.8"), /8\.8\.8\.8/);
+});
+
+test("flushdns works and is logged", function () {
+  const x = laptop();
+  assert.match(run(x, "ipconfig /flushdns"), /Successfully flushed the DNS Resolver Cache/);
+  assert.equal(x.n.log.flush, 1);
+});
