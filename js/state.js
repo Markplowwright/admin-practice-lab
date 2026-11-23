@@ -1,6 +1,6 @@
 "use strict";
 
-var DOMAIN="practicetenant.onmicrosoft.com",AD_DOMAIN="practice.local",KEY="adminPracticeLabV4",TENANT="7c1e4a52-9b3d-4f08-a1e6-5d2c8b90f3a7",STATE_VERSION=11;
+var DOMAIN="practicetenant.onmicrosoft.com",AD_DOMAIN="practice.local",KEY="adminPracticeLabV4",TENANT="7c1e4a52-9b3d-4f08-a1e6-5d2c8b90f3a7",STATE_VERSION=12;
 var uid=100,navReset=false;function nid(p){uid+=1;return p+uid;}
 function maxIdNum(id){var m=String(id==null?"":id).match(/(\d+)\s*$/);return m?parseInt(m[1],10):0;}
 function syncUid(s){var max=100;function see(id){var n=maxIdNum(id);if(n>max){max=n;}}
@@ -103,6 +103,10 @@ var MIGRATIONS=[
     /* Entra Finance had Sam but AD Finance did not, so the first sync silently removed him. Line them up. */
     var ag=o.ad&&(o.ad.groups||[]).filter(function(g){return g.id==="adg1";})[0],cg=(o.groups||[]).filter(function(g){return g.id==="g1";})[0];
     if(ag&&cg&&ag.members.indexOf("adu2")<0&&cg.members.indexOf("u2")>-1){ag.members.push("adu2");}
+  }},
+  {to:12,run:function(o){
+    /* each virtual laptop gets network state (adapter, driver, IPv4, lease); ensureVm builds it from the device the first time it is needed */
+    (o.devices||[]).forEach(function(d){if(d.vm&&d.vm.net===undefined){d.vm.net=null;}});
   }}
 ];
 function migrate(o){

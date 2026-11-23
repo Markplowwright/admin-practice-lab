@@ -32,6 +32,7 @@ function ensureVm(d){
   if(v.showHidden===undefined){v.showHidden=false;}
   if(v.showExt===undefined){v.showExt=false;}
   if(v.cmdGuide===undefined){v.cmdGuide=false;}
+  if(!v.net){v.net=freshNet(d);}
   return v;
 }
 function curDev(){return D(S.page);}
@@ -394,7 +395,7 @@ function cmdPrompt(d){return "C:\\Users\\"+terminalUser(d)+">";}
 function psPrompt(d){return "PS C:\\Users\\"+terminalUser(d)+"> ";}
 function networkTarget(parts){for(var i=1;i<parts.length;i++){if(parts[i].charAt(0)!=="-"&&parts[i].charAt(0)!=="/"&&!/^\d+$/.test(parts[i])){return parts[i];}}return "";}
 function resolvedIp(target){if(/^\d{1,3}(\.\d{1,3}){3}$/.test(target)){return target;}var n=0;for(var i=0;i<target.length;i++){n+=target.charCodeAt(i)*(i+1);}return "20."+(20+n%180)+"."+(10+n%220)+"."+(5+n%240);}
-function noNetwork(d){return !d.vm.ssid;}
+function noNetwork(d){return !netView(d).link;}
 function requireTarget(name,target){return target?null:["Usage: "+name+" <host name or IP address>"];}
 function elevated(d){return isAdminSess(d);}
 function localUsers(d){return d.vm.locals.map(function(x){return x.name;}).concat(["Administrator","DefaultAccount","Guest","WDAGUtilityAccount"]);}
