@@ -47,7 +47,7 @@ function dmDialog(d){
 }
 function dmAdmin(d){var dm=dmEnsure(d.vm);if(!isAdminSess(d)){dm.msg="You need to be signed in as an administrator to change devices. Sign out and sign in as LocalAdmin.";return false;}dm.msg="";return true;}
 A.dmSel=function(ds){var dm=dmEnsure(curDev().vm);dm.sel=ds.id;dm.msg=ds.id==="wifi"?"":"Only the Wi-Fi adapter can be opened in this lab.";};
-A.dmProps=function(){var dm=dmEnsure(curDev().vm);dm.dlg="props";dm.tab="general";dm.msg="";};
+A.dmProps=function(){var dm=dmEnsure(curDev().vm);netLog(curDev(),"dmOpen");dm.dlg="props";dm.tab="general";dm.msg="";};
 A.dmTab=function(ds){var dm=dmEnsure(curDev().vm);dm.tab=ds.k;dm.msg="";};
 A.dmClose=function(){var dm=dmEnsure(curDev().vm);dm.dlg=null;dm.msg="";};
 A.dmCloseUpd=function(){var dm=dmEnsure(curDev().vm);dm.dlg=(dm.back||null);dm.back=null;};

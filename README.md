@@ -31,7 +31,7 @@ The first time you open it, a welcome page and a 3-minute tour explain the six p
 | 5. Hybrid identity | Active Directory users and groups, OU sync scope, Entra Connect, Group Policy, domain and hybrid join, and help-desk scenarios |
 | 6. Procurement and imaging | Order a laptop or desktop and receive it by serial number, image it from USB or over PXE, set the BIOS boot order, zero-touch setup with Autopilot, install the support agent |
 
-There are 21 guided missions with 73 guided steps, plus 14 real-world tickets. Every guided step names the portal and menu path and has a **Go there** button. A step is checked off when you actually do it in the lab, and when you finish a mission the guide explains **why it works that way**.
+There are 21 guided missions with 73 guided steps, plus 21 real-world tickets, including seven Windows networking tickets in Level 7 "Interview practice". Every guided step names the portal and menu path and has a **Go there** button. A step is checked off when you actually do it in the lab, and when you finish a mission the guide explains **why it works that way**.
 
 ## Procurement, imaging and remote support
 

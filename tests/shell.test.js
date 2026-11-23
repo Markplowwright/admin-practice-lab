@@ -233,7 +233,7 @@ test("clicking map cards opens the matching tool", function () {
 test("with no ticket open the map has a ticket queue and Start opens that ticket", function () {
   const w = boot(); w.S.onboarded = true; w.S.portal = "env"; w.S.page = "map"; w.render(); const d = w.document;
   assert.match(d.querySelector(".dock").textContent, /Ticket queue/);
-  assert.equal(d.querySelectorAll(".dock .tk").length, 14);
+  assert.equal(d.querySelectorAll(".dock .tk").length, 21);
   assert.ok(d.body.classList.contains("dock-open"));
   d.querySelector('.dock [data-a="startScenario"][data-id="s3"]').click();
   assert.equal(w.S.scenarios.active, "s3");
@@ -281,8 +281,8 @@ test("Learn replaces the Missions and guide panel", function () {
   w.A.go({ p: "learn", pg: "path" }); w.render();
   assert.match(d.querySelector("#main").textContent, /Training path/);
   assert.match(d.querySelector("#main").textContent, /0 of 73/);
-  assert.match(d.querySelector("#main").textContent, /0 of 14/);
-  assert.equal(d.querySelectorAll(".learn .lvl").length, 6);
+  assert.match(d.querySelector("#main").textContent, /0 of 21/);
+  assert.equal(d.querySelectorAll(".learn .lvl").length, 7);
   assert.equal(d.querySelector(".learn [data-a=\"startMission\"]").disabled, false);
 });
 
