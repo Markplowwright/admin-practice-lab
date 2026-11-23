@@ -90,3 +90,15 @@ test("saves from before ticket notes get an empty notes map", function () {
   assert.deepEqual(m.scenarios.notes, {});
   assert.equal(m.version, lab.STATE_VERSION);
 });
+
+test("saves from before laptop network state keep their laptops and get the new field", function () {
+  const lab = boot(memoryStorage());
+  const saved = JSON.parse(JSON.stringify(lab.seed()));
+  saved.version = 11;
+  saved.devices[2].vm = { stage: "desktop", ssid: "Practice-Corp" };
+  const m = lab.migrate(saved);
+  assert.equal(m.version, lab.STATE_VERSION);
+  assert.equal(m.devices[2].vm.ssid, "Practice-Corp", "existing laptop data is untouched");
+  assert.ok("net" in m.devices[2].vm);
+  assert.equal(m.devices[0].vm, undefined, "laptops that were never opened stay as they were");
+});
