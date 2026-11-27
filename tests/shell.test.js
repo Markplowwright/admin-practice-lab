@@ -710,3 +710,14 @@ test("start page: every level card opens the right level, the tickets card opens
   assert.equal(w.S.portal, "env");
   assert.equal(w.document.querySelector(".dock").getAttribute("aria-label"), "Ticket queue");
 });
+
+test("phone view: Learning Hub name and the Level 7 tickets are listed under Level 7", function () {
+  const w = boot(); w.S.onboarded = true;
+  w.PH.s = "home"; w.render();
+  assert.ok(!/Learn path/.test(w.phHome()), "old name is gone");
+  assert.match(w.phHome(), /Learning Hub/);
+  const html = w.phLearn();
+  assert.match(html, /Level 7: Interview practice/);
+  assert.equal((html.match(/data-s="tickets"/g) || []).length, 7);
+  assert.match(html, /#1054 /);
+});
