@@ -16,7 +16,7 @@ block:"M8 2.5a5.5 5.5 0 1 1-.01 0M4 4l8 8",signout:"M6 3H3v10h3M9 5.5L12 8l-3 2.
 lock:"M4.5 7.5h7v5.5h-7zM6 7.5V5.5a2 2 0 1 1 4 0v2",globe:"M8 2.5a5.5 5.5 0 1 1-.01 0M2.5 8h11M8 2.5c2 1.5 2 9.5 0 11M8 2.5c-2 1.5-2 9.5 0 11",x:"M4 4l8 8M12 4l-8 8",play:"M5 3.5l7 4.5-7 4.5z",
 edit:"M3 13l.5-3L11 2.5l2.5 2.5L6 12.5zM9.5 4l2.5 2.5",restart:"M3 8a5 5 0 1 0 1.5-3.5M3 2.5V5h2.5",folder:"M2.5 4.5h4l1.5 1.5h5.5v6.5h-11z",
 filter:"M2.5 3.5h11l-4.2 5v4l-2.6-1.2v-2.8z",columns:"M2.5 3.5h11v9h-11zM6.5 3.5v9M10 3.5v9",help:"M6 6a2 2 0 1 1 3 1.7c-.7.5-1 .9-1 1.8M8 12h.01",
-book:"M3 3h5v10H3zM8 3h5v10H8z"};
+book:"M3 3h5v10H3zM8 3h5v10H8z",hub:"M1.5 6 8 3l6.5 3L8 9zM4 7.5v3c0 1.4 8 1.4 8 0v-3"};
 function ico(n){return '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="'+(IC[n]||IC.help)+'"/></svg>';}
 
 /* ---------- glossary (info popovers) ---------- */

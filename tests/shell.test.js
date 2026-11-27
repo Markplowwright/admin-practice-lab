@@ -277,7 +277,7 @@ test("Learn replaces the Missions and guide panel", function () {
   const d = w.document;
   assert.equal(d.querySelector(".guide"), null);
   assert.doesNotMatch(d.querySelector(".wsbar").textContent, /Missions and guide|Walk through/);
-  assert.match(d.querySelector(".wsbar").textContent, /Learn 0 of 73/);
+  assert.match(d.querySelector(".wsbar").textContent, /Learning Hub 0 of 73/);
   w.A.go({ p: "learn", pg: "path" }); w.render();
   assert.match(d.querySelector("#main").textContent, /Training path/);
   assert.match(d.querySelector("#main").textContent, /0 of 73/);
@@ -671,4 +671,42 @@ test("flyouts stop at the ticket panel instead of sitting under it", function ()
   assert.strictEqual(fly[1], dock[1]);
   assert.strictEqual(fly[2], dock[1]);
   assert.ok(/@media \(max-width:900px\)\{body\.dock-open \.fly\{right:0;width:100%;z-index:3[6-9]\}\}/.test(css), "narrow windows show the flyout above the panel");
+});
+
+test("Level 7 buttons: a pinned mission no longer hides the ticket queue", function () {
+  const w = boot(); w.S.onboarded = true; w.S.mission = "Onboard Priya Nair";
+  w.A.go({ p: "learn", pg: "path" }); w.render();
+  const sec = w.document.querySelector("#lvl-7");
+  assert.ok(sec, "Level 7 section has an id to scroll to");
+  assert.equal(sec.querySelectorAll("[data-a=\"startNetTicket\"]").length, 7);
+  w.A.ticketQueue({ n: 7 }); w.render();
+  assert.equal(w.S.mission, null);
+  assert.equal(w.document.querySelector(".dock").getAttribute("aria-label"), "Ticket queue");
+  assert.match(w.document.querySelector("#tkl7").textContent, /Level 7: Interview practice/);
+  assert.match(w.document.querySelector("#tkl5").textContent, /Level 5: Hybrid identity/);
+  assert.equal(w.document.querySelectorAll(".dock .tk").length, 21);
+});
+
+test("starting a Level 7 ticket opens the spare laptop with the ticket pinned and the map outlines it", function () {
+  const w = boot(); w.S.onboarded = true;
+  w.A.startNetTicket({ id: "s15" }); w.render();
+  assert.equal(w.S.portal, "vm"); assert.equal(w.S.page, "d3");
+  assert.equal(w.document.querySelector(".dock").getAttribute("aria-label"), "Ticket");
+  w.A.go({ p: "env", pg: "map" }); w.render();
+  assert.ok(w.document.querySelector(".mapc.need"), "the spare laptop is outlined on the map");
+});
+
+test("start page: every level card opens the right level, the tickets card opens the queue", function () {
+  const w = boot(); w.S.portal = "start"; w.S.page = "home"; w.render();
+  const cards = Array.from(w.document.querySelectorAll(".scards button.scard"));
+  assert.equal(cards.length, 6);
+  assert.deepEqual(cards.map(function (c) { return c.getAttribute("data-a") + ":" + (c.getAttribute("data-n") || ""); }),
+    ["levelGo:1", "levelGo:4", "levelGo:5", "levelGo:6", "levelGo:7", "ticketQueue:"]);
+  w.A.levelGo({ n: "7" }); w.render();
+  assert.equal(w.S.portal, "learn");
+  assert.match(w.document.querySelector("h2.ptitle").textContent, /Learning Hub/);
+  assert.ok(w.document.querySelector("#lvl-7"));
+  w.S.mission = "x"; w.A.ticketQueue(); w.render();
+  assert.equal(w.S.portal, "env");
+  assert.equal(w.document.querySelector(".dock").getAttribute("aria-label"), "Ticket queue");
 });

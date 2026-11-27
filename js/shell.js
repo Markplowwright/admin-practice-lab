@@ -30,14 +30,15 @@ function taskbar(){
     tb("Virtual PC","device",'data-a="go" data-p="vm" data-pg="d2"',S.portal==="vm")+
     tb("Knowledge base","book",'data-a="go" data-p="kb" data-pg="home"',S.portal==="kb")+
     tb("Toolkit","search",'data-a="go" data-p="tools" data-pg="links"',S.portal==="tools")+
-    tb("Learn "+trainProgress()[0]+" of "+trainProgress()[1],"help",'data-a="go" data-p="learn" data-pg="path"',S.portal==="learn")+
+    tb("Learning Hub "+trainProgress()[0]+" of "+trainProgress()[1],"hub",'data-a="go" data-p="learn" data-pg="path"',S.portal==="learn")+
     '<span class="sp"></span>'+
     '<button type="button" class="tbi tbtheme" data-a="theme" aria-label="Change theme" title="'+themeLabel()+'"><span>\u25D0</span></button><span class="tbnote">Simulated. Not the real portals.</span></div>';
 }
 /* Which systems each ticket needs. Used to outline them on the map. */
 var NEEDS={
   s1:["dc01"],s2:["dc01","entra"],s3:["dc01","entra","m365","d3"],s4:["dc01","entra","m365","intune","d1"],s5:["dc01","files01","d3"],
-  s6:["dc01","d3"],s7:["dc01","d3"],s8:["dc01","entra"],s9:["dc01","entra"],s10:["dc01","entra","exchange"],s11:["d1"],s12:["bench"],s13:["bench","intune"],s14:["bench"]
+  s6:["dc01","d3"],s7:["dc01","d3"],s8:["dc01","entra"],s9:["dc01","entra"],s10:["dc01","entra","exchange"],s11:["d1"],s12:["bench"],s13:["bench","intune"],s14:["bench"],
+  s15:["d3"],s16:["d3"],s17:["d3"],s18:["d3"],s19:["d3"],s20:["d3","dc01"],s21:["d3"]
 };
 function deviceBadge(d){
   if(!d){return "";}
@@ -99,7 +100,9 @@ function ticketNo(id){return 1039+parseInt(id.slice(1),10);}
 function pickerDock(){
   var h='<aside class="dock" aria-label="Ticket queue"><div class="dtop"><b>Ticket queue</b><span>'+SCENARIOS.filter(function(x){return S.scenarios.completed[x.id];}).length+' of '+SCENARIOS.length+' resolved</span></div>'+
     '<p class="dq">Pick a ticket to work. Each one is isolated, so your main lab progress is never changed.</p>';
-  SCENARIOS.forEach(function(x){var done=!!S.scenarios.completed[x.id];
+  var lastLv=0;
+  SCENARIOS.forEach(function(x){var done=!!S.scenarios.completed[x.id],lv=x.lvl||5;
+    if(lv!==lastLv){lastLv=lv;h+='<h4 class="tkl" id="tkl'+lv+'">Level '+lv+': '+esc(LEVELS.filter(function(L){return L.n===lv;})[0].name)+'</h4>';}
     h+='<div class="tk"><div class="tkh"><b>#'+ticketNo(x.id)+' '+esc(x.title)+'</b></div><div class="tkb">'+badge(x.difficulty,x.difficulty==="Hard"?"bad":x.difficulty==="Medium"?"warn":"ok")+(done?badge("Resolved","ok"):"")+'</div><p>'+esc(x.ticket)+'</p>'+B(done?"Practice again":"Start ticket","startScenario",{sm:1,primary:!done,d:{id:x.id}})+'</div>';});
   return h+'</aside>';
 }
@@ -142,16 +145,22 @@ function startHtml(){
   var pr=progress(),active=S.scenarios.active,sc=active?SCENARIOS.filter(function(x){return x.id===active;})[0]:null,m=nextMission(levelsView());
   var primary=pr[0]>0&&m?'<button type="button" class="sbtn primary" data-a="introStart">Continue: '+esc(m.t)+'</button>':'<button type="button" class="sbtn primary" data-a="introStart">Start Level 1</button>';
   var resume=sc?'<button type="button" class="sbtn" data-a="go" data-p="env" data-pg="map">Resume ticket #'+ticketNo(sc.id)+': '+esc(sc.title)+'</button>':'<button type="button" class="sbtn" data-a="go" data-p="env" data-pg="map">Open the environment</button>';
-  function card(k,t,x){return '<div class="scard"><div class="sk">'+esc(k)+'</div><b>'+esc(t)+'</b><span>'+esc(x)+'</span></div>';}
-  return '<div class="start"><div class="sbar"><b>Admin Practice Lab</b><nav><button type="button" data-a="go" data-p="env" data-pg="map">Environment</button><button type="button" data-a="guide-open">Learn</button><button type="button" data-a="go" data-p="env" data-pg="map">Scenarios</button><button type="button" data-a="go" data-p="tools" data-pg="links">Toolkit</button><button type="button" data-a="theme" aria-label="Change theme" data-spot="Theme">'+themeLabel()+'</button></nav></div>'+
+  function card(k,t,x,act){return '<button type="button" class="scard link" '+act+'><div class="sk">'+esc(k)+'</div><b>'+esc(t)+'</b><span>'+esc(x)+'</span></button>';}
+  function lvl(n){return 'data-a="levelGo" data-n="'+n+'"';}
+  return '<div class="start"><div class="sbar"><b>Admin Practice Lab</b><nav><button type="button" data-a="go" data-p="env" data-pg="map">Environment</button><button type="button" data-a="guide-open">Learning Hub</button><button type="button" data-a="go" data-p="env" data-pg="map">Scenarios</button><button type="button" data-a="go" data-p="tools" data-pg="links">Toolkit</button><button type="button" data-a="theme" aria-label="Change theme" data-spot="Theme">'+themeLabel()+'</button></nav></div>'+
    '<div class="sbody"><h1>Learn hybrid IT administration by doing it.</h1><p class="slead">A free practice workstation with Active Directory, Microsoft 365, Entra, Intune and Exchange wired together. Work real tickets. Nothing real to break.</p>'+
    '<div class="sact">'+primary+resume+'<button type="button" class="sbtn link" data-a="startTour">Take the walk through</button></div>'+
-   '<div class="scards">'+card("Levels 1 to 3","Microsoft 365 admin","Onboarding, offboarding, compromised accounts and MFA.")+card("Level 4","Intune and laptops","Autopilot, BitLocker, apps, and joining a laptop by hand.")+card("Level 5","Hybrid identity","Remote into DC01: AD, sync, Group Policy and hybrid join.")+card("Level 6","Procurement and imaging","Order a laptop or desktop, image it by USB or PXE, use the BIOS, Autopilot.")+card("Level 7","Interview practice","Windows networking: IP, DHCP, DNS, drivers and escalation notes.")+card(SCENARIOS.length+" tickets","Help desk scenarios","Lockouts, trust failures, network faults. Isolated from your lab.")+'</div>'+
+   '<div class="scards">'+card("Levels 1 to 3","Microsoft 365 admin","Onboarding, offboarding, compromised accounts and MFA.",lvl(1))+card("Level 4","Intune and laptops","Autopilot, BitLocker, apps, and joining a laptop by hand.",lvl(4))+card("Level 5","Hybrid identity","Remote into DC01: AD, sync, Group Policy and hybrid join.",lvl(5))+card("Level 6","Procurement and imaging","Order a laptop or desktop, image it by USB or PXE, use the BIOS, Autopilot.",lvl(6))+card("Level 7","Interview practice","Windows networking: IP, DHCP, DNS, drivers and escalation notes.",lvl(7))+card(SCENARIOS.length+" tickets","Help desk scenarios","Lockouts, trust failures, network faults. Isolated from your lab.",'data-a="ticketQueue"')+'</div>'+
    '<div class="srow2"><button type="button" class="scard link" data-a="go" data-p="tools" data-pg="links"><b>Toolkit</b><span>Links to the real tools: MXToolbox, IP lookup, message header analyzer and more.</span></button><button type="button" class="scard link" data-a="go" data-p="kb" data-pg="home"><b>Knowledge base</b><span>Searchable how-to articles. The write-up for each ticket opens once you resolve it.</span></button></div></div>'+
    '<div class="sdisc">A learning simulator. Not affiliated with Microsoft, Jamf or Google. All users, passwords and domains are fake. Progress is saved in this browser only.</div></div>';
 }
 PAGES["start.home"]=function(){return "";};
 A.ttab=function(d){S.toolTab=d.t;};
+function scrollToId(id){setTimeout(function(){var e=document.getElementById(id);if(e&&e.scrollIntoView){e.scrollIntoView({block:"start"});}},0);}
+A.levelGo=function(d){S.portal="learn";S.page="path";S.learnTab="path";resetNav();navReset=true;scrollToId("lvl-"+d.n);};
+/* Opens the ticket queue. A pinned mission would otherwise keep its own panel on the right, so it is unpinned first. */
+A.ticketQueue=function(d){S.mission=null;S.portal="env";S.page="map";resetNav();navReset=true;if(d&&d.n){scrollToId("tkl"+d.n);}};
+A.startNetTicket=function(d){A.startScenario({id:d.id});S.portal="vm";S.page="d3";resetNav();navReset=true;};
 A["guide-open"]=function(){S.portal="learn";S.page="path";S.learnTab="path";resetNav();navReset=true;};
 function themeChoice(){var c=document.documentElement.getAttribute("data-theme-choice");return c==="light"||c==="dark"?c:"auto";}
 function themeLabel(){var c=themeChoice();return c==="auto"?"Theme: Auto":c==="light"?"Theme: Light":"Theme: Dark";}
