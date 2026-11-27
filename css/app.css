@@ -86,7 +86,7 @@ body[data-portal="start"]{padding:0;background:#f6f7f9}
 .sbtn.primary{background:#0f6cbd;border-color:#0f6cbd;color:#fff}
 .sbtn.primary:hover{background:#115ea3}
 .sbtn.link{background:none;border:0;text-decoration:underline}
-.scards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+.scards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .srow2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
 .scard{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:6px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:20px;color:#242424}
 .scard b{font-size:18px;font-weight:600}
@@ -927,3 +927,10 @@ body[data-portal="vm"] .shell>.content{padding-bottom:12px}
 .vm .dmrow{display:flex;align-items:center;gap:6px;width:100%;text-align:left;background:none;border:0;color:#1b1b1b;padding:3px 4px 3px 32px;font-size:13px}
 .vm .dmrow:hover{background:#e9f2fb}.vm .dmrow.on{background:#cce4f7}
 .dmic{width:18px;color:#555}.dmic .warn{font-style:normal;color:#b58300}
+
+button.scard{font:inherit;cursor:pointer;width:100%}
+button.scard.link:focus-visible{outline:2px solid #0f6cbd;outline-offset:2px}
+.dock .tkl{margin:14px 0 2px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border-top:2px solid var(--line);padding-top:10px}
+.dock .tkl:first-of-type{margin-top:8px}
+.lvl .mis .tk{border-top:1px solid var(--line);padding:10px 0;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.lvl .mis .tk .tkh{flex:1 1 220px}

@@ -398,6 +398,13 @@ function learnMissionHtml(m,next){
     '<div class="tools">Tools: '+toolsOf(m).map(function(p){return '<b class="tag '+p+'">'+esc(PNAME[p])+'</b>';}).join(" ")+'</div>'+
     '<div class="btnrow">'+B(all?"Review mission":(n?"Continue mission":"Start mission"),"startMission",{sm:1,primary:next&&next.t===m.t?1:0,dis:lock,d:{t:m.t}})+'</div></div>';
 }
+function l7TicketsHtml(){
+  var lock=!!S.scenarios.active;
+  return '<div class="mis"><h3>Interview practice tickets</h3><p>Seven Windows networking tickets on the spare virtual laptop. Sign in as LocalAdmin. Starting one opens the laptop with the ticket pinned on the right.</p>'+
+    SCENARIOS.filter(function(s){return s.lvl===7;}).map(function(s){var done=!!S.scenarios.completed[s.id];
+      return '<div class="tk"><div class="tkh"><b>#'+ticketNo(s.id)+' '+esc(s.title)+'</b></div><div class="tkb">'+badge(s.difficulty,s.difficulty==="Hard"?"bad":s.difficulty==="Medium"?"warn":"ok")+(done?badge("Resolved","ok"):"")+'</div>'+B(done?"Practice again":"Start ticket","startNetTicket",{sm:1,primary:!done,dis:lock,d:{id:s.id}})+'</div>';}).join("")+
+    '<div class="btnrow">'+B("See them in the ticket queue","ticketQueue",{sm:1,d:{n:7}})+'</div></div>';
+}
 PAGES["learn.path"]=function(){
   var tp=trainProgress(),kp=ticketProgress(),lv=learnLevels(),next=nextMission(levelsView()),tab=S.learnTab||"path",body;
   if(tab==="tour"){
@@ -408,11 +415,11 @@ PAGES["learn.path"]=function(){
       (alldone?'<div class="fin"><b>All levels complete.</b>You finished every mission and ticket. <button type="button" class="lnk" data-a="finish">View your summary</button></div>':"")+
       '<div class="map"><b>Which tool for what</b><br>Active Directory: on-premises users, groups, computers, OUs, Group Policy, and directory sync.<br>Microsoft 365 admin center: people, licenses, mail forwarding and files.<br>Entra admin center: synced identity, sign-in security, MFA, roles, groups, and the MDM setting.<br>Intune admin center: laptops, policies, apps, Autopilot.<br>Exchange admin center: mailboxes and mail flow.<br>Windows laptop (virtual): setup, domain or Entra join, Command Prompt, Group Policy, and troubleshooting.</div>'+
       lv.map(function(L){var lp=L.tot?Math.round(L.done/L.tot*100):0;
-        return '<section class="lvl card'+(L.complete?' done':'')+'" aria-label="Level '+L.n+'"><h3>Level '+L.n+': '+esc(L.name)+'<span class="ct">'+(L.complete?'Complete':L.done+' of '+L.tot+' steps')+'</span></h3><p>'+esc(L.d)+'</p><div class="meter" role="progressbar" aria-label="Level '+L.n+' progress" aria-valuenow="'+lp+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+lp+'%"></i></div>'+
+        return '<section class="lvl card'+(L.complete?' done':'')+'" id="lvl-'+L.n+'" aria-label="Level '+L.n+'"><h3>Level '+L.n+': '+esc(L.name)+'<span class="ct">'+(L.complete?'Complete':L.done+' of '+L.tot+' steps')+'</span></h3><p>'+esc(L.d)+'</p><div class="meter" role="progressbar" aria-label="Level '+L.n+' progress" aria-valuenow="'+lp+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+lp+'%"></i></div>'+
           L.ms.map(function(m){return learnMissionHtml(m,next);}).join("")+
-          ((L.n===5||L.n===7)?'<div class="callout"><b>'+(L.n===7?'Interview practice runs as tickets. Start with the networking tickets in the ticket queue.':'Real-world tickets live in the ticket queue.')+'</b> '+B("Go to ticket queue","go",{sm:1,primary:1,d:{p:"env",pg:"map"}})+'</div>':"")+'</section>';}).join("");
+          (L.n===7?l7TicketsHtml():"")+(L.n===5?'<div class="callout"><b>Real-world tickets live in the ticket queue.</b> '+B("Go to ticket queue","ticketQueue",{sm:1,primary:1,d:{n:5}})+'</div>':"")+'</section>';}).join("");
   }
-  return '<div class="learn"><div class="lhead"><div><h2 class="ptitle">Learn: Training path</h2><p class="psub">Guided missions that teach one tool at a time. Starting a mission opens the right place and pins its steps on the right.</p></div>'+
+  return '<div class="learn"><div class="lhead"><div><h2 class="ptitle">Learning Hub</h2><p class="psub">Guided missions that teach one tool at a time. Starting a mission opens the right place and pins its steps on the right.</p></div>'+
     '<div class="lstats"><div class="stat"><span>Training</span><b>'+tp[0]+' of '+tp[1]+'</b><i>mission steps</i></div><div class="stat"><span>Tickets</span><b>'+kp[0]+' of '+kp[1]+'</b><button type="button" class="lnk" data-a="go" data-p="env" data-pg="map">Open ticket queue</button></div></div></div>'+
     tabs([["path","Training path"],["tour","Introduction walk through"]],tab,"ltab")+body+'</div>';
 };

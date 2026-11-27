@@ -40,7 +40,7 @@ function phProgress(){
 }
 function phHome(){
   var p=phProgress(),res=SCENARIOS.filter(function(x){return S.scenarios.completed[x.id];}).length;
-  var tiles=[["learn","Learn path","7 levels, 21 missions"],["tickets","Tickets",SCENARIOS.length+" help-desk tickets"],["kb","Knowledge base","How-to articles"],["tools","Toolkit","Real tools admins use"]];
+  var tiles=[["learn","Learning Hub","7 levels, 21 missions, 7 networking tickets"],["tickets","Tickets",SCENARIOS.length+" help-desk tickets"],["kb","Knowledge base","How-to articles"],["tools","Toolkit","Real tools admins use"]];
   return phTitleBar("","Admin Practice Lab")+
    '<main class="ph-main"><section class="ph-hero"><h2>Practice IT admin work with nothing to break</h2><p>A free simulator of Active Directory, Microsoft 365, Entra, Intune and Exchange. Hands-on practice runs on a laptop. On your phone you can read the lessons, the tickets and the articles.</p>'+
    '<div class="ph-prog"><b>'+p[0]+' of '+p[1]+'</b> steps done &middot; <b>'+res+' of '+SCENARIOS.length+'</b> tickets resolved</div></section>'+
@@ -57,9 +57,10 @@ function phLearn(){
       return phTitleBar("learn","Mission")+'<main class="ph-main"><h2 class="ph-h">'+esc(m.t)+'</h2><p>'+esc(m.w)+'</p><ol class="ph-steps">'+m.s.map(function(x){return '<li class="'+(x[1]?'done':'')+'"><span>'+esc(x[0])+'</span><em>'+esc((x[2]&&x[2][2])||"")+'</em></li>';}).join("")+'</ol>'+(m.why?'<h3 class="ph-sec">Why it works this way</h3><p>'+esc(m.why)+'</p>':'')+'<p class="ph-note">To do the steps, open the lab on a laptop. Progress carries over.</p></main>';
     }
   }
-  return phTitleBar("home","Learn path")+'<main class="ph-main">'+lv.map(function(L){
+  return phTitleBar("home","Learning Hub")+'<main class="ph-main">'+lv.map(function(L){
     return '<section class="ph-card"><h2>Level '+L.n+': '+esc(L.name)+'</h2><p>'+esc(L.d)+'</p><div class="ph-prog">'+L.done+' of '+L.tot+' steps</div>'+
-      L.ms.map(function(x){var d=x.s.filter(function(y){return y[1];}).length;return '<button type="button" class="ph-row" data-a="phGo" data-s="learn" data-m="'+esc(x.t)+'"><b>'+esc(x.t)+'</b><span>'+d+' of '+x.s.length+' steps</span></button>';}).join("")+'</section>';}).join("")+'</main>';
+      L.ms.map(function(x){var d=x.s.filter(function(y){return y[1];}).length;return '<button type="button" class="ph-row" data-a="phGo" data-s="learn" data-m="'+esc(x.t)+'"><b>'+esc(x.t)+'</b><span>'+d+' of '+x.s.length+' steps</span></button>';}).join("")+
+      SCENARIOS.filter(function(x){return x.lvl===L.n;}).map(function(x){var dn=!!S.scenarios.completed[x.id];return '<button type="button" class="ph-row" data-a="phGo" data-s="tickets" data-id="'+x.id+'"><b>#'+ticketNo(x.id)+' '+esc(x.title)+'</b><span>'+esc(x.difficulty)+' &middot; '+(dn?'Resolved':'Open')+'</span></button>';}).join("")+'</section>';}).join("")+'</main>';
 }
 function phTickets(){
   if(PH.id){
